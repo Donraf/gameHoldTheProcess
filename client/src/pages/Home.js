@@ -1,4 +1,6 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import { InteractionItem } from 'chart.js';
+import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button,
@@ -6,19 +8,84 @@ import {
     Toolbar,
     Typography
 } from "@mui/material";
+import {
+    Chart as ChartJS,
+    LinearScale,
+    CategoryScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    Legend,
+    Tooltip,
+} from 'chart.js';
+import {
+    Chart,
+    getDatasetAtEvent,
+    getElementAtEvent,
+    getElementsAtEvent,
+} from 'react-chartjs-2';
 
 import NavBarDrawer from "../components/NavBarDrawer";
-import ExperimentsGrid from "../components/ExperimentsGrid";
 import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
-import {HOME_ROUTE, LOGIN_ROUTE, USER_ADD_EXPERIMENT_ROUTE} from "../utils/constants";
+import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
-import {fetchExperiments} from "../http/experimentsAPI";
+
+ChartJS.register(
+    LinearScale,
+    CategoryScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    Legend,
+    Tooltip
+);
+
+export const options = {
+    animations: {
+      x: {
+          duration: 1000,
+      },
+      y: {
+          duration: 0,
+      }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            min: 0,
+            max: 1
+        },
+    },
+};
 
 const Home = observer( () => {
-    const {user, experiments} = useContext(Context);
-    const navigate = useNavigate();
+    const [time, setTime] = useState(Date.now());
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            chartData.generateNextSet();
+            setUpdateTrigger(!updateTrigger);
+            setTime(Date.now())
+            },
+            1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    const chartRef = useRef<ChartJS>(null);
+
+    const onClick = (event: MouseEvent<HTMLCanvasElement>) => {
+        const { current: chart } = chartRef;
+        if (!chart) {
+            return;
+        }
+    };
+
+    const {user} = useContext(Context);
+    const navigate = useNavigate();
+    const [chartData, setChartData] = useState(new ChartData());
     const [updateTrigger, setUpdateTrigger] = useState(false);
     const [isDataFetched, setIsDataFetched] = useState(false);
     const [filterInput, setFilterInput] = useState("");
@@ -31,21 +98,15 @@ const Home = observer( () => {
     }
 
     useEffect(() => {
-        setIsDataFetched(false);
-        fetchExperiments().then(data => {
-                experiments.setExperiments(data);
-                filterData();
-                setIsDataFetched(true);
-            }
-        )
+        // setIsDataFetched(false);
     }, [updateTrigger])
 
     const filterData = () => {
-        if (filterInput) {
-            setFilteredData(experiments.experiments.filter(data => data.mark.toLowerCase().includes(filterInput.toLowerCase())))
-        } else {
-            setFilteredData(experiments.experiments)
-        }
+        // if (filterInput) {
+        //     setFilteredData(experiments.experiments.filter(data => data.mark.toLowerCase().includes(filterInput.toLowerCase())))
+        // } else {
+        //     setFilteredData(experiments.experiments)
+        // }
     }
 
     return (
@@ -74,21 +135,20 @@ const Home = observer( () => {
                 sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
             >
                 <Toolbar />
-                <Stack width={'100%'} direction="row" spacing={1}>
-                    <TextField fullWidth onChange={ event => {
-                        setFilterInput(event.target.value);
-                        setUpdateTrigger(!updateTrigger);
-                    }}
-                               value={filterInput}
-                               id="outlined-basic"
-                               label="Введите маркировку исследования"
-                               variant="outlined"/>
-
-                    <Button onClick={() => navigate(USER_ADD_EXPERIMENT_ROUTE)} variant="contained">Добавить исследование</Button>
-
+                <Box sx={{width:'95%'}}>
+                    <Chart
+                        ref={chartRef}
+                        options={options}
+                        data={chartData.data}
+                        type='line'/>
+                </Box>
+                <Stack direction="row" spacing={2} >
+                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
+                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
+                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
+                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Пауза</Button>
+                    <Button sx={{color: "#FFFFFF", backgroundColor: "#A05657"}} onClick={ () => {  } }>Остановить процесс</Button>
                 </Stack>
-
-                {isDataFetched && <ExperimentsGrid experiments={filteredData}/>}
             </Box>
         </Box>
     );

@@ -14,8 +14,6 @@ const Auth = observer( () => {
     const isLogin = location.pathname === LOGIN_ROUTE;
     const [userLogin, setUserLogin] = useState('')
     const [password, setPassword] = useState('')
-    const [userName, setUserName] = useState('')
-    const [userPosition, setUserPosition] = useState('')
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -25,7 +23,7 @@ const Auth = observer( () => {
             if (isLogin) {
                 data = await login(userLogin, password);
             } else {
-                data = await registration(userLogin, password, userName, userPosition);
+                data = await registration(userLogin, password);
             }
             if (data !== undefined) {
                 user.setUser(data);
@@ -66,22 +64,6 @@ const Auth = observer( () => {
                                id="outlined-basic"
                                label="Введите ваш пароль"
                                variant="outlined"/>
-                    {
-                        isLogin ?
-                            <></> :
-                            <>
-                                <TextField onChange={ event => {setUserName(event.target.value)}}
-                                           value={userName}
-                                           id="outlined-basic"
-                                           label="Введите ваше имя"
-                                           variant="outlined"/>
-                                <TextField onChange={ event => {setUserPosition(event.target.value)}}
-                                           value={userPosition}
-                                           id="outlined-basic"
-                                           label="Введите вашу должность"
-                                           variant="outlined"/>
-                            </>
-                    }
                     <Stack alignItems={'center'} justifyContent={'space-between'} direction={'row'} spacing={4}>
                         <Stack direction={'row'} align={'center'} alignItems={'center'} >
                             {

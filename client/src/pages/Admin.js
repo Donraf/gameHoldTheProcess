@@ -1,8 +1,7 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
-import {fetchExperiments} from "../http/experimentsAPI";
 import {
     AppBar,
     Box,
@@ -14,17 +13,14 @@ import {
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
 import {
-    ADMIN_CHIP_MODEL_ROUTE, ADMIN_EXPERIMENT_ROUTE,
-    ADMIN_MANUFACTURER_ROUTE,
-    ADMIN_MICROSCOPE_ROUTE, ADMIN_PACKAGE_TYPE_ROUTE,
-    ADMIN_SUPPLIER_ROUTE, ADMIN_USER_ROUTE,
+    ADMIN_USER_ROUTE,
     HOME_ROUTE,
     LOGIN_ROUTE
 } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
 
 const Admin = observer( () => {
-    const {user, experiments} = useContext(Context);
+    const {user} = useContext(Context);
     const navigate = useNavigate();
 
     const logOut = () => {
@@ -32,10 +28,6 @@ const Admin = observer( () => {
         user.setIsAuth(false)
         navigate(HOME_ROUTE)
     }
-
-    useEffect(() => {
-        fetchExperiments().then(data => experiments.setExperiments(data))
-    }, [])
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -73,44 +65,14 @@ const Admin = observer( () => {
                         <Grid container spacing={2}>
                             <Grid size={4}>
                                 <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                onClick={() => { navigate(ADMIN_MANUFACTURER_ROUTE) }}>
-                                    Изменить производителя
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => { navigate(ADMIN_SUPPLIER_ROUTE) }}>
-                                    Изменить поставщика
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => { navigate(ADMIN_MICROSCOPE_ROUTE) }}>
-                                    Изменить микроскоп
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => { navigate(ADMIN_PACKAGE_TYPE_ROUTE) }}>
-                                    Изменить тип корпуса
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => { navigate(ADMIN_CHIP_MODEL_ROUTE) }}>
-                                    Изменить тип электронного компонента
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => { navigate(ADMIN_EXPERIMENT_ROUTE) }}>
-                                    Изменить исследование
-                                </Button>
-                            </Grid>
-                            <Grid size={4}>
-                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
                                         onClick={() => { navigate(ADMIN_USER_ROUTE) }}>
                                     Изменить пользователя
+                                </Button>
+                            </Grid>
+                            <Grid size={4}>
+                                <Button sx={{width:"100%", height: "64px"}} variant="contained"
+                                        onClick={() => {  }}>
+                                    Изменить пройденную игру
                                 </Button>
                             </Grid>
                         </Grid>
