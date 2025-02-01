@@ -19,8 +19,6 @@ export class ChartData {
     }
 
     generateNextSet () {
-        console.log("this.points")
-        console.log(this.points)
         if (this.points.length >= this.maxPointsInSet) {
             this.points.shift()
         }

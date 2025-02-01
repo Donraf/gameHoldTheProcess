@@ -4,6 +4,21 @@ import App from './App';
 import UserStore from "./store/UserStore";
 import NavBarStore from "./store/NavBarStore";
 import {SnackbarProvider} from "notistack";
+import {createTheme, ThemeOptions, ThemeProvider} from "@mui/material";
+
+export const themeOptions: ThemeOptions = {
+    palette: {
+        mode: 'light',
+        primary: {
+            main: '#724C9D',
+        },
+        secondary: {
+            main: '#f50057',
+        },
+    },
+};
+
+const theme = createTheme(themeOptions);
 
 export const Context = createContext(null);
 
@@ -14,7 +29,9 @@ root.render(
         navBar: new NavBarStore()
     }}>
         <SnackbarProvider>
-            <App />
+            <ThemeProvider theme={theme}>
+                <App />
+            </ThemeProvider>
         </SnackbarProvider>
     </Context.Provider>
 );

@@ -1,10 +1,9 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import { InteractionItem } from 'chart.js';
 import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
-    Box, Button,
-    CssBaseline, Stack, TextField,
+    Box, Button, Container,
+    CssBaseline, Stack,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -20,9 +19,6 @@ import {
 } from 'chart.js';
 import {
     Chart,
-    getDatasetAtEvent,
-    getElementAtEvent,
-    getElementsAtEvent,
 } from 'react-chartjs-2';
 
 import NavBarDrawer from "../components/NavBarDrawer";
@@ -30,6 +26,8 @@ import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
 import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
+import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
+import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 
 ChartJS.register(
     LinearScale,
@@ -60,21 +58,20 @@ export const options = {
 };
 
 const Home = observer( () => {
-    const [time, setTime] = useState(Date.now());
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            chartData.generateNextSet();
-            setUpdateTrigger(!updateTrigger);
-            setTime(Date.now())
-            },
-            1000);
-        return () => {
-            clearInterval(interval);
-        };
-    }, []);
-
     const chartRef = useRef<ChartJS>(null);
+    const {user} = useContext(Context);
+    const navigate = useNavigate();
+
+    const speedOptions = [0.5, 1, 1.5, 2]
+
+    const [time, setTime] = useState(Date.now());
+    const [chartData, setChartData] = useState(new ChartData());
+    const [updateTrigger, setUpdateTrigger] = useState(false);
+    const [isDataFetched, setIsDataFetched] = useState(false);
+    const [filterInput, setFilterInput] = useState("");
+    const [filteredData, setFilteredData] = useState(null)
+    const [isChartPaused, setIsChartPaused] = useState(true);
+    const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
 
     const onClick = (event: MouseEvent<HTMLCanvasElement>) => {
         const { current: chart } = chartRef;
@@ -83,13 +80,19 @@ const Home = observer( () => {
         }
     };
 
-    const {user} = useContext(Context);
-    const navigate = useNavigate();
-    const [chartData, setChartData] = useState(new ChartData());
-    const [updateTrigger, setUpdateTrigger] = useState(false);
-    const [isDataFetched, setIsDataFetched] = useState(false);
-    const [filterInput, setFilterInput] = useState("");
-    const [filteredData, setFilteredData] = useState(null)
+    const increaseSpeed = () => {
+        const curIndex = speedOptions.findIndex( value => { return value === curSpeed })
+        if (curIndex < speedOptions.length - 1) {
+            setCurSpeed( speedOptions[curIndex + 1] )
+        }
+    }
+
+    const decreaseSpeed = () => {
+        const curIndex = speedOptions.findIndex( value => { return value === curSpeed })
+        if (curIndex > 0) {
+            setCurSpeed( speedOptions[curIndex - 1] )
+        }
+    }
 
     const logOut = () => {
         user.setUser({})
@@ -98,8 +101,22 @@ const Home = observer( () => {
     }
 
     useEffect(() => {
-        // setIsDataFetched(false);
-    }, [updateTrigger])
+        if (!isChartPaused) {
+            const interval = setInterval(() => {
+                    chartData.generateNextSet();
+                    // setUpdateTrigger(!updateTrigger);
+                    setTime(Date.now())
+                },
+                1000 / curSpeed);
+            return () => {
+                clearInterval(interval);
+            };
+        }
+    }, [isChartPaused, curSpeed]);
+
+    // useEffect(() => {
+    //     // setIsDataFetched(false);
+    // }, [updateTrigger])
 
     const filterData = () => {
         // if (filterInput) {
@@ -108,6 +125,7 @@ const Home = observer( () => {
         //     setFilteredData(experiments.experiments)
         // }
     }
+    console.log(chartData.data);
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -121,10 +139,9 @@ const Home = observer( () => {
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                             {user.user.name ? user.user.name : ""}
                         </Typography>
-                        { user.isAuth ?
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            :
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
+                        { user.isAuth
+                            ? <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
+                            : <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
                         }
                     </Stack>
                 </Toolbar>
@@ -135,20 +152,99 @@ const Home = observer( () => {
                 sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
             >
                 <Toolbar />
-                <Box sx={{width:'95%'}}>
+                <Container sx={{width:'95%'}}>
                     <Chart
                         ref={chartRef}
                         options={options}
                         data={chartData.data}
                         type='line'/>
-                </Box>
-                <Stack direction="row" spacing={2} >
-                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
-                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
-                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Press Me!</Button>
-                    <Button sx={{color: "#FFFFFF", backgroundColor: "#9356A0"}} onClick={ () => {  } }>Пауза</Button>
-                    <Button sx={{color: "#FFFFFF", backgroundColor: "#A05657"}} onClick={ () => {  } }>Остановить процесс</Button>
-                </Stack>
+                    {
+                        (isChartPaused && chartData.data.labels.length === 0)
+                            ? <Button
+                                sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#9356A0",
+                                    width: "100%"
+                                }}
+                                onClick={ () => { setIsChartPaused(false) } }>
+                                Начать игру!
+                            </Button>
+                            : <Stack display="flex" direction="row" spacing={1} >
+
+                                <Box sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#9356A0",
+                                    display: "flex",
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    px: "8px",
+                                    py: "12px",
+                                    borderRadius: "4px",
+                                }}
+                                     onClick={ () => { decreaseSpeed() } }>
+                                    <DecreaseSpeedIcon/>
+                                </Box>
+                                <Box
+                                    sx={{
+                                        // color: "#FFFFFF",
+                                        // backgroundColor: "#9356A0",
+                                        width: "60px",
+                                        display: "flex",
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: "1px solid #000000",
+                                        borderRadius: "4px",
+                                    }}
+                                >
+                                    <Typography variant="h6">
+                                        {"x" + curSpeed.toString()}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#9356A0",
+                                    display: "flex",
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    px: "8px",
+                                    py: "12px",
+                                    borderRadius: "4px",
+                                }}
+                                     onClick={ () => { increaseSpeed() } }>
+                                    <IncreaseSpeedIcon/>
+                                </Box>
+                                { isChartPaused
+                                    ? <Button
+                                        sx={{
+                                            color: "#FFFFFF",
+                                            backgroundColor: "#9356A0",
+                                            flexGrow: 1,
+                                        }}
+                                        onClick={ () => { setIsChartPaused(false) } }
+                                    >Продолжить
+                                    </Button>
+                                    : <Button
+                                        sx={{
+                                            color: "#FFFFFF",
+                                            backgroundColor: "#9356A0",
+                                            flexGrow: 1,
+                                        }}
+                                        onClick={ () => { setIsChartPaused(true) } }>
+                                        Пауза
+                                    </Button>
+                                }
+                                <Button
+                                    sx={{
+                                        color: "#FFFFFF",
+                                        backgroundColor: "#A05657",
+                                        flexGrow: 1,
+                                    }}
+                                    onClick={ () => {  } }>
+                                    Остановить процесс
+                                </Button>
+                            </Stack>
+                    }
+                </Container>
             </Box>
         </Box>
     );
