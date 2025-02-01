@@ -9,4 +9,4 @@ export const USER_PROFILE_ROUTE = '/profile';
 
 // User roles
 export const USER_ROLE_USER = 'User';
-export const USER_ROLE_ADMIN = 'Admin';
+export const USER_ROLE_ADMIN = 'ADMIN';

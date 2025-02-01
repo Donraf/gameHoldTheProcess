@@ -1,6 +1,6 @@
 import {$authHost, $host} from "./index";
 import {jwtDecode} from "jwt-decode";
-import {USER_ROLE_USER} from "../utils/constants";
+import {USER_ROLE_ADMIN, USER_ROLE_USER} from "../utils/constants";
 
 export const createUser = async (user) => {
     try {
@@ -11,10 +11,10 @@ export const createUser = async (user) => {
     }
 }
 
-export const registration = async (login, password, name, position) => {
+export const registration = async (login, password) => {
     try {
-        const {data} = await $host.post('api/user/registration', {name: name, login: login,
-            password: password, role: USER_ROLE_USER, position: position});
+        const {data} = await $host.post('api/user/registration', {login: login,
+            password: password, role: USER_ROLE_USER});
         localStorage.setItem('token', data.token);
         return jwtDecode(data.token);
     } catch (e) {

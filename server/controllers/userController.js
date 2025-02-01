@@ -3,13 +3,12 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {User} = require('../models/models');
 
-const generateJwt = (id, login, role, name) => {
+const generateJwt = (id, login, role) => {
     return jwt.sign(
         {
             user_id: id,
             login: login,
             role: role,
-            name: name,
         },
         process.env.JWT_SECRET,
         {expiresIn: '24h'});
@@ -19,8 +18,8 @@ const generateJwt = (id, login, role, name) => {
 class UserController {
     async registration(req, res, next){
         try {
-            const { name, login, password, role, } = req.body;
-            if (!name || !login || !password) {
+            const {login, password, role} = req.body;
+            if (!login || !password) {
                 return next(ApiError.badRequest("Invalid login and/or password"));
             }
             const candidate = await User.findOne({where: {login}})
@@ -28,8 +27,8 @@ class UserController {
                 return next(ApiError.badRequest("User with this login already exists"))
             }
             const hashPassword = await bcrypt.hash(password, 5);
-            const user = await User.create({name: name, login: login, password: hashPassword, role: role});
-            const token = generateJwt(user.user_id, login, role, name)
+            const user = await User.create({login: login, password: hashPassword, role: role});
+            const token = generateJwt(user.user_id, login, role)
             return res.json({token});
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
@@ -47,7 +46,7 @@ class UserController {
             if (!comparePassword) {
                 return next(ApiError.badRequest("Invalid login and/or password"));
             }
-            const token = generateJwt(user.user_id, user.login, user.role, user.name);
+            const token = generateJwt(user.user_id, user.login, user.role);
             return res.json({token});
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
@@ -56,7 +55,7 @@ class UserController {
 
     async check(req, res, next){
         try {
-            const token = generateJwt(req.user.user_id, req.user.login, req.user.role, req.user.name)
+            const token = generateJwt(req.user.user_id, req.user.login, req.user.role)
             return res.json({token});
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));

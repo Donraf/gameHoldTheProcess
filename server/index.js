@@ -4,10 +4,8 @@ const sequelize = require('./db');
 const models = require('./models/models');
 const cors = require('cors');
 const router = require('./routes/index');
-// const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
-const {resolve} = require("node:path");
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT || 5439;
 
 
 
