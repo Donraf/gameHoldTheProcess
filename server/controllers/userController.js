@@ -2,6 +2,7 @@ const ApiError = require('../error/ApiError');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {User} = require('../models/models');
+const {Op} = require("sequelize");
 
 const generateJwt = (id, login, role) => {
     return jwt.sign(
@@ -62,15 +63,6 @@ class UserController {
         }
     }
 
-    async getAll(req, res, next) {
-        try {
-            const users = await User.findAll();
-            return res.json(users);
-        } catch (e) {
-            return next(ApiError.badRequest("Bad Request"));
-        }
-    }
-
     async getOne(req, res, next) {
         try {
             const {id} = req.params
@@ -78,6 +70,60 @@ class UserController {
             return res.json(user)
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
+        }
+    }
+
+    async getPageCount(req, res, next) {
+        try {
+            let usersCount = 0
+            switch (req.body.filter_tag){
+                case 'user_name' : {
+                    usersCount = await User.count({
+                        where: {
+                            name: { [Op.substring]: req.body.filter_value }
+                        }
+                    });
+                    break
+                }
+                default: {
+                    usersCount = await User.count();
+                }
+            }
+            const pageCount = Math.ceil(usersCount / 9)
+            return res.json({pageCount: pageCount})
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request"));
+        }
+    }
+
+    async getAll(req, res, next) {
+        try {
+            let users
+            switch (req.body.filter_tag){
+                case 'user_name' : {
+                    users = await User.findAll({
+                        where: {
+                            name: { [Op.substring]: req.body.filter_value }
+                        },
+                        offset: (req.body.current_page - 1) * 9,
+                        limit: 9,
+                    });
+                    break
+                }
+                default: {
+                    if (req.body.current_page !== null) {
+                        users = await User.findAll({
+                            offset: (req.body.current_page - 1) * 9,
+                            limit: 9,
+                        });
+                    } else {
+                        users = await User.findAll();
+                    }
+                }
+            }
+            return res.json(users);
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request" + e));
         }
     }
 

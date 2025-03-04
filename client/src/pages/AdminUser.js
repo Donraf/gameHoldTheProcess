@@ -7,7 +7,7 @@ import {
     Box,
     Button,
     CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-    FormControlLabel, Paper,
+    FormControlLabel, Pagination, Paper,
     Stack,
     Switch, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     TextField,
@@ -15,7 +15,7 @@ import {
     Typography
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import {createUser, deleteUser, fetchUsers, updateUser} from "../http/userAPI";
+import {createUser, deleteUser, fetchUsers, getUsersPageCount, updateUser} from "../http/userAPI";
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import EditIcon from "../components/icons/EditIcon";
@@ -44,18 +44,20 @@ const AdminUser = () => {
     const [filteredData, setFilteredData] = useState(null)
     const [open, setOpen] = React.useState(false);
     const [currentId, setCurrentId] = React.useState(0);
+    const [page, setPage] = React.useState(1);
+    const [pageCount, setPageCount] = React.useState(1);
 
     const [snackErrTexts, setSnackErrTexts] = React.useState([]);
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         setIsDataFetched(false);
-        fetchUsers().then(data => {
-                // experiments.setUsers(data);
-                // filterData();
-                setIsDataFetched(true);
-            }
-        )
+        filterData(false).then( () => {setIsDataFetched(true) } )
+    }, [page])
+
+    useEffect(() => {
+        setIsDataFetched(false);
+        filterData(true).then( () => {setIsDataFetched(true) } )
     }, [updateTrigger])
 
     useEffect(() => {
@@ -135,13 +137,20 @@ const AdminUser = () => {
         )
     }
 
-    // const filterData = () => {
-    //     if (filterInput) {
-    //         setFilteredData(experiments.users.filter(data => data.login.toLowerCase().includes(filterInput.toLowerCase())))
-    //     } else {
-    //         setFilteredData(experiments.users)
-    //     }
-    // }
+    const filterData = async ( updatePage ) => {
+        let filteredDataFromQuery
+        let newPageCount
+        if (filterInput) {
+            filteredDataFromQuery = await fetchUsers("user_name", filterInput, page);
+            newPageCount = await getUsersPageCount("user_name", filterInput)
+        } else {
+            filteredDataFromQuery = await fetchUsers(null, null, page);
+            newPageCount = await getUsersPageCount()
+        }
+        setPageCount(newPageCount)
+        if (updatePage) setPage(1)
+        setFilteredData(filteredDataFromQuery);
+    }
 
     const handleClickOpen = (id) => {
         setCurrentId(id);
@@ -251,7 +260,10 @@ const AdminUser = () => {
                             </TableBody>
                         </Table>
                     </TableContainer>
-
+                    { isDataFetched
+                        ? <Pagination sx={{pt: "16px"}} count={ pageCount } page={page} onChange={(event,value) => {setPage(value)}} variant="outlined" shape="rounded" />
+                        : <></>
+                    }
                 </Stack>
             </Box>
 

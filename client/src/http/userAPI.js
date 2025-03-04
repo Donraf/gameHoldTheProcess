@@ -42,9 +42,29 @@ export const check = async () => {
     }
 }
 
-export const fetchUsers = async () => {
+export const getUsersPageCount = async (filterTag = null, filterValue = null) => {
     try {
-        const {data} = await $host.get('api/user/');
+        const pageCount = await $host.post('api/user/pageCount',
+            {
+                filter_tag: filterTag,
+                filter_value: filterValue,
+            }
+        );
+        return pageCount.data.pageCount;
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null) => {
+    try {
+        const {data} = await $host.post('api/user/users',
+            {
+                filter_tag: filterTag,
+                filter_value: filterValue,
+                current_page: currentPage,
+            }
+        );
         return data;
     } catch (e) {
         throw e;
