@@ -69,7 +69,13 @@ export class ChartData {
     }
 
     initData() {
-        this.points = Array.from({ length: this.checkDangerNum }, () => this.generatePoint());
+        this.points = Array.from({ length: this.checkDangerNum }, () => {
+            let newPoint = this.generatePoint()
+            while (newPoint >= this.criticalValue) {
+                newPoint = this.generatePoint()
+            }
+            return newPoint;
+        });
         this.data = {
             labels: this.points.slice(0, -this.checkDangerNum).map( point => { return point.x }),
             datasets: [
