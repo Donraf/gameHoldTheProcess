@@ -3,7 +3,7 @@ import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button, Container,
-    CssBaseline, Stack,
+    CssBaseline, Snackbar, Stack,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -28,6 +28,7 @@ import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
 import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
 import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
+import DangerIcon from "../components/icons/DangerIcon";
 
 ChartJS.register(
     LinearScale,
@@ -71,6 +72,7 @@ const Home = observer( () => {
     const [filterInput, setFilterInput] = useState("");
     const [filteredData, setFilteredData] = useState(null)
     const [isChartPaused, setIsChartPaused] = useState(true);
+    const [isChartStopped, setIsChartStopped] = useState(false);
     const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
 
     const onClick = (event: MouseEvent<HTMLCanvasElement>) => {
@@ -101,18 +103,26 @@ const Home = observer( () => {
     }
 
     useEffect(() => {
+        if (isChartStopped) {
+            chartData.restart()
+            setIsChartStopped(false);
+            setIsChartPaused(false);
+        }
         if (!isChartPaused) {
             const interval = setInterval(() => {
                     chartData.generateNextSet();
                     // setUpdateTrigger(!updateTrigger);
                     setTime(Date.now())
+                    if (chartData.isDanger()) {
+                        setIsChartPaused(true)
+                    }
                 },
                 1000 / curSpeed);
             return () => {
                 clearInterval(interval);
             };
         }
-    }, [isChartPaused, curSpeed]);
+    }, [isChartPaused, isChartStopped, curSpeed]);
 
     // useEffect(() => {
     //     // setIsDataFetched(false);
@@ -125,7 +135,6 @@ const Home = observer( () => {
         //     setFilteredData(experiments.experiments)
         // }
     }
-    console.log(chartData.data);
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -133,7 +142,7 @@ const Home = observer( () => {
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Исследования
+                        Начать игру
                     </Typography>
                     <Stack direction="row" spacing={2} >
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
@@ -164,13 +173,12 @@ const Home = observer( () => {
                                 sx={{
                                     color: "#FFFFFF",
                                     backgroundColor: "#9356A0",
-                                    width: "100%"
+                                    width: "100%",
                                 }}
                                 onClick={ () => { setIsChartPaused(false) } }>
                                 Начать игру!
                             </Button>
                             : <Stack display="flex" direction="row" spacing={1} >
-
                                 <Box sx={{
                                     color: "#FFFFFF",
                                     backgroundColor: "#9356A0",
@@ -220,6 +228,7 @@ const Home = observer( () => {
                                             backgroundColor: "#9356A0",
                                             flexGrow: 1,
                                         }}
+                                        disabled={chartData.isDanger()}
                                         onClick={ () => { setIsChartPaused(false) } }
                                     >Продолжить
                                     </Button>
@@ -239,13 +248,70 @@ const Home = observer( () => {
                                         backgroundColor: "#A05657",
                                         flexGrow: 1,
                                     }}
-                                    onClick={ () => {  } }>
+                                    disabled={chartData.isDanger()}
+                                    onClick={ () => { setIsChartStopped(true) } }>
                                     Остановить процесс
                                 </Button>
                             </Stack>
                     }
                 </Container>
             </Box>
+            { chartData.isDanger()
+                ?
+                <Box sx={{
+                    position: 'fixed',
+                    zIndex: 5500,
+                    display: 'flex',
+                    right: '16px',
+                    bottom: '16px',
+                    left: '16px',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '3px solid #A05657',
+                    backgroundColor: '#FFFFFF',
+                }} >
+                    <Stack spacing={1}>
+                        <Stack direction="row" spacing={1} >
+                            <DangerIcon/>
+                            <Stack>
+                                <Typography>Внимание!</Typography>
+                                <Typography>Появилась опасность взрыва. Примите решение об остановке процесса.</Typography>
+                            </Stack>
+                        </Stack>
+                        <Stack direction="row" spacing={1} >
+                            <Button
+                                sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#9356A0",
+                                    flexGrow: 1,
+                                }}
+                                onClick={ () => {  } }>
+                                Показать подсказку
+                            </Button>
+                            <Button
+                                sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#9356A0",
+                                    flexGrow: 1,
+                                }}
+                                onClick={ () => { setIsChartPaused(false) } }>
+                                Продолжить процесс
+                            </Button>
+                            <Button
+                                sx={{
+                                    color: "#FFFFFF",
+                                    backgroundColor: "#A05657",
+                                    flexGrow: 1,
+                                }}
+                                onClick={ () => { setIsChartStopped(true) } }>
+                                Остановить процесс
+                            </Button>
+                        </Stack>
+                    </Stack>
+                </Box>
+                // <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>АПАСНАААААА!</Typography>
+                : <></>
+            }
         </Box>
     );
 });

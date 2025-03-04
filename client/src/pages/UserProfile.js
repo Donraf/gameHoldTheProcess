@@ -37,13 +37,9 @@ const UserProfile = observer( () => {
     }
 
     useEffect(() => {
-        setIsDataFetched(false);
         if (user.user.user_id){
-            // fetchExperimentsByUserId(user.user.user_id).then(data => {
-            //     experiments.setExperiments(data);
-            //     filterData();
-            //     setIsDataFetched(true);
-            // })
+            setIsDataFetched(false);
+            filterData(user.user.user_id).then( () => {setIsDataFetched(true)} )
         } else {
             setIsDataFetched(true);
         }
@@ -53,13 +49,7 @@ const UserProfile = observer( () => {
         snackErrTexts.map(text => enqueueSnackbar(text, {variant: "error", autoHideDuration: 3000, preventDuplicate: true}))
     },[snackErrTexts])
 
-    const filterData = () => {
-        // if (filterInput) {
-        //     setFilteredData(experiments.experiments.filter(data => data.mark.toLowerCase().includes(filterInput.toLowerCase())))
-        // } else {
-        //     setFilteredData(experiments.experiments)
-        // }
-    }
+    const filterData = async (user_id) => {  }
 
     const updateUserUi = () => {
         let snackErrors = []
