@@ -45,21 +45,20 @@ export class ChartData {
         return new Point(this.curIndex, Math.random())
     }
 
-    // getCurrentValue() {
-    //     return this.data.datasets[]
-    // }
-    //
-    // getCriticalValue() {
-    //     return this.criticalValue
-    // }
+    isCrashed() {
+        if (this.points.length <= this.checkDangerNum) {
+            return false
+        }
+        return this.points[this.points.length - this.checkDangerNum - 1].y >= this.criticalValue
+    }
 
-    isCrashed(index = this.data.datasets[0].data.length - 1) {
+    isPointCrashed(index = this.data.datasets[0].data.length - 1) {
         return this.points[index].y >= this.criticalValue
     }
 
     isDanger() {
         for (let i = this.points.length - 1; i > this.points.length - this.checkDangerNum - 1 && i >= 0; i--) {
-            if (this.isCrashed(i)) return true
+            if (this.isPointCrashed(i)) return true
         }
         return false
     }
@@ -71,7 +70,7 @@ export class ChartData {
     initData() {
         this.points = Array.from({ length: this.checkDangerNum }, () => {
             let newPoint = this.generatePoint()
-            while (newPoint >= this.criticalValue) {
+            while (newPoint.y >= this.criticalValue) {
                 newPoint = this.generatePoint()
             }
             return newPoint;

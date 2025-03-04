@@ -3,7 +3,7 @@ import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button, Container,
-    CssBaseline, Snackbar, Stack,
+    CssBaseline, Stack,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -29,6 +29,7 @@ import {observer} from "mobx-react-lite";
 import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
 import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 import DangerIcon from "../components/icons/DangerIcon";
+import {useSnackbar} from "notistack";
 
 ChartJS.register(
     LinearScale,
@@ -67,20 +68,11 @@ const Home = observer( () => {
 
     const [time, setTime] = useState(Date.now());
     const [chartData, setChartData] = useState(new ChartData());
-    const [updateTrigger, setUpdateTrigger] = useState(false);
-    const [isDataFetched, setIsDataFetched] = useState(false);
-    const [filterInput, setFilterInput] = useState("");
-    const [filteredData, setFilteredData] = useState(null)
     const [isChartPaused, setIsChartPaused] = useState(true);
     const [isChartStopped, setIsChartStopped] = useState(false);
     const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
 
-    const onClick = (event: MouseEvent<HTMLCanvasElement>) => {
-        const { current: chart } = chartRef;
-        if (!chart) {
-            return;
-        }
-    };
+    const { enqueueSnackbar } = useSnackbar();
 
     const increaseSpeed = () => {
         const curIndex = speedOptions.findIndex( value => { return value === curSpeed })
@@ -103,16 +95,14 @@ const Home = observer( () => {
     }
 
     useEffect(() => {
-        if (isChartStopped) {
-            chartData.restart()
-            setIsChartStopped(false);
-            setIsChartPaused(false);
-        }
         if (!isChartPaused) {
             const interval = setInterval(() => {
                     chartData.generateNextSet();
-                    // setUpdateTrigger(!updateTrigger);
                     setTime(Date.now())
+                    if (chartData.isCrashed()) {
+                        chartData.restart()
+                        enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
+                    }
                     if (chartData.isDanger()) {
                         setIsChartPaused(true)
                     }
@@ -122,19 +112,15 @@ const Home = observer( () => {
                 clearInterval(interval);
             };
         }
-    }, [isChartPaused, isChartStopped, curSpeed]);
+    }, [isChartPaused, curSpeed]);
 
-    // useEffect(() => {
-    //     // setIsDataFetched(false);
-    // }, [updateTrigger])
-
-    const filterData = () => {
-        // if (filterInput) {
-        //     setFilteredData(experiments.experiments.filter(data => data.mark.toLowerCase().includes(filterInput.toLowerCase())))
-        // } else {
-        //     setFilteredData(experiments.experiments)
-        // }
-    }
+    useEffect(() => {
+        if (isChartStopped) {
+            chartData.restart()
+            setIsChartStopped(false);
+            setIsChartPaused(false);
+        }
+    }, [isChartStopped]);
 
     return (
         <Box sx={{ display: 'flex' }}>
