@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
 import {
+    ADMIN_GRAPH_ROUTE,
     ADMIN_USER_ROUTE,
     HOME_ROUTE,
     LOGIN_ROUTE
@@ -71,7 +72,7 @@ const Admin = observer( () => {
                             </Grid>
                             <Grid size={4}>
                                 <Button sx={{width:"100%", height: "64px"}} variant="contained"
-                                        onClick={() => {  }}>
+                                        onClick={() => { navigate(ADMIN_GRAPH_ROUTE) }}>
                                     Изменить пройденную игру
                                 </Button>
                             </Grid>

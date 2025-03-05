@@ -1,11 +1,12 @@
-const {Chart} = require('../models/models');
+const {Chart, User} = require('../models/models');
 const ApiError = require('../error/ApiError');
+const {Op} = require("sequelize");
 
 class ChartController {
     async create(req, res, next) {
         try {
-            const {user_id} = req.body;
-            const chart = await Chart.create({user_id: user_id});
+            const {id} = req.body;
+            const chart = await Chart.create({id: id});
             return res.json(chart);
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
@@ -22,12 +23,57 @@ class ChartController {
         }
     }
 
-    async getAll(req, res, next) {
+    async getPageCount(req, res, next) {
         try {
-            const charts = await Chart.findAll();
-            return res.json(charts);
+            let chartsCount = 0
+            switch (req.body.filter_tag){
+                case 'chart_id' : {
+                    chartsCount = await User.count({
+                        where: {
+                            name: { [Op.eq]: req.body.filter_value }
+                        }
+                    });
+                    break
+                }
+                default: {
+                    chartsCount = await User.count();
+                }
+            }
+            const pageCount = Math.ceil(chartsCount / 9)
+            return res.json({pageCount: pageCount})
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
+        }
+    }
+
+    async getAll(req, res, next) {
+        try {
+            let charts
+            switch (req.body.filter_tag){
+                case 'chart_id' : {
+                    charts = await Chart.findAll({
+                        where: {
+                            id: { [Op.eq]: req.body.filter_value }
+                        },
+                        offset: (req.body.current_page - 1) * 9,
+                        limit: 9,
+                    });
+                    break
+                }
+                default: {
+                    if (req.body.current_page !== null) {
+                        charts = await Chart.findAll({
+                            offset: (req.body.current_page - 1) * 9,
+                            limit: 9,
+                        });
+                    } else {
+                        charts = await Chart.findAll();
+                    }
+                }
+            }
+            return res.json(charts);
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request" + e));
         }
     }
 

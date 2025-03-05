@@ -1,4 +1,5 @@
 import {
+    ADMIN_GRAPH_ROUTE,
     ADMIN_ROUTE,
     ADMIN_USER_ROUTE,
     HOME_ROUTE,
@@ -11,6 +12,7 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import AdminUser from "./pages/AdminUser";
 import UserProfile from "./pages/UserProfile";
+import AdminGraph from "./pages/AdminGraph";
 
 export const authRoutes = [
     {
@@ -20,6 +22,10 @@ export const authRoutes = [
     {
         path: ADMIN_USER_ROUTE,
         Component: <AdminUser />
+    },
+    {
+        path: ADMIN_GRAPH_ROUTE,
+        Component: <AdminGraph />
     },
     {
         path: USER_PROFILE_ROUTE,
