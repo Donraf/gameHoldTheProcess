@@ -3,7 +3,7 @@ import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button, Container,
-    CssBaseline, Stack,
+    CssBaseline, FormControlLabel, Paper, Slide, Stack, Switch,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -30,6 +30,7 @@ import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
 import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 import DangerIcon from "../components/icons/DangerIcon";
 import {useSnackbar} from "notistack";
+import {createGraph} from "../http/graphAPI";
 
 ChartJS.register(
     LinearScale,
@@ -64,6 +65,10 @@ const Home = observer( () => {
     const {user} = useContext(Context);
     const navigate = useNavigate();
 
+    const [isSlidingIn, setIsSlidingIn] = React.useState(false);
+
+    const containerRef = React.useRef(null);
+
     const speedOptions = [0.5, 1, 1.5, 2]
 
     const [time, setTime] = useState(Date.now());
@@ -71,6 +76,7 @@ const Home = observer( () => {
     const [isChartPaused, setIsChartPaused] = useState(true);
     const [isChartStopped, setIsChartStopped] = useState(false);
     const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
+    const [scoresChanges, setScoresChanges] = useState([]);
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -98,8 +104,11 @@ const Home = observer( () => {
         if (!isChartPaused) {
             const interval = setInterval(() => {
                     chartData.generateNextSet();
+                    setScoresChanges(["+10"])
                     setTime(Date.now())
                     if (chartData.isCrashed()) {
+                        chartData.chartCrashed()
+                        createGraph(chartData.points, user.user.user_id)
                         chartData.restart()
                         enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
                     }
@@ -114,13 +123,25 @@ const Home = observer( () => {
         }
     }, [isChartPaused, curSpeed]);
 
-    useEffect(() => {
+    useEffect( () => {
         if (isChartStopped) {
-            chartData.restart()
-            setIsChartStopped(false);
-            setIsChartPaused(false);
+            chartData.chartStopped()
+            createGraph(chartData.points, user.user.user_id).then(r => {
+                chartData.restart()
+                setIsChartStopped(false);
+                setIsChartPaused(false);
+            })
         }
     }, [isChartStopped]);
+
+    useEffect( () => {
+        setInterval(() => {
+                if (scoresChanges.length > 0) {
+                    setScoresChanges([]);
+                }
+            },
+            1500 / curSpeed);
+    }, [scoresChanges]);
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -132,7 +153,7 @@ const Home = observer( () => {
                     </Typography>
                     <Stack direction="row" spacing={2} >
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.name ? user.user.name : ""}
+                            {user.user.login ? user.user.login : ""}
                         </Typography>
                         { user.isAuth
                             ? <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
@@ -147,6 +168,16 @@ const Home = observer( () => {
                 sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
             >
                 <Toolbar />
+                <Box sx={{ p: 2, height: 100, overflow: 'hidden' }} ref={containerRef}>
+                    {/*{*/}
+                    {/*    scoresChanges.map( text =>*/}
+                    {/*        <Slide in={true} container={containerRef.current}>*/}
+                    {/*            <Typography variant="h6">{text}</Typography>*/}
+                    {/*        </Slide>*/}
+                    {/*    )*/}
+                    {/*}*/}
+                    <Typography variant="h6">Очки: {chartData.score}</Typography>
+                </Box>
                 <Container sx={{width:'95%'}}>
                     <Chart
                         ref={chartRef}
@@ -295,7 +326,6 @@ const Home = observer( () => {
                         </Stack>
                     </Stack>
                 </Box>
-                // <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>АПАСНАААААА!</Typography>
                 : <></>
             }
         </Box>

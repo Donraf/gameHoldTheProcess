@@ -4,9 +4,9 @@ const {Op} = require("sequelize");
 
 class ChartController {
     async create(req, res, next) {
+        const {user_id} = req.body
         try {
-            const {id} = req.body;
-            const chart = await Chart.create({id: id});
+            const chart = await Chart.create({user_id: user_id});
             return res.json(chart);
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
@@ -28,32 +28,81 @@ class ChartController {
             let chartsCount = 0
             switch (req.body.filter_tag){
                 case 'chart_id' : {
-                    chartsCount = await User.count({
+                    chartsCount = await Chart.count({
                         where: {
-                            name: { [Op.eq]: req.body.filter_value }
+                            id: { [Op.substring]: req.body.filter_value }
+                        }
+                    });
+                    break
+                }
+                case 'user_login' : {
+                    let users = await User.findAll({
+                        where: {
+                            login: { [Op.substring]: req.body.filter_value }
+                        }
+                    })
+                    for (let user of users) {
+                        chartsCount += await Chart.count({
+                            where: {
+                                user_id: { [Op.eq]: user.user_id }
+                            }
+                        });
+                    }
+                    break
+                }
+                case 'user_id' : {
+                    chartsCount = await Chart.count({
+                        where: {
+                            user_id: { [Op.eq]: req.body.filter_value }
                         }
                     });
                     break
                 }
                 default: {
-                    chartsCount = await User.count();
+                    chartsCount = await Chart.count();
                 }
             }
             const pageCount = Math.ceil(chartsCount / 9)
             return res.json({pageCount: pageCount})
         } catch (e) {
-            return next(ApiError.badRequest("Bad Request"));
+            return next(ApiError.badRequest("Bad Request " + e));
         }
     }
 
     async getAll(req, res, next) {
         try {
-            let charts
+            let charts = []
             switch (req.body.filter_tag){
                 case 'chart_id' : {
                     charts = await Chart.findAll({
                         where: {
-                            id: { [Op.eq]: req.body.filter_value }
+                            id: { [Op.substring]: req.body.filter_value }
+                        },
+                        offset: (req.body.current_page - 1) * 9,
+                        limit: 9,
+                    });
+                    break
+                }
+                case 'user_login' : {
+                    let users = await User.findAll({
+                        where: {
+                            login: { [Op.substring]: req.body.filter_value }
+                        }
+                    })
+                    for (let user of users) {
+                        let filteredCharts = await Chart.count({
+                            where: {
+                                user_id: { [Op.eq]: user.user_id }
+                            }
+                        });
+                        charts.push(...filteredCharts);
+                    }
+                    break
+                }
+                case 'user_id' : {
+                    charts = await Chart.findAll({
+                        where: {
+                            user_id: { [Op.eq]: req.body.filter_value }
                         },
                         offset: (req.body.current_page - 1) * 9,
                         limit: 9,

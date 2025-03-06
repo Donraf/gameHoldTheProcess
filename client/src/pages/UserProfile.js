@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
     AppBar,
     Box, Button,
-    CssBaseline, Stack, TextField,
+    CssBaseline, Pagination, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -14,6 +14,9 @@ import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
 import {updateUser} from "../http/userAPI";
 import {useSnackbar} from "notistack";
+import {fetchGraphs, getGraphsPageCount} from "../http/graphAPI";
+import ImageButton from "../components/ImageButton/ImageButton";
+import DeleteIcon from "../components/icons/DeleteIcon";
 
 const UserProfile = observer( () => {
     const {user} = useContext(Context);
@@ -26,6 +29,8 @@ const UserProfile = observer( () => {
     const [isDataFetched, setIsDataFetched] = useState(false);
     const [filterInput, setFilterInput] = useState("");
     const [filteredData, setFilteredData] = useState(null)
+    const [page, setPage] = React.useState(1);
+    const [pageCount, setPageCount] = React.useState(1);
 
     const [snackErrTexts, setSnackErrTexts] = React.useState([]);
     const { enqueueSnackbar } = useSnackbar();
@@ -37,19 +42,26 @@ const UserProfile = observer( () => {
     }
 
     useEffect(() => {
-        if (user.user.user_id){
-            setIsDataFetched(false);
-            filterData(user.user.user_id).then( () => {setIsDataFetched(true)} )
-        } else {
-            setIsDataFetched(true);
-        }
+        setIsDataFetched(false);
+        filterData(false).then( () => {setIsDataFetched(true) } )
+    }, [page])
+
+    useEffect(() => {
+        setIsDataFetched(false);
+        filterData(true).then( () => {setIsDataFetched(true) } )
     }, [updateTrigger])
 
     useEffect(() => {
         snackErrTexts.map(text => enqueueSnackbar(text, {variant: "error", autoHideDuration: 3000, preventDuplicate: true}))
     },[snackErrTexts])
 
-    const filterData = async (user_id) => {  }
+    const filterData = async ( updatePage ) => {
+        let filteredDataFromQuery = await fetchGraphs("user_id", user.user.user_id, page);
+        let newPageCount = await getGraphsPageCount("user_id", user.user.user_id)
+        setPageCount(newPageCount)
+        if (updatePage) setPage(1)
+        setFilteredData(filteredDataFromQuery);
+    }
 
     const updateUserUi = () => {
         let snackErrors = []
@@ -88,7 +100,7 @@ const UserProfile = observer( () => {
                     </Typography>
                     <Stack direction="row" spacing={2} >
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.name ? user.user.name : ""}
+                            {user.user.login ? user.user.login : ""}
                         </Typography>
                         { user.isAuth ?
                             <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
@@ -140,9 +152,32 @@ const UserProfile = observer( () => {
                                            label="Введите идентификатор игры"
                                            variant="outlined"/>
                             </Stack>
-
-                            {/*{isDataFetched && <ExperimentsGrid experiments={filteredData}/>}*/}
-
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Логин игрока</TableCell>
+                                            <TableCell>Идентификатор игры</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {isDataFetched ?
+                                            filteredData.map((graph) =>
+                                                <TableRow
+                                                    key={graph.id}
+                                                    sx={{'&:last-child td, &:last-child th': {border: 0}}}
+                                                >
+                                                    <TableCell>{graph.user_id}</TableCell>
+                                                    <TableCell>{graph.id}</TableCell>
+                                                </TableRow>
+                                            ) : <></>}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                            { isDataFetched
+                                ? <Pagination sx={{pt: "16px"}} count={ pageCount } page={page} onChange={(event,value) => {setPage(value)}} variant="outlined" shape="rounded" />
+                                : <></>
+                            }
                         </Stack>
                     </Box>
                     :

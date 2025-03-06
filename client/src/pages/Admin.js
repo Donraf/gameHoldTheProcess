@@ -40,7 +40,7 @@ const Admin = observer( () => {
                     </Typography>
                     <Stack direction="row" spacing={2} >
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.name ? user.user.name : ""}
+                            {user.user.login ? user.user.login : ""}
                         </Typography>
                         { user.isAuth ?
                             <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>

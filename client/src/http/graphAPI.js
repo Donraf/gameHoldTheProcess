@@ -1,8 +1,24 @@
 import {$authHost, $host} from "./index";
 
-export const createGraph = async (graph) => {
+export const createGraph = async (points, user_id) => {
     try {
-        const {data} = await $authHost.post('api/chart', graph);
+        console.log("USER_ID: " + user_id);
+        const {data} = await $authHost.post('api/chart', {user_id: user_id});
+        let graphId = data.id
+        for (const point of points) {
+            await $authHost.post('api/point',
+                {
+                    chart_id: graphId,
+                    x: point.x,
+                    y: point.y,
+                    is_end: point.is_end,
+                    is_crash: point.is_crash,
+                    is_ai_signal: point.is_ai_signal,
+                    is_stop: point.is_stop,
+                    is_check: point.is_check
+                }
+            );
+        }
         return data;
     } catch (e) {
         throw e;

@@ -125,7 +125,7 @@ const AdminGraph = () => {
                                 <TableRow>
                                     <TableCell/>
                                     <TableCell>Логин игрока</TableCell>
-                                        <TableCell>Идентификатор игры</TableCell>
+                                    <TableCell>Идентификатор игры</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -143,8 +143,8 @@ const AdminGraph = () => {
                                                     </ImageButton>
                                                 </Stack>
                                             </TableCell>
-                                            <TableCell component="th" scope="row">{graph.id}</TableCell>
-                                            <TableCell>???</TableCell>
+                                            <TableCell component="th" scope="row">{graph.user_id}</TableCell>
+                                            <TableCell>{graph.id}</TableCell>
                                         </TableRow>
                                     ) : <></>}
                             </TableBody>
