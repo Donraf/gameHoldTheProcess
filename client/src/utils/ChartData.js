@@ -43,8 +43,24 @@ export class ChartData {
         return this.data
     }
 
+    // generatePoint() {
+    //     return new Point(this.curIndex, Math.random())
+    // }
+
     generatePoint() {
-        return new Point(this.curIndex, Math.random())
+        let newVal = 0
+        if (this.points.length > 0) {
+            // console.log(this.points[this.points.length - 1])
+            newVal = this.points[this.points.length - 1].y;
+            const randomVal = Math.random()
+            if (randomVal >= 0.4) {
+                newVal += Math.random() * 0.1
+            } else {
+                newVal -= Math.random() * 0.1
+            }
+            if (newVal < 0) newVal = 0
+        }
+        return new Point(this.curIndex, newVal)
     }
 
     isCrashed() {
@@ -73,6 +89,7 @@ export class ChartData {
     }
 
     initData() {
+        this.points = [];
         this.curIndex = 0;
         this.points = Array.from({ length: this.checkDangerNum }, () => {
             let newPoint = this.generatePoint()
