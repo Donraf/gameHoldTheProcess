@@ -13,14 +13,18 @@ export class ChartData {
     }
 
     generateNextSet () {
-        if (this.points.length >= this.maxPointsInSet) {
-            this.points.shift()
-        }
         this.points.push(this.generatePoint())
         this.curIndex += 1
         this.score += 10
+        let pointsToShow
+        if (this.points.length > this.maxPointsInSet) {
+            pointsToShow = this.points.slice(-this.maxPointsInSet, -this.checkDangerNum)
+        } else {
+            pointsToShow = this.points.slice(0, -this.checkDangerNum)
+        }
+
         this.data = {
-            labels: this.points.slice(0, -this.checkDangerNum).map( point => { return point.x }),
+            labels: pointsToShow.map( point => { return point.x }),
             datasets: [
                 {
                     type: 'line',
@@ -28,7 +32,7 @@ export class ChartData {
                     borderColor: 'rgb(0, 0, 0)',
                     borderWidth: 2,
                     fill: false,
-                    data: this.points.slice(0, -this.checkDangerNum).map( point => { return point.y } ),
+                    data: pointsToShow.map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
@@ -36,7 +40,7 @@ export class ChartData {
                     borderColor: 'rgb(255, 0, 60)',
                     borderWidth: 2,
                     fill: false,
-                    data: this.points.slice(0, -this.checkDangerNum).map( () => { return this.criticalValue } ),
+                    data: pointsToShow.map( () => { return this.criticalValue } ),
                 }
             ]
         }
@@ -50,7 +54,6 @@ export class ChartData {
     generatePoint() {
         let newVal = 0
         if (this.points.length > 0) {
-            // console.log(this.points[this.points.length - 1])
             newVal = this.points[this.points.length - 1].y;
             const randomVal = Math.random()
             if (randomVal >= 0.4) {
