@@ -85,6 +85,7 @@ const Home = observer( () => {
     const [chartData, setChartData] = useState(new ChartData());
     const [isChartPaused, setIsChartPaused] = useState(true);
     const [isChartStopped, setIsChartStopped] = useState(false);
+    const [isDanger, setIsDanger] = useState(false);
     const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
     const [scoresChanges, setScoresChanges] = useState([]);
 
@@ -122,8 +123,9 @@ const Home = observer( () => {
                         chartData.restart()
                         enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
                     }
-                    if (chartData.isDanger()) {
+                    if (!isDanger && chartData.isDanger()) {
                         setIsChartPaused(true)
+                        setIsDanger(true)
                     }
                 },
                 1000 / curSpeed);
@@ -336,8 +338,11 @@ const Home = observer( () => {
                                             backgroundColor: "#9356A0",
                                             flexGrow: 1,
                                         }}
-                                        disabled={chartData.isDanger()}
-                                        onClick={ () => { setIsChartPaused(false) } }
+                                        disabled={isDanger}
+                                        onClick={ () => {
+                                            setIsChartPaused(false)
+                                            setIsDanger(false)
+                                        } }
                                     >Продолжить
                                     </Button>
                                     : <Button
@@ -356,15 +361,18 @@ const Home = observer( () => {
                                         backgroundColor: "#A05657",
                                         flexGrow: 1,
                                     }}
-                                    disabled={chartData.isDanger()}
-                                    onClick={ () => { setIsChartStopped(true) } }>
+                                    disabled={isDanger}
+                                    onClick={ () => {
+                                        setIsChartStopped(true)
+                                        setIsDanger(false)
+                                    } }>
                                     Остановить процесс
                                 </Button>
                             </Stack>
                     }
                 </Container>
             </Box>
-            { chartData.isDanger()
+            {isDanger
                 ?
                 <Box sx={{
                     position: 'fixed',
@@ -402,7 +410,10 @@ const Home = observer( () => {
                                     backgroundColor: "#9356A0",
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => { setIsChartPaused(false) } }>
+                                onClick={ () => {
+                                    setIsChartPaused(false)
+                                    setIsDanger(false)
+                                } }>
                                 Продолжить процесс
                             </Button>
                             <Button
@@ -411,7 +422,10 @@ const Home = observer( () => {
                                     backgroundColor: "#A05657",
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => { setIsChartStopped(true) } }>
+                                onClick={ () => {
+                                    setIsChartStopped(true)
+                                    setIsDanger(false)
+                                } }>
                                 Остановить процесс
                             </Button>
                         </Stack>

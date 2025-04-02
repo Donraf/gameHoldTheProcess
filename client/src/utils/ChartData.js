@@ -2,13 +2,17 @@ export class ChartData {
     constructor(
         maxPointsToShow = 10, // Сколько точек показывать на графике
         criticalValue = 0.9, // Критическое значение процесса
-        checkDangerNum = 3 // На сколько шагов вперед смотреть, чтобы выявлять опасность
+        checkDangerNum = 3, // На сколько шагов вперед смотреть, чтобы выявлять опасность
+        falseWarningProb = 0.001, // Вероятность ложной тревоги от системы ИИ
+        missingDangerProb = 0.1, // Вероятность пропуска опасности системой ИИ
     ) {
         this.score = 0
         this.curIndex = 0;
         this.maxPointsInSet = maxPointsToShow + checkDangerNum;
         this.criticalValue = criticalValue;
         this.checkDangerNum = checkDangerNum;
+        this.falseWarningProb = falseWarningProb;
+        this.missingDangerProb = missingDangerProb;
         this.initData()
     }
 
@@ -100,13 +104,24 @@ export class ChartData {
     }
 
     isDanger() {
+        const randomVal = Math.random()
         for (let i = this.points.length - 1; i > this.points.length - this.checkDangerNum - 1 && i >= 0; i--) {
             if (this.isPointCrashed(i)) {
-                this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true
-                return true
+                if (randomVal >= this.missingDangerProb) {
+                    this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true
+                    return true
+                } else {
+                    return false
+                }
             }
         }
-        return false
+        if (randomVal >= this.falseWarningProb) {
+            return false
+        } else {
+            this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true
+            return true
+        }
+
     }
 
     restart() {
