@@ -3,7 +3,7 @@ import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button, Container,
-    CssBaseline, FormControlLabel, Paper, Slide, Stack, Switch,
+    CssBaseline, Modal, Stack,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -31,6 +31,7 @@ import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 import DangerIcon from "../components/icons/DangerIcon";
 import {useSnackbar} from "notistack";
 import {createGraph} from "../http/graphAPI";
+import {ModalContent} from "../components/ModalContent";
 
 ChartJS.register(
     LinearScale,
@@ -66,6 +67,10 @@ const Home = observer( () => {
     const navigate = useNavigate();
 
     const [isSlidingIn, setIsSlidingIn] = React.useState(false);
+
+    const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(false);
+    const handleOpenRuleModal = () => setIsRuleModalOpened(true);
+    const handleCloseRuleModal = () => setIsRuleModalOpened(false);
 
     const containerRef = React.useRef(null);
 
@@ -168,17 +173,84 @@ const Home = observer( () => {
                 sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
             >
                 <Toolbar />
-                <Box sx={{ p: 2, height: 100, overflow: 'hidden' }} ref={containerRef}>
-                    {/*{*/}
-                    {/*    scoresChanges.map( text =>*/}
-                    {/*        <Slide in={true} container={containerRef.current}>*/}
-                    {/*            <Typography variant="h6">{text}</Typography>*/}
-                    {/*        </Slide>*/}
-                    {/*    )*/}
-                    {/*}*/}
-                    <Typography variant="h6">Очки: {chartData.score}</Typography>
-                </Box>
-                <Container sx={{width:'95%'}}>
+                <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
+                    <Box sx={{ p: 2, height: 100, overflow: 'hidden' }} ref={containerRef}>
+                        {/*{*/}
+                        {/*    scoresChanges.map( text =>*/}
+                        {/*        <Slide in={true} container={containerRef.current}>*/}
+                        {/*            <Typography variant="h6">{text}</Typography>*/}
+                        {/*        </Slide>*/}
+                        {/*    )*/}
+                        {/*}*/}
+                        <Typography variant="h6">Очки: {chartData.score}</Typography>
+                    </Box>
+                    <Button
+                        sx={{
+                            color: "#9356A0",
+                            border: "#9356A0 1px solid",
+                            height: 40,
+                        }}
+                        onClick={ () => { handleOpenRuleModal() } }>
+                        Правила игры
+                    </Button>
+                </Stack>
+                <Modal
+                    sx={{
+                        position: "fixed",
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                }}
+                    open={isRuleModalOpened}
+                    onClose={handleCloseRuleModal}
+                    // slots={{backdrop: StyledBackdrop}}
+                >
+                    <ModalContent sx={{ width: 800 }}>
+                        <Typography>
+                            Описание игры "Удержи процесс!"
+                        </Typography>
+                        <Typography>
+                            В чем цель игры?
+                        </Typography>
+                        <Typography>
+                            Вы будете наблюдать за процессом, который представлен в виде графика.
+                            С течением времени значения процесса будут меняться.
+                            Ваша цель - как можно дольше не допускать "взрыва процесса", то есть выхода его значения за верхнюю границу (красная линия).
+                            В этом вам поможет система искуственного интеллекта, которая предупредит вас, если посчитает, что вскоре процесс выйдет за допустимые рамки.
+                            Тем не менее изредка система может пропустить опасную ситуацию, а иногда наоборот - предупредит об опасности, когда ее на самом деле нет.
+                        </Typography>
+                        <Typography>
+                            Как набирать очки?
+                        </Typography>
+                        <Typography>
+                            За каждый пройденный процессом шаг вам будут добавляться очки.
+                            В течение игры система искусственного интеллекта будет предупреждать вас об опасности и вы будете принимать решение, остановить или продолжить процесс.
+                            Если вы остановите процесс, когда система ИИ предупредила вас об опасности, и она действительно была, вы получите дополнительные очки.
+                            Если вы остановите процесс без предупреждения ИИ, и при этом через несколько шагов действительно бы произошел взрыв, то вы также получите очки.
+                            Вы потеряете очки если ошибочно проигнориурете предупреждение системе ИИ или остановите процесс из-за ее предупреждения, когда опасности на самом деле не было.
+                        </Typography>
+                        <Typography>
+                            Доступные действия
+                        </Typography>
+                        <Typography>
+                            Чтобы запустить прцоесс, нажмите на кнопку "Начать игру!".
+                            При помощи кнопок с иконками стерлочек, вы можете ускорять и замедлять процесс.
+                            Кнопка "Пауза" позволит остановить время, чтобы у вас было больше времени подумать над тем, стоит ли остановить процесс или нет.
+                            Дла того, чтобы остановить процесс надо нажать на одноименную кнопку.
+                            При возникновении предупреждения от системы ИИ, внизу экрана всплывет окно и процесс автоматически ставится на паузу.
+                            В этом случае вы можете проигнорировать запросить подсказку для принятия решения, продолжить процесс и остановить процесс.
+                        </Typography>
+                    </ModalContent>
+
+                    {/*<h2 id="unstyled-modal-title" className="modal-title">*/}
+                    {/*    Text in a modal*/}
+                    {/*</h2>*/}
+                    {/*<p id="unstyled-modal-description" className="modal-description">*/}
+                    {/*    Aliquid amet deserunt earum!*/}
+                    {/*</p>*/}
+                </Modal>
+                <Container sx={{width: '95%'}}>
                     <Chart
                         ref={chartRef}
                         options={options}
