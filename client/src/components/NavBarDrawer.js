@@ -15,7 +15,7 @@ export default function NavBarDrawer() {
 
     let listItems = [
         {name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},
-        {name: 'Профиль', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
+        {name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
     ]
 
     if (user.user !== undefined && user.user.role === USER_ROLE_ADMIN) {

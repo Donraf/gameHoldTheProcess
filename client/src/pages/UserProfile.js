@@ -138,46 +138,46 @@ const UserProfile = observer( () => {
                                 Обновить пароль
                             </Button>
 
-                            <Typography variant="h4" component="div">
-                                Моя статистика
-                            </Typography>
+                            {/*<Typography variant="h4" component="div">*/}
+                            {/*    Моя статистика*/}
+                            {/*</Typography>*/}
 
-                            <Stack width={'100%'} direction="row" spacing={1}>
-                                <TextField fullWidth onChange={ event => {
-                                    setFilterInput(event.target.value);
-                                    setUpdateTrigger(!updateTrigger);
-                                }}
-                                           value={filterInput}
-                                           id="outlined-basic"
-                                           label="Введите идентификатор игры"
-                                           variant="outlined"/>
-                            </Stack>
-                            <TableContainer component={Paper}>
-                                <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Логин игрока</TableCell>
-                                            <TableCell>Идентификатор игры</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {isDataFetched ?
-                                            filteredData.map((graph) =>
-                                                <TableRow
-                                                    key={graph.id}
-                                                    sx={{'&:last-child td, &:last-child th': {border: 0}}}
-                                                >
-                                                    <TableCell>{graph.user_id}</TableCell>
-                                                    <TableCell>{graph.id}</TableCell>
-                                                </TableRow>
-                                            ) : <></>}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                            { isDataFetched
-                                ? <Pagination sx={{pt: "16px"}} count={ pageCount } page={page} onChange={(event,value) => {setPage(value)}} variant="outlined" shape="rounded" />
-                                : <></>
-                            }
+                            {/*<Stack width={'100%'} direction="row" spacing={1}>*/}
+                            {/*    <TextField fullWidth onChange={ event => {*/}
+                            {/*        setFilterInput(event.target.value);*/}
+                            {/*        setUpdateTrigger(!updateTrigger);*/}
+                            {/*    }}*/}
+                            {/*               value={filterInput}*/}
+                            {/*               id="outlined-basic"*/}
+                            {/*               label="Введите идентификатор игры"*/}
+                            {/*               variant="outlined"/>*/}
+                            {/*</Stack>*/}
+                            {/*<TableContainer component={Paper}>*/}
+                            {/*    <Table sx={{ minWidth: 650 }} aria-label="simple table">*/}
+                            {/*        <TableHead>*/}
+                            {/*            <TableRow>*/}
+                            {/*                <TableCell>Логин игрока</TableCell>*/}
+                            {/*                <TableCell>Идентификатор игры</TableCell>*/}
+                            {/*            </TableRow>*/}
+                            {/*        </TableHead>*/}
+                            {/*        <TableBody>*/}
+                            {/*            {isDataFetched ?*/}
+                            {/*                filteredData.map((graph) =>*/}
+                            {/*                    <TableRow*/}
+                            {/*                        key={graph.id}*/}
+                            {/*                        sx={{'&:last-child td, &:last-child th': {border: 0}}}*/}
+                            {/*                    >*/}
+                            {/*                        <TableCell>{graph.user_id}</TableCell>*/}
+                            {/*                        <TableCell>{graph.id}</TableCell>*/}
+                            {/*                    </TableRow>*/}
+                            {/*                ) : <></>}*/}
+                            {/*        </TableBody>*/}
+                            {/*    </Table>*/}
+                            {/*</TableContainer>*/}
+                            {/*{ isDataFetched*/}
+                            {/*    ? <Pagination sx={{pt: "16px"}} count={ pageCount } page={page} onChange={(event,value) => {setPage(value)}} variant="outlined" shape="rounded" />*/}
+                            {/*    : <></>*/}
+                            {/*}*/}
                         </Stack>
                     </Box>
                     :
