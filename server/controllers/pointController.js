@@ -41,6 +41,23 @@ class PointController {
         }
     }
 
+    async getAllInCsv(req, res, next) {
+        try {
+            const points = await Point.findAll();
+            if (points.length === 0) { return res.json([]); }
+            let csv = Object.keys(points[0].dataValues).join(',') + "\r\n"
+            points.map((point) => {
+                csv += Object.values(point.dataValues).join(',') + "\r\n"
+            });
+            res.header('Content-Type', 'text/csv');
+            res.header('Content-Disposition', 'attachment')
+            res.attachment('points.csv');
+            return res.send(csv);
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request " + e));
+        }
+    }
+
     async delete(req, res, next) {
         try {
             const {id} = req.params

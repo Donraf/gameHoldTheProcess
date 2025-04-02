@@ -19,6 +19,7 @@ import {
     LOGIN_ROUTE
 } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
+import {fetchPointsInCsv} from "../http/pointAPI";
 
 const Admin = observer( () => {
     const {user} = useContext(Context);
@@ -74,6 +75,30 @@ const Admin = observer( () => {
                                 <Button sx={{width:"100%", height: "64px"}} variant="contained"
                                         onClick={() => { navigate(ADMIN_GRAPH_ROUTE) }}>
                                     Изменить пройденную игру
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Box>
+
+                    <Typography variant="h4" component="div">
+                        Выгрузка данных
+                    </Typography>
+
+                    <Box sx={{ flexGrow: 1 }}>
+                        <Grid container spacing={2}>
+                            <Grid size={4}>
+                                <Button
+                                    sx={{width:"100%", height: "64px"}}
+                                    variant="contained"
+                                    onClick={() => { fetchPointsInCsv().then( response => {
+                                        const fileurl = window.URL.createObjectURL(new Blob([response]));
+                                        const link = document.createElement('a');
+                                        link.href = fileurl;
+                                        link.setAttribute('download', 'points.csv');
+                                        document.body.appendChild(link);
+                                        link.click();
+                                    }) }}>
+                                    Выгрузить все сыгранные игры
                                 </Button>
                             </Grid>
                         </Grid>
