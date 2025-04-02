@@ -44,6 +44,28 @@ export class ChartData {
                 }
             ]
         }
+
+        this.fullData = {
+            labels: this.points.slice(0, -this.checkDangerNum).map( point => { return point.x }),
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Значение процесса',
+                    borderColor: 'rgb(0, 0, 0)',
+                    borderWidth: 2,
+                    fill: false,
+                    data: this.points.slice(0, -this.checkDangerNum).map( point => { return point.y } ),
+                },
+                {
+                    type: 'line',
+                    label: 'Критическое значение процесса',
+                    borderColor: 'rgb(255, 0, 60)',
+                    borderWidth: 2,
+                    fill: false,
+                    data: this.points.slice(0, -this.checkDangerNum).map( () => { return this.criticalValue } ),
+                }
+            ]
+        }
         return this.data
     }
 

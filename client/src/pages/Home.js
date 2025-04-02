@@ -63,6 +63,7 @@ export const options = {
 
 const Home = observer( () => {
     const chartRef = useRef<ChartJS>(null);
+    const fullChartRef = useRef<ChartJS>(null);
     const {user} = useContext(Context);
     const navigate = useNavigate();
 
@@ -71,6 +72,10 @@ const Home = observer( () => {
     const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(false);
     const handleOpenRuleModal = () => setIsRuleModalOpened(true);
     const handleCloseRuleModal = () => setIsRuleModalOpened(false);
+
+    const [isHintModalOpened, setIsHintModalOpened] = React.useState(false);
+    const handleOpenHintModal = () => setIsHintModalOpened(true);
+    const handleCloseHintModal = () => setIsHintModalOpened(false);
 
     const containerRef = React.useRef(null);
 
@@ -204,7 +209,6 @@ const Home = observer( () => {
                 }}
                     open={isRuleModalOpened}
                     onClose={handleCloseRuleModal}
-                    // slots={{backdrop: StyledBackdrop}}
                 >
                     <ModalContent sx={{ width: 800 }}>
                         <Typography>
@@ -242,13 +246,28 @@ const Home = observer( () => {
                             В этом случае вы можете проигнорировать запросить подсказку для принятия решения, продолжить процесс и остановить процесс.
                         </Typography>
                     </ModalContent>
-
-                    {/*<h2 id="unstyled-modal-title" className="modal-title">*/}
-                    {/*    Text in a modal*/}
-                    {/*</h2>*/}
-                    {/*<p id="unstyled-modal-description" className="modal-description">*/}
-                    {/*    Aliquid amet deserunt earum!*/}
-                    {/*</p>*/}
+                </Modal>
+                <Modal
+                    sx={{
+                        position: "fixed",
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    open={isHintModalOpened}
+                    onClose={handleCloseHintModal}
+                >
+                    <ModalContent sx={{ width: 800 }}>
+                        <Typography>
+                            Вид всего графика
+                        </Typography>
+                        <Chart
+                            ref={fullChartRef}
+                            options={options}
+                            data={chartData.fullData}
+                            type='line'/>
+                    </ModalContent>
                 </Modal>
                 <Container sx={{width: '95%'}}>
                     <Chart
@@ -374,7 +393,7 @@ const Home = observer( () => {
                                     backgroundColor: "#9356A0",
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => {  } }>
+                                onClick={ () => { handleOpenHintModal() } }>
                                 Показать подсказку
                             </Button>
                             <Button
