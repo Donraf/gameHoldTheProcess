@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
+import dateFormat from "dateformat";
 import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {
     AppBar,
@@ -125,7 +126,9 @@ const AdminGraph = () => {
                                 <TableRow>
                                     <TableCell/>
                                     <TableCell>Логин игрока</TableCell>
-                                    <TableCell>Идентификатор игры</TableCell>
+                                    <TableCell>ID игрока</TableCell>
+                                    <TableCell>ID игры</TableCell>
+                                    <TableCell>Время добавления</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -144,7 +147,9 @@ const AdminGraph = () => {
                                                 </Stack>
                                             </TableCell>
                                             <TableCell component="th" scope="row">{graph.user_id}</TableCell>
+                                            <TableCell>{graph.user_id}</TableCell>
                                             <TableCell>{graph.id}</TableCell>
+                                            <TableCell>{dateFormat(graph.updatedAt, 'yyyy-mm-dd HH:MM:ss')}</TableCell>
                                         </TableRow>
                                     ) : <></>}
                             </TableBody>
