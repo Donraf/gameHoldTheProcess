@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import {
     Chart as ChartJS,
+    LineController,
     LinearScale,
     CategoryScale,
     BarElement,
@@ -34,6 +35,7 @@ import {createGraph} from "../http/graphAPI";
 import {ModalContent} from "../components/ModalContent";
 
 ChartJS.register(
+    LineController,
     LinearScale,
     CategoryScale,
     BarElement,
@@ -268,7 +270,7 @@ const Home = observer( () => {
                             ref={fullChartRef}
                             options={options}
                             data={chartData.fullData}
-                            type='line'/>
+                            />
                     </ModalContent>
                 </Modal>
                 <Container sx={{width: '95%'}}>
@@ -276,7 +278,7 @@ const Home = observer( () => {
                         ref={chartRef}
                         options={options}
                         data={chartData.data}
-                        type='line'/>
+                        />
                     {
                         (isChartPaused && chartData.data.labels.length === 0)
                             ? <Button
