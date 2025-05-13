@@ -123,6 +123,7 @@ const Home = observer( () => {
                         chartData.chartCrashed()
                         createGraph(chartData.points, user.user.user_id)
                         chartData.restart()
+                        setIsHintModalOpened(false)
                         enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
                     }
                     if (!isDanger && chartData.isDanger()) {
@@ -142,6 +143,7 @@ const Home = observer( () => {
             const isStopNeeded = chartData.chartStopped()
             createGraph(chartData.points, user.user.user_id).then(r => {
                 chartData.restart()
+                setIsHintModalOpened(false)
                 setIsChartStopped(false);
                 setIsChartPaused(false);
             })
