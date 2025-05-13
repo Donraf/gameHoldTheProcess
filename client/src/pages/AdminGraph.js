@@ -28,6 +28,7 @@ const AdminGraph = () => {
     const logOut = () => {
         user.setUser({})
         user.setIsAuth(false)
+        localStorage.removeItem('token')
         navigate(HOME_ROUTE)
     }
 
