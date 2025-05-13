@@ -123,7 +123,7 @@ const Home = observer( () => {
                         chartData.chartCrashed()
                         createGraph(chartData.points, user.user.user_id)
                         chartData.restart()
-                        enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
+                        enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
                     }
                     if (!isDanger && chartData.isDanger()) {
                         setIsChartPaused(true)
@@ -139,12 +139,17 @@ const Home = observer( () => {
 
     useEffect( () => {
         if (isChartStopped) {
-            chartData.chartStopped()
+            const isStopNeeded = chartData.chartStopped()
             createGraph(chartData.points, user.user.user_id).then(r => {
                 chartData.restart()
                 setIsChartStopped(false);
                 setIsChartPaused(false);
             })
+            if (!isStopNeeded) {
+                enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
+            } else {
+                enqueueSnackbar("Остановка процесса была верным решением. Получено вознаграждение!", {variant: "success", autoHideDuration: 5000, preventDuplicate: true})
+            }
         }
     }, [isChartStopped]);
 

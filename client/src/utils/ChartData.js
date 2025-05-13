@@ -73,10 +73,6 @@ export class ChartData {
         return this.data
     }
 
-    // generatePoint() {
-    //     return new Point(this.curIndex, Math.random())
-    // }
-
     generatePoint() {
         let newVal = 0
         if (this.points.length > 0) {
@@ -124,6 +120,15 @@ export class ChartData {
 
     }
 
+    isRealDanger() {
+        for (let i = this.points.length - 1; i > this.points.length - this.checkDangerNum - 1 && i >= 0; i--) {
+            if (this.isPointCrashed(i)) {
+                return true
+            }
+        }
+        return false
+    }
+
     restart() {
         this.initData()
     }
@@ -163,10 +168,15 @@ export class ChartData {
     }
 
     chartStopped(){
+        let isStopNeeded = false
         if (this.points.length > this.checkDangerNum) {
             this.points[this.points.length - this.checkDangerNum - 1].is_stop = true
             this.score = Math.ceil(this.score * 0.8)
+            if (this.isRealDanger()) {
+                isStopNeeded = true
+            }
         }
+        return isStopNeeded
     }
 
     chartCrashed(){
