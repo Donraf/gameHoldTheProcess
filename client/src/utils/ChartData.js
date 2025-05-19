@@ -8,6 +8,7 @@ export class ChartData {
     penaltyAcceptIncorrectAdvice = 800;
     penaltyIncorrectStopNoAdvice = 800;
     penaltyExplosionNoAdvice = 600;
+    penaltyPause = 50;
 
     constructor(
         maxPointsToShow = 10, // Сколько точек показывать на графике
@@ -190,6 +191,10 @@ export class ChartData {
             this.points[this.points.length - this.checkDangerNum - 1].is_crash = true
             this.wasExplosion = true
         }
+    }
+
+    chartPaused() {
+        this.score -= this.penaltyPause
     }
 
     changeEndGameScore() {

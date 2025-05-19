@@ -359,7 +359,10 @@ const Home = observer( () => {
                                             backgroundColor: "#9356A0",
                                             flexGrow: 1,
                                         }}
-                                        onClick={ () => { setIsChartPaused(true) } }>
+                                        onClick={ () => {
+                                            setIsChartPaused(true)
+                                            chart.chartData.chartPaused()
+                                        } }>
                                         Пауза
                                     </Button>
                                 }
