@@ -5,6 +5,7 @@ import UserStore from "./store/UserStore";
 import NavBarStore from "./store/NavBarStore";
 import {SnackbarProvider} from "notistack";
 import {createTheme, ThemeOptions, ThemeProvider} from "@mui/material";
+import ChartStore from "./store/ChartStore";
 
 export const themeOptions: ThemeOptions = {
     palette: {
@@ -26,7 +27,8 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <Context.Provider value={{
         user: new UserStore(),
-        navBar: new NavBarStore()
+        navBar: new NavBarStore(),
+        chart: new ChartStore()
     }}>
         <SnackbarProvider>
             <ThemeProvider theme={theme}>

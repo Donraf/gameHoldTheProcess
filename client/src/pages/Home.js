@@ -1,5 +1,4 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import {ChartData} from "../utils/ChartData";
 import {
     AppBar,
     Box, Button, Container,
@@ -66,7 +65,7 @@ export const options = {
 const Home = observer( () => {
     const chartRef = useRef<ChartJS>(null);
     const fullChartRef = useRef<ChartJS>(null);
-    const {user} = useContext(Context);
+    const {user, chart} = useContext(Context);
     const navigate = useNavigate();
 
     const [isSlidingIn, setIsSlidingIn] = React.useState(false);
@@ -84,7 +83,6 @@ const Home = observer( () => {
     const speedOptions = [0.5, 1, 1.5, 2]
 
     const [time, setTime] = useState(Date.now());
-    const [chartData, setChartData] = useState(new ChartData());
     const [isChartPaused, setIsChartPaused] = useState(true);
     const [isChartStopped, setIsChartStopped] = useState(false);
     const [isDanger, setIsDanger] = useState(false);
@@ -117,17 +115,17 @@ const Home = observer( () => {
     useEffect(() => {
         if (!isChartPaused) {
             const interval = setInterval(() => {
-                    chartData.generateNextSet();
+                    chart.chartData.generateNextPoint();
                     setScoresChanges(["+10"])
                     setTime(Date.now())
-                    if (chartData.isCrashed()) {
-                        chartData.chartCrashed()
-                        createGraph(chartData.points, user.user.user_id)
-                        chartData.restart()
+                    if (chart.chartData.isCrashed()) {
+                        chart.chartData.chartCrashed()
+                        createGraph(chart.chartData.points, user.user.user_id)
+                        chart.chartData.restart()
                         setIsHintModalOpened(false)
                         enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
                     }
-                    if (!isDanger && chartData.isDanger()) {
+                    if (!isDanger && chart.chartData.isDanger()) {
                         setIsChartPaused(true)
                         setIsDanger(true)
                     }
@@ -141,9 +139,9 @@ const Home = observer( () => {
 
     useEffect( () => {
         if (isChartStopped) {
-            const isStopNeeded = chartData.chartStopped()
-            createGraph(chartData.points, user.user.user_id).then(r => {
-                chartData.restart()
+            const isStopNeeded = chart.chartData.chartStopped()
+            createGraph(chart.chartData.points, user.user.user_id).then(r => {
+                chart.chartData.restart()
                 setIsHintModalOpened(false)
                 setIsChartStopped(false);
                 setIsChartPaused(false);
@@ -199,7 +197,7 @@ const Home = observer( () => {
                         {/*        </Slide>*/}
                         {/*    )*/}
                         {/*}*/}
-                        <Typography variant="h6">Очки: {chartData.score}</Typography>
+                        <Typography variant="h6">Очки: {chart.chartData.score}</Typography>
                     </Box>
                     <Button
                         sx={{
@@ -277,7 +275,7 @@ const Home = observer( () => {
                         <Chart
                             ref={fullChartRef}
                             options={options}
-                            data={chartData.fullData}
+                            data={chart.chartData.fullData}
                             />
                     </ModalContent>
                 </Modal>
@@ -285,10 +283,10 @@ const Home = observer( () => {
                     <Chart
                         ref={chartRef}
                         options={options}
-                        data={chartData.data}
+                        data={chart.chartData.data}
                         />
                     {
-                        (isChartPaused && chartData.data.labels.length === 0)
+                        (isChartPaused && chart.chartData.data.labels.length === 0)
                             ? <Button
                                 sx={{
                                     color: "#FFFFFF",
