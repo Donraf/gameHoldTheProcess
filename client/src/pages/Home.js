@@ -303,7 +303,6 @@ const Home = observer( () => {
                         </Box>
                         <Box
                             sx={{
-                                width: "60px",
                                 display: "flex",
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -328,6 +327,15 @@ const Home = observer( () => {
                              onClick={ () => { moveToNextHintChart() }}>
                             <IncreaseSpeedIcon/>
                         </Box>
+                        <Button
+                            sx={{
+                                color: "#FFFFFF",
+                                backgroundColor: "#9356A0",
+                                flexGrow: 1,
+                            }}
+                            onClick={ () => { setChosenHint("") } }>
+                            Назад
+                        </Button>
                     </Stack>
                 </>
             default:
