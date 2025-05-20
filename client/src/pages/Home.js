@@ -77,6 +77,11 @@ export const options = {
             max: 1
         },
     },
+    plugins: {
+        legend: {
+            onClick: () => {}
+        }
+    },
 };
 
 const Home = observer( () => {
