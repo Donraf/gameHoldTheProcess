@@ -296,49 +296,91 @@ const Home = observer( () => {
                                 onClick={ () => { setIsChartPaused(false) } }>
                                 Начать игру!
                             </Button>
-                            : <Stack display="flex" direction="row" spacing={1} >
-                                <Box sx={{
-                                    color: "#FFFFFF",
-                                    backgroundColor: "#9356A0",
-                                    display: "flex",
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    px: "8px",
-                                    py: "12px",
-                                    borderRadius: "4px",
-                                }}
-                                     onClick={ () => { decreaseSpeed() } }>
-                                    <DecreaseSpeedIcon/>
-                                </Box>
-                                <Box
-                                    sx={{
-                                        // color: "#FFFFFF",
-                                        // backgroundColor: "#9356A0",
-                                        width: "60px",
+                            : <Stack display="flex" direction="column" spacing={1} >
+                                <Stack display="flex" direction="row" spacing={1} >
+                                    <Box sx={{
+                                        color: "#FFFFFF",
+                                        backgroundColor: "#9356A0",
                                         display: "flex",
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        border: "1px solid #000000",
+                                        px: "8px",
+                                        py: "12px",
                                         borderRadius: "4px",
                                     }}
-                                >
-                                    <Typography variant="h6">
-                                        {"x" + curSpeed.toString()}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{
-                                    color: "#FFFFFF",
-                                    backgroundColor: "#9356A0",
-                                    display: "flex",
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    px: "8px",
-                                    py: "12px",
-                                    borderRadius: "4px",
-                                }}
-                                     onClick={ () => { increaseSpeed() } }>
-                                    <IncreaseSpeedIcon/>
-                                </Box>
+                                         onClick={ () => { decreaseSpeed() } }>
+                                        <DecreaseSpeedIcon/>
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            // color: "#FFFFFF",
+                                            // backgroundColor: "#9356A0",
+                                            width: "60px",
+                                            display: "flex",
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: "1px solid #000000",
+                                            borderRadius: "4px",
+                                        }}
+                                    >
+                                        <Typography variant="h6">
+                                            {"x" + curSpeed.toString()}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{
+                                        color: "#FFFFFF",
+                                        backgroundColor: "#9356A0",
+                                        display: "flex",
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        px: "8px",
+                                        py: "12px",
+                                        borderRadius: "4px",
+                                    }}
+                                         onClick={ () => { increaseSpeed() } }>
+                                        <IncreaseSpeedIcon/>
+                                    </Box>
+                                    { isChartPaused
+                                        ? <Button
+                                            sx={{
+                                                color: "#FFFFFF",
+                                                backgroundColor: "#9356A0",
+                                                flexGrow: 1,
+                                            }}
+                                            disabled={isDanger}
+                                            onClick={ () => {
+                                                setIsChartPaused(false)
+                                                setIsDanger(false)
+                                            } }
+                                        >Продолжить
+                                        </Button>
+                                        : <Button
+                                            sx={{
+                                                color: "#FFFFFF",
+                                                backgroundColor: "#9356A0",
+                                                flexGrow: 1,
+                                            }}
+                                            onClick={ () => {
+                                                setIsChartPaused(true)
+                                                chart.chartData.chartPaused()
+                                            } }>
+                                            Пауза
+                                        </Button>
+                                    }
+                                    <Button
+                                        sx={{
+                                            color: "#FFFFFF",
+                                            backgroundColor: "#A05657",
+                                            flexGrow: 1,
+                                        }}
+                                        disabled={isDanger}
+                                        onClick={ () => {
+                                            setIsChartStopped(true)
+                                            setIsDanger(false)
+                                        } }>
+                                        Остановить процесс
+                                    </Button>
+                                </Stack>
                                 { isChartPaused
                                     ? <Button
                                         sx={{
@@ -346,39 +388,11 @@ const Home = observer( () => {
                                             backgroundColor: "#9356A0",
                                             flexGrow: 1,
                                         }}
-                                        disabled={isDanger}
-                                        onClick={ () => {
-                                            setIsChartPaused(false)
-                                            setIsDanger(false)
-                                        } }
-                                    >Продолжить
+                                        onClick={ () => { handleOpenHintModal() } }>
+                                        Купить подсказки
                                     </Button>
-                                    : <Button
-                                        sx={{
-                                            color: "#FFFFFF",
-                                            backgroundColor: "#9356A0",
-                                            flexGrow: 1,
-                                        }}
-                                        onClick={ () => {
-                                            setIsChartPaused(true)
-                                            chart.chartData.chartPaused()
-                                        } }>
-                                        Пауза
-                                    </Button>
+                                    : <></>
                                 }
-                                <Button
-                                    sx={{
-                                        color: "#FFFFFF",
-                                        backgroundColor: "#A05657",
-                                        flexGrow: 1,
-                                    }}
-                                    disabled={isDanger}
-                                    onClick={ () => {
-                                        setIsChartStopped(true)
-                                        setIsDanger(false)
-                                    } }>
-                                    Остановить процесс
-                                </Button>
                             </Stack>
                     }
                 </Container>
