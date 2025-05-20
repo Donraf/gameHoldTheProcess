@@ -34,6 +34,7 @@ import {createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount} from "../h
 import {ModalContent} from "../components/ModalContent";
 import {fetchPointsByChartId} from "../http/pointAPI";
 import {ChartData} from "../utils/ChartData";
+import {transformToUiDateDayTime} from "../utils/transformDate";
 
 ChartJS.register(
     LineController,
@@ -275,7 +276,7 @@ const Home = observer( () => {
                                 Все предыдущие сессии
                             </Typography>
                             <Typography>
-                                Время графика {hintCharts[curLocalHintChartNum].createdAt}
+                                Игровая сессия {transformToUiDateDayTime(hintCharts[curLocalHintChartNum].createdAt)}
                             </Typography>
                             <Chart
                                 ref={fullChartRef}
