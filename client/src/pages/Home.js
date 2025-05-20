@@ -349,7 +349,10 @@ const Home = observer( () => {
                             backgroundColor: "#9356A0",
                             flexGrow: 1,
                         }}
-                        onClick={ () => { setChosenHint("CurrentSession") } }>
+                        onClick={ () => {
+                            setChosenHint("CurrentSession")
+                            chart.chartData.chartHintUsed(200)
+                        } }>
                         Показать всю текущую сессию (200 очков)
                     </Button>
                     <Button
@@ -358,7 +361,10 @@ const Home = observer( () => {
                             backgroundColor: "#9356A0",
                             flexGrow: 1,
                         }}
-                        onClick={ () => { setChosenHint("AllSessions") } }>
+                        onClick={ () => {
+                            setChosenHint("AllSessions")
+                            chart.chartData.chartHintUsed(600)
+                        } }>
                         Показать все свои предыдущие сессии (600 очков)
                     </Button>
                 </>

@@ -197,6 +197,11 @@ export class ChartData {
         this.score -= this.penaltyPause
     }
 
+    chartHintUsed(cost) {
+        this.score -= cost
+        this.points[this.points.length - this.checkDangerNum - 1].is_check = true
+    }
+
     changeEndGameScore() {
         if (this.wasExplosion && this.wasRealAlert) {
             this.score -= this.penaltyRejectCorrectAdvice
