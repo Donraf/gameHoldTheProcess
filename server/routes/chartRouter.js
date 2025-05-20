@@ -5,6 +5,7 @@ const checkRole = require('../middleware/checkRoleMiddleware');
 
 router.post('/charts', chartController.getAll);
 router.post('/pageCount', chartController.getPageCount);
+router.post('/count', chartController.getCount);
 router.post('/', chartController.create);
 router.get('/:id', chartController.getOne);
 router.delete('/:id', checkRole("ADMIN"), chartController.delete);

@@ -38,6 +38,20 @@ export const getGraphsPageCount = async (filterTag = null, filterValue = null) =
     }
 }
 
+export const getGraphsCount = async (filterTag = null, filterValue = null) => {
+    try {
+        const graphCount = await $host.post('api/chart/count',
+            {
+                filter_tag: filterTag,
+                filter_value: filterValue,
+            }
+        );
+        return graphCount.data.count;
+    } catch (e) {
+        throw e;
+    }
+}
+
 export const fetchGraphs = async (filterTag = null, filterValue = null, currentPage = null) => {
     try {
         const {data} = await $host.post('api/chart/charts',

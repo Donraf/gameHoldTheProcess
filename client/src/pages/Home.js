@@ -30,8 +30,10 @@ import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
 import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 import DangerIcon from "../components/icons/DangerIcon";
 import {useSnackbar} from "notistack";
-import {createGraph} from "../http/graphAPI";
+import {createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount} from "../http/graphAPI";
 import {ModalContent} from "../components/ModalContent";
+import {fetchPointsByChartId} from "../http/pointAPI";
+import {ChartData} from "../utils/ChartData";
 
 ChartJS.register(
     LineController,
@@ -43,6 +45,20 @@ ChartJS.register(
     Legend,
     Tooltip
 );
+
+async function chartToHintCharts(charts) {
+    let hintCharts = []
+    for (let i in charts) {
+        let points = await fetchPointsByChartId(charts[i].id)
+        let hintChart = {
+            id: charts[i].id,
+            createdAt: charts[i].createdAt,
+            points: points
+        }
+        hintCharts.push(hintChart)
+    }
+    return hintCharts
+}
 
 export const options = {
     animations: {
@@ -81,6 +97,13 @@ const Home = observer( () => {
         setChosenHint("");
     };
     const [chosenHint, setChosenHint] = React.useState("");
+    const [hintCharts, setHintCharts] = React.useState([]);
+    const [countHintCharts, setCountHintCharts] = React.useState(0);
+    const [curHintChartNum, setCurHintChartNum] = React.useState(1);
+    const [countPageHintCharts, setCountPageHintCharts] = React.useState(0);
+    const [curPageHintChartsNum, setCurPageHintChartsNum] = React.useState(1);
+    const [curLocalHintChartNum, setCurLocalHintChartNum] = React.useState(1);
+    const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
 
     const containerRef = React.useRef(null);
 
@@ -167,6 +190,56 @@ const Home = observer( () => {
             1500 / curSpeed);
     }, [scoresChanges]);
 
+    useEffect(() => {
+        if (chosenHint === "AllSessions") {
+            setHintModalDataFetched(false)
+            const fetchData = async () => {
+                let chartCount = await getGraphsCount("user_id", user.user.user_id)
+                setCountHintCharts(chartCount)
+                let pageCount = await getGraphsPageCount("user_id", user.user.user_id)
+                setCountPageHintCharts(pageCount)
+                let charts = await fetchGraphs("user_id", user.user.user_id, pageCount)
+                let hintCharts = await chartToHintCharts(charts)
+                setHintCharts(hintCharts)
+                setCurLocalHintChartNum(charts.length - 1)
+                setCurPageHintChartsNum(pageCount)
+            }
+            fetchData().then( () => {setHintModalDataFetched(true)} )
+        }
+    }, [chosenHint]);
+
+    const moveToNextHintChart = async () => {
+        if (curHintChartNum >= countHintCharts) return
+        setCurHintChartNum(curHintChartNum + 1)
+        if (curLocalHintChartNum <= 0 && curPageHintChartsNum > 1) {
+            setHintModalDataFetched(false)
+            let charts = await fetchGraphs("user_id", user.user.user_id, curPageHintChartsNum - 1)
+            let hintCharts = await chartToHintCharts(charts)
+            setHintCharts(hintCharts)
+            setCurPageHintChartsNum(curPageHintChartsNum - 1)
+            setCurLocalHintChartNum(charts.length - 1)
+            setHintModalDataFetched(true)
+            return
+        }
+        setCurLocalHintChartNum(curLocalHintChartNum - 1)
+    }
+
+    const moveToPrevHintChart = async () => {
+        if (curHintChartNum <= 1) return
+        setCurHintChartNum(curHintChartNum - 1)
+        if (curLocalHintChartNum >= hintCharts.length - 1 && curPageHintChartsNum < countPageHintCharts) {
+            setHintModalDataFetched(false)
+            let charts = await fetchGraphs("user_id", user.user.user_id, curPageHintChartsNum + 1)
+            let hintCharts = await chartToHintCharts(charts)
+            setHintCharts(hintCharts)
+            setCurPageHintChartsNum(curPageHintChartsNum + 1)
+            setCurLocalHintChartNum(0)
+            setHintModalDataFetched(true)
+            return
+        }
+        setCurLocalHintChartNum(curLocalHintChartNum + 1)
+    }
+
     const renderHintModal = (chosenVariant) => {
         switch (chosenVariant) {
             case "CurrentSession":
@@ -190,7 +263,72 @@ const Home = observer( () => {
                     </Button>
                 </>
             case "AllSessions":
-                return <></>
+                let chartData = new ChartData()
+                if (hintModalDataFetched) {
+                    chartData.restoreFromPoints(hintCharts[curLocalHintChartNum].points)
+                }
+                return <>
+                {
+                    hintModalDataFetched
+                        ? <>
+                            <Typography>
+                                Все предыдущие сессии
+                            </Typography>
+                            <Typography>
+                                Время графика {hintCharts[curLocalHintChartNum].createdAt}
+                            </Typography>
+                            <Chart
+                                ref={fullChartRef}
+                                options={options}
+                                data={chartData.data}
+                            />
+                        </>
+                        :<></>
+                }
+                    <Stack display="flex" direction="row" spacing={1} >
+                        <Box sx={{
+                            color: "#FFFFFF",
+                            backgroundColor: "#9356A0",
+                            display: "flex",
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: "8px",
+                            py: "12px",
+                            borderRadius: "4px",
+                        }}
+                             onClick={ () => { moveToPrevHintChart() }
+                        }>
+                            <DecreaseSpeedIcon/>
+                        </Box>
+                        <Box
+                            sx={{
+                                width: "60px",
+                                display: "flex",
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: "1px solid #000000",
+                                borderRadius: "4px",
+                            }}
+                        >
+                            <Typography variant="h6">
+                                {curHintChartNum + "/" + countHintCharts}
+                            </Typography>
+                        </Box>
+                        <Box sx={{
+                            color: "#FFFFFF",
+                            backgroundColor: "#9356A0",
+                            display: "flex",
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: "8px",
+                            py: "12px",
+                            borderRadius: "4px",
+                        }}
+                             onClick={ () => { moveToNextHintChart() }}>
+                            <IncreaseSpeedIcon/>
+                        </Box>
+                    </Stack>
+                </>
             default:
                 return <>
                     <Typography>

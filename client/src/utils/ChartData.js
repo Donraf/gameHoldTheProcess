@@ -219,16 +219,54 @@ export class ChartData {
         }
     }
 
+    restoreFromPoints(points) {
+        let newPoints = [];
+        for (let i in points) {
+            let newPoint = new Point(
+                points[i].x,
+                points[i].y,
+                points[i].is_end,
+                points[i].is_crash,
+                points[i].is_ai_signal,
+                points[i].is_stop,
+                points[i].is_check,
+            )
+            newPoints.push(newPoint)
+        }
+
+        this.data = {
+            labels: newPoints.map( point => { return point.x }),
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Значение процесса',
+                    borderColor: 'rgb(0, 0, 0)',
+                    borderWidth: 2,
+                    fill: false,
+                    data: newPoints.map( point => { return point.y } ),
+                },
+                {
+                    type: 'line',
+                    label: 'Критическое значение процесса',
+                    borderColor: 'rgb(255, 0, 60)',
+                    borderWidth: 2,
+                    fill: false,
+                    data: newPoints.map( () => { return this.criticalValue } ),
+                }
+            ]
+        }
+    }
+
 }
 
 class Point {
-    constructor(x, y) {
+    constructor(x, y, is_end=false, is_crash=false, is_ai_signal=false, is_stop=false, is_check=false) {
         this.x = x;
         this.y = y;
-        this.is_end = false;
-        this.is_crash = false;
-        this.is_ai_signal = false;
-        this.is_stop = false;
-        this.is_check = false;
+        this.is_end = is_end;
+        this.is_crash = is_crash;
+        this.is_ai_signal = is_ai_signal;
+        this.is_stop = is_stop;
+        this.is_check = is_check;
     }
 }

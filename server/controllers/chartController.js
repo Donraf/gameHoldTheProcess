@@ -69,6 +69,51 @@ class ChartController {
         }
     }
 
+    async getCount(req, res, next) {
+        try {
+            let chartsCount = 0
+            switch (req.body.filter_tag){
+                case 'chart_id' : {
+                    chartsCount = await Chart.count({
+                        where: {
+                            id: { [Op.substring]: req.body.filter_value }
+                        }
+                    });
+                    break
+                }
+                case 'user_login' : {
+                    let users = await User.findAll({
+                        where: {
+                            login: { [Op.substring]: req.body.filter_value }
+                        }
+                    })
+                    for (let user of users) {
+                        chartsCount += await Chart.count({
+                            where: {
+                                user_id: { [Op.eq]: user.user_id }
+                            }
+                        });
+                    }
+                    break
+                }
+                case 'user_id' : {
+                    chartsCount = await Chart.count({
+                        where: {
+                            user_id: { [Op.eq]: req.body.filter_value }
+                        }
+                    });
+                    break
+                }
+                default: {
+                    chartsCount = await Chart.count();
+                }
+            }
+            return res.json({count: chartsCount})
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request " + e));
+        }
+    }
+
     async getAll(req, res, next) {
         try {
             let charts = []

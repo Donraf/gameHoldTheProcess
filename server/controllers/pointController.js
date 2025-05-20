@@ -1,5 +1,6 @@
 const {Point} = require('../models/models');
 const ApiError = require('../error/ApiError');
+const {Op} = require("sequelize");
 
 class PointController {
     async create(req, res, next) {
@@ -27,6 +28,19 @@ class PointController {
             const {id} = req.params
             const point = await Point.findByPk(id)
             return res.json(point)
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request"));
+        }
+    }
+
+    async getAllById(req, res, next) {
+        try {
+            const points = await Point.findAll({
+                where: {
+                    chart_id: { [Op.eq]: req.params.chart_id },
+                }
+            });
+            return res.json(points);
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
         }
