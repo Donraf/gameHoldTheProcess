@@ -76,7 +76,11 @@ const Home = observer( () => {
 
     const [isHintModalOpened, setIsHintModalOpened] = React.useState(false);
     const handleOpenHintModal = () => setIsHintModalOpened(true);
-    const handleCloseHintModal = () => setIsHintModalOpened(false);
+    const handleCloseHintModal = () => {
+        setIsHintModalOpened(false);
+        setChosenHint("");
+    };
+    const [chosenHint, setChosenHint] = React.useState("");
 
     const containerRef = React.useRef(null);
 
@@ -162,6 +166,57 @@ const Home = observer( () => {
             },
             1500 / curSpeed);
     }, [scoresChanges]);
+
+    const renderHintModal = (chosenVariant) => {
+        switch (chosenVariant) {
+            case "CurrentSession":
+                return <>
+                    <Typography>
+                        Вся текущая сессия
+                    </Typography>
+                    <Chart
+                        ref={fullChartRef}
+                        options={options}
+                        data={chart.chartData.fullData}
+                    />
+                    <Button
+                        sx={{
+                            color: "#FFFFFF",
+                            backgroundColor: "#9356A0",
+                            flexGrow: 1,
+                        }}
+                        onClick={ () => { setChosenHint("") } }>
+                        Назад
+                    </Button>
+                </>
+            case "AllSessions":
+                return <></>
+            default:
+                return <>
+                    <Typography>
+                        Какую подсказку хотите купить?
+                    </Typography>
+                    <Button
+                        sx={{
+                            color: "#FFFFFF",
+                            backgroundColor: "#9356A0",
+                            flexGrow: 1,
+                        }}
+                        onClick={ () => { setChosenHint("CurrentSession") } }>
+                        Показать всю текущую сессию (200 очков)
+                    </Button>
+                    <Button
+                        sx={{
+                            color: "#FFFFFF",
+                            backgroundColor: "#9356A0",
+                            flexGrow: 1,
+                        }}
+                        onClick={ () => { setChosenHint("AllSessions") } }>
+                        Показать все свои предыдущие сессии (600 очков)
+                    </Button>
+                </>
+        }
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -269,14 +324,7 @@ const Home = observer( () => {
                     onClose={handleCloseHintModal}
                 >
                     <ModalContent sx={{ width: 800 }}>
-                        <Typography>
-                            Вид всего графика
-                        </Typography>
-                        <Chart
-                            ref={fullChartRef}
-                            options={options}
-                            data={chart.chartData.fullData}
-                            />
+                        {renderHintModal(chosenHint)}
                     </ModalContent>
                 </Modal>
                 <Container sx={{width: '95%'}}>
