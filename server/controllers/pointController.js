@@ -1,4 +1,4 @@
-const {Point} = require('../models/models');
+const {Point, User, Chart} = require('../models/models');
 const ApiError = require('../error/ApiError');
 const {Op} = require("sequelize");
 
@@ -61,12 +61,31 @@ class PointController {
 
     async getAllInCsv(req, res, next) {
         try {
-            const points = await Point.findAll();
-            if (points.length === 0) { return res.json([]); }
-            let csv = Object.keys(points[0].dataValues).join(',') + "\r\n"
-            points.map((point) => {
-                csv += Object.values(point.dataValues).join(',') + "\r\n"
-            });
+            let csv = ""
+            const users = await User.findAll()
+            for (let i = 0; i < users.length; i++) {
+                let user = users[i];
+                let charts = await Chart.findAll({
+                    where: {
+                        user_id: { [Op.eq]: user.user_id}
+                    }
+                })
+                for (let j = 0; j < charts.length; j++) {
+                    let chart = charts[j];
+                    let points = await Point.findAll({
+                        where: {
+                            chart_id: { [Op.eq]: chart.id }
+                        }
+                    });
+                    if (points.length === 0) { return res.json([]); }
+                    if (csv.length === 0) {
+                        csv = Object.keys(points[0].dataValues).join(',') + ",user_id" + "\r\n"
+                    }
+                    points.map((point) => {
+                        csv += Object.values(point.dataValues).join(',') + "," + user.user_id + "\r\n"
+                    });
+                }
+            }
             res.header('Content-Type', 'text/csv');
             res.header('Content-Disposition', 'attachment')
             res.attachment('points.csv');
