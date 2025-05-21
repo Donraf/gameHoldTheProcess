@@ -12,8 +12,10 @@ export const createGraph = async (points, user_id) => {
                     y: point.y,
                     is_end: point.is_end,
                     is_crash: point.is_crash,
-                    is_ai_signal: point.is_ai_signal,
+                    is_useful_ai_signal: point.is_useful_ai_signal,
+                    is_deceptive_ai_signal: point.is_deceptive_ai_signal,
                     is_stop: point.is_stop,
+                    is_pause: point.is_pause,
                     is_check: point.is_check
                 }
             );

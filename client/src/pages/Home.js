@@ -270,12 +270,12 @@ const Home = observer( () => {
                 </>
             case "AllSessions":
                 let chartData = new ChartData()
-                if (hintModalDataFetched) {
+                if (hintModalDataFetched && hintCharts.length > 0) {
                     chartData.restoreFromPoints(hintCharts[curLocalHintChartNum].points)
                 }
                 return <>
                 {
-                    hintModalDataFetched
+                    hintModalDataFetched && hintCharts.length > 0
                         ? <>
                             <Typography>
                                 Все предыдущие сессии
@@ -289,7 +289,14 @@ const Home = observer( () => {
                                 data={chartData.data}
                             />
                         </>
-                        :<></>
+                        :<>
+                            {hintCharts.length <= 0
+                                ?
+                                <Typography>
+                                    Предыдущих сессий нет
+                                </Typography>
+                                : <></>}
+                        </>
                 }
                     <Stack display="flex" direction="row" spacing={1} >
                         <Box sx={{

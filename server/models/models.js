@@ -18,8 +18,10 @@ const Point = sequelize.define("Point", {
     y: {type: DataTypes.FLOAT, allowNull: false},
     is_end: {type: DataTypes.BOOLEAN, allowNull: false},
     is_crash: {type: DataTypes.BOOLEAN, allowNull: false},
-    is_ai_signal: {type: DataTypes.BOOLEAN, allowNull: false},
+    is_useful_ai_signal: {type: DataTypes.BOOLEAN, allowNull: false},
+    is_deceptive_ai_signal: {type: DataTypes.BOOLEAN, allowNull: false},
     is_stop: {type: DataTypes.BOOLEAN, allowNull: false},
+    is_pause: {type: DataTypes.BOOLEAN, allowNull: false},
     is_check: {type: DataTypes.BOOLEAN, allowNull: false},
 })
 

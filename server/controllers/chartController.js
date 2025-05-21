@@ -116,6 +116,9 @@ class ChartController {
 
     async getAll(req, res, next) {
         try {
+            if (req.body.current_page <= 0) {
+                return res.json([]);
+            }
             let charts = []
             switch (req.body.filter_tag){
                 case 'chart_id' : {

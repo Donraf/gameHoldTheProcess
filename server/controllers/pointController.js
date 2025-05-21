@@ -11,12 +11,16 @@ class PointController {
                 y,
                 is_end,
                 is_crash,
-                is_ai_signal,
+                is_useful_ai_signal,
+                is_deceptive_ai_signal,
                 is_stop,
+                is_pause,
                 is_check,
             } = req.body;
             const point = await Point.create({chart_id: chart_id, x: x, y: y,
-                is_end: is_end, is_crash: is_crash, is_ai_signal: is_ai_signal, is_stop: is_stop, is_check: is_check});
+                is_end: is_end, is_crash: is_crash, is_useful_ai_signal: is_useful_ai_signal,
+                is_deceptive_ai_signal:is_deceptive_ai_signal, is_pause:is_pause, is_stop: is_stop,
+                is_check: is_check});
             return res.json(point);
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));

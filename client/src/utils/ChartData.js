@@ -130,6 +130,7 @@ export class ChartData {
             if (randomVal >= this.missingDangerProb) {
                 this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true
                 this.wasRealAlert = true
+                this.points[this.points.length - this.checkDangerNum - 1].is_useful_ai_signal = true
                 return true
             } else {
                 return false
@@ -146,6 +147,7 @@ export class ChartData {
         } else {
             this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true
             this.wasFakeAlert = true
+            this.points[this.points.length - this.checkDangerNum - 1].is_deceptive_ai_signal = true
             return true
         }
     }
@@ -195,6 +197,7 @@ export class ChartData {
 
     chartPaused() {
         this.score -= this.penaltyPause
+        this.points[this.points.length - this.checkDangerNum - 1].is_pause = true
     }
 
     chartHintUsed(cost) {
@@ -232,8 +235,10 @@ export class ChartData {
                 points[i].y,
                 points[i].is_end,
                 points[i].is_crash,
-                points[i].is_ai_signal,
+                points[i].is_useful_ai_signal,
+                points[i].is_deceptive_ai_signal,
                 points[i].is_stop,
+                points[i].is_pause,
                 points[i].is_check,
             )
             newPoints.push(newPoint)
@@ -265,13 +270,16 @@ export class ChartData {
 }
 
 class Point {
-    constructor(x, y, is_end=false, is_crash=false, is_ai_signal=false, is_stop=false, is_check=false) {
+    constructor(x, y, is_end=false, is_crash=false, is_useful_ai_signal=false, is_deceptive_ai_signal=false,
+                is_stop=false, is_pause=false, is_check=false) {
         this.x = x;
         this.y = y;
         this.is_end = is_end;
         this.is_crash = is_crash;
-        this.is_ai_signal = is_ai_signal;
+        this.is_useful_ai_signal = is_useful_ai_signal;
+        this.is_deceptive_ai_signal = is_deceptive_ai_signal;
         this.is_stop = is_stop;
+        this.is_pause = is_pause;
         this.is_check = is_check;
     }
 }
