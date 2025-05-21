@@ -652,6 +652,7 @@ const Home = observer( () => {
                                 onClick={ () => {
                                     setIsChartPaused(false)
                                     setIsDanger(false)
+                                    handleCloseHintModal()
                                 } }>
                                 Продолжить процесс
                             </Button>
