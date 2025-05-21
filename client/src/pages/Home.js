@@ -209,6 +209,7 @@ const Home = observer( () => {
                 setHintCharts(hintCharts)
                 setCurLocalHintChartNum(charts.length - 1)
                 setCurPageHintChartsNum(pageCount)
+                setCurHintChartNum(1)
             }
             fetchData().then( () => {setHintModalDataFetched(true)} )
         }
