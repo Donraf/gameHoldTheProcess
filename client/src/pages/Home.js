@@ -173,12 +173,11 @@ const Home = observer( () => {
     useEffect( () => {
         if (isChartStopped) {
             const isStopNeeded = chart.chartData.chartStopped()
-            createGraph(chart.chartData.points, user.user.user_id).then(r => {
-                chart.chartData.restart()
-                setIsHintModalOpened(false)
-                setIsChartStopped(false);
-                setIsChartPaused(false);
-            })
+            createGraph(chart.chartData.points, user.user.user_id)
+            chart.chartData.restart()
+            setIsHintModalOpened(false)
+            setIsChartStopped(false);
+            setIsChartPaused(false);
             if (!isStopNeeded) {
                 enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
             } else {
