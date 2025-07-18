@@ -636,8 +636,12 @@ const Home = observer( () => {
                                     backgroundColor: "#9356A0",
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => { handleOpenHintModal() } }>
-                                Показать подсказку
+                                onClick={ () => {
+                                    setIsChartPaused(false)
+                                    setIsDanger(false)
+                                    handleCloseHintModal()
+                                } }>
+                                Продолжить процесс
                             </Button>
                             <Button
                                 sx={{
@@ -645,12 +649,8 @@ const Home = observer( () => {
                                     backgroundColor: "#9356A0",
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => {
-                                    setIsChartPaused(false)
-                                    setIsDanger(false)
-                                    handleCloseHintModal()
-                                } }>
-                                Продолжить процесс
+                                onClick={ () => { handleOpenHintModal() } }>
+                                Показать подсказку
                             </Button>
                             <Button
                                 sx={{
