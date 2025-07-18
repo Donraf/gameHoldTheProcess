@@ -591,7 +591,7 @@ const Home = observer( () => {
                                             setIsChartStopped(true)
                                             setIsDanger(false)
                                         } }>
-                                        Остановить процесс
+                                        Завершить процесс
                                     </Button>
                                 </Stack>
                                 { isChartPaused
@@ -625,12 +625,9 @@ const Home = observer( () => {
                     backgroundColor: '#FFFFFF',
                 }} >
                     <Stack spacing={1}>
-                        <Stack direction="row" spacing={1} >
+                        <Stack direction="row" spacing={1} alignItems={"center"} >
                             <DangerIcon/>
-                            <Stack>
-                                <Typography>Внимание!</Typography>
-                                <Typography>Появилась опасность взрыва. Примите решение об остановке процесса.</Typography>
-                            </Stack>
+                            <Typography>Внимание! Опасность взрыва! Решите, что делать!</Typography>
                         </Stack>
                         <Stack direction="row" spacing={1} >
                             <Button
@@ -665,7 +662,7 @@ const Home = observer( () => {
                                     setIsChartStopped(true)
                                     setIsDanger(false)
                                 } }>
-                                Остановить процесс
+                                Завершить процесс
                             </Button>
                         </Stack>
                     </Stack>
