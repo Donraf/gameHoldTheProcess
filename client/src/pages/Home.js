@@ -20,6 +20,7 @@ import {
 import {
     Chart,
 } from 'react-chartjs-2';
+import {COLORS} from '../utils/constants'
 
 import NavBarDrawer from "../components/NavBarDrawer";
 import {Context} from "../index";
@@ -557,7 +558,7 @@ const Home = observer( () => {
                                         ? <Button
                                             sx={{
                                                 color: "#FFFFFF",
-                                                backgroundColor: "#9356A0",
+                                                backgroundColor: COLORS.continueButton,
                                                 flexGrow: 1,
                                             }}
                                             disabled={isDanger}
@@ -583,7 +584,7 @@ const Home = observer( () => {
                                     <Button
                                         sx={{
                                             color: "#FFFFFF",
-                                            backgroundColor: "#A05657",
+                                            backgroundColor: COLORS.stopButton,
                                             flexGrow: 1,
                                         }}
                                         disabled={isDanger}
@@ -598,7 +599,7 @@ const Home = observer( () => {
                                     ? <Button
                                         sx={{
                                             color: "#FFFFFF",
-                                            backgroundColor: "#9356A0",
+                                            backgroundColor: COLORS.takeHintButton,
                                             flexGrow: 1,
                                         }}
                                         onClick={ () => { handleOpenHintModal() } }>
@@ -633,7 +634,7 @@ const Home = observer( () => {
                             <Button
                                 sx={{
                                     color: "#FFFFFF",
-                                    backgroundColor: "#9356A0",
+                                    backgroundColor: COLORS.continueButton,
                                     flexGrow: 1,
                                 }}
                                 onClick={ () => {
@@ -646,7 +647,7 @@ const Home = observer( () => {
                             <Button
                                 sx={{
                                     color: "#FFFFFF",
-                                    backgroundColor: "#9356A0",
+                                    backgroundColor: COLORS.takeHintButton,
                                     flexGrow: 1,
                                 }}
                                 onClick={ () => { handleOpenHintModal() } }>
@@ -655,7 +656,7 @@ const Home = observer( () => {
                             <Button
                                 sx={{
                                     color: "#FFFFFF",
-                                    backgroundColor: "#A05657",
+                                    backgroundColor: COLORS.stopButton,
                                     flexGrow: 1,
                                 }}
                                 onClick={ () => {

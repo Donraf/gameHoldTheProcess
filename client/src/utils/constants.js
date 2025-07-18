@@ -11,3 +11,9 @@ export const USER_PROFILE_ROUTE = '/profile';
 // User roles
 export const USER_ROLE_USER = 'User';
 export const USER_ROLE_ADMIN = 'ADMIN';
+
+export const COLORS = {
+    stopButton: '#ED0800',
+    continueButton: '#25a040',
+    takeHintButton: '#4681f4',
+}
