@@ -113,19 +113,14 @@ export class ChartData {
 
     /*
     * Генерация новой точки.
+    * Переходная функция звена первого порядка + шум.
     * */
     generatePoint() {
-        let newVal = 0
-        if (this.points.length > 0) {
-            newVal = this.points[this.points.length - 1].y;
-            const randomVal = Math.random()
-            if (randomVal >= 0.4) {
-                newVal += Math.random() * 0.1
-            } else {
-                newVal -= Math.random() * 0.1
-            }
-            if (newVal < 0) newVal = 0
-        }
+        let k = .92
+        let T = 20
+        let newVal = (k * (1 - Math.exp(-this.points.length / T)) +
+            (Math.random() * 2 - 1) * 0.03).toFixed(2)
+        if (newVal < 0) newVal = 0
         return new Point(this.curIndex, newVal)
     }
 
