@@ -1,9 +1,6 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {Context} from "../index";
-import {useNavigate} from "react-router-dom";
-import {HOME_ROUTE, LOGIN_ROUTE, USER_ROLE_ADMIN, USER_ROLE_USER} from "../utils/constants";
+import React, {useEffect, useState} from 'react';
+import {USER_ROLE_ADMIN, USER_ROLE_USER} from "../utils/constants";
 import {
-    AppBar,
     Box,
     Button,
     CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
@@ -22,16 +19,6 @@ import EditIcon from "../components/icons/EditIcon";
 import {useSnackbar} from "notistack";
 
 const AdminUser = () => {
-    const {user} = useContext(Context);
-    const navigate = useNavigate();
-
-    const logOut = () => {
-        user.setUser({})
-        user.setIsAuth(false)
-        localStorage.removeItem('token')
-        navigate(HOME_ROUTE)
-    }
-
     const [login, setLogin] = useState('')
     const [password, setPassword] = useState('')
     const [role, setRole] = useState(USER_ROLE_USER)
@@ -168,23 +155,6 @@ const AdminUser = () => {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Панель администратора > Изменить пользователя
-                    </Typography>
-                    <Stack direction="row" spacing={2} >
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.login ? user.user.login : ""}
-                        </Typography>
-                        { user.isAuth ?
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            :
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
-                        }
-                    </Stack>
-                </Toolbar>
-            </AppBar>
             <NavBarDrawer/>
             <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}>
                 <Toolbar />

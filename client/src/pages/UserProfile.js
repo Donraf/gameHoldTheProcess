@@ -1,6 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
-    AppBar,
     Box, Button,
     CssBaseline, Pagination, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField,
     Toolbar,
@@ -10,7 +9,7 @@ import {
 import NavBarDrawer from "../components/NavBarDrawer";
 import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
-import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
+import {HOME_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
 import {updateUser} from "../http/userAPI";
 import {useSnackbar} from "notistack";
@@ -34,13 +33,6 @@ const UserProfile = observer( () => {
 
     const [snackErrTexts, setSnackErrTexts] = React.useState([]);
     const { enqueueSnackbar } = useSnackbar();
-
-    const logOut = () => {
-        user.setUser({})
-        user.setIsAuth(false)
-        localStorage.removeItem('token')
-        navigate(HOME_ROUTE)
-    }
 
     useEffect(() => {
         setIsDataFetched(false);
@@ -94,23 +86,6 @@ const UserProfile = observer( () => {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Профиль
-                    </Typography>
-                    <Stack direction="row" spacing={2} >
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.login ? user.user.login : ""}
-                        </Typography>
-                        { user.isAuth ?
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            :
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
-                        }
-                    </Stack>
-                </Toolbar>
-            </AppBar>
             <NavBarDrawer/>
             {
                 user.isAuth ?

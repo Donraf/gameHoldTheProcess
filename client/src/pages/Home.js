@@ -1,6 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
-    AppBar,
     Box, Button, Container,
     CssBaseline, Modal, Stack,
     Toolbar,
@@ -24,8 +23,6 @@ import {COLORS} from '../utils/constants'
 
 import NavBarDrawer from "../components/NavBarDrawer";
 import {Context} from "../index";
-import {useNavigate} from "react-router-dom";
-import {HOME_ROUTE, LOGIN_ROUTE} from "../utils/constants";
 import {observer} from "mobx-react-lite";
 import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
 import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
@@ -89,9 +86,6 @@ const Home = observer( () => {
     const chartRef = useRef<ChartJS>(null);
     const fullChartRef = useRef<ChartJS>(null);
     const {user, chart} = useContext(Context);
-    const navigate = useNavigate();
-
-    const [isSlidingIn, setIsSlidingIn] = React.useState(false);
 
     const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(false);
     const handleOpenRuleModal = () => setIsRuleModalOpened(true);
@@ -137,13 +131,6 @@ const Home = observer( () => {
         if (curIndex > 0) {
             setCurSpeed( speedOptions[curIndex - 1] )
         }
-    }
-
-    const logOut = () => {
-        user.setUser({})
-        user.setIsAuth(false)
-        localStorage.removeItem('token')
-        navigate(HOME_ROUTE)
     }
 
     useEffect(() => {
@@ -387,22 +374,6 @@ const Home = observer( () => {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Начать игру
-                    </Typography>
-                    <Stack direction="row" spacing={2} >
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.login ? user.user.login : ""}
-                        </Typography>
-                        { user.isAuth
-                            ? <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            : <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
-                        }
-                    </Stack>
-                </Toolbar>
-            </AppBar>
             <NavBarDrawer/>
             <Box
                 component="main"
@@ -411,13 +382,6 @@ const Home = observer( () => {
                 <Toolbar />
                 <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
                     <Box sx={{ p: 2, height: 100, overflow: 'hidden' }} ref={containerRef}>
-                        {/*{*/}
-                        {/*    scoresChanges.map( text =>*/}
-                        {/*        <Slide in={true} container={containerRef.current}>*/}
-                        {/*            <Typography variant="h6">{text}</Typography>*/}
-                        {/*        </Slide>*/}
-                        {/*    )*/}
-                        {/*}*/}
                         <Typography variant="h6">Очки: {chart.chartData.score}</Typography>
                     </Box>
                     <Button
@@ -527,8 +491,6 @@ const Home = observer( () => {
                                     </Box>
                                     <Box
                                         sx={{
-                                            // color: "#FFFFFF",
-                                            // backgroundColor: "#9356A0",
                                             width: "60px",
                                             display: "flex",
                                             alignItems: 'center',

@@ -1,9 +1,7 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {observer} from "mobx-react-lite";
-import {Context} from "../index";
 import {useNavigate} from "react-router-dom";
 import {
-    AppBar,
     Box,
     Button,
     CssBaseline,
@@ -14,44 +12,17 @@ import {
 import NavBarDrawer from "../components/NavBarDrawer";
 import {
     ADMIN_GRAPH_ROUTE,
-    ADMIN_USER_ROUTE,
-    HOME_ROUTE,
-    LOGIN_ROUTE
+    ADMIN_USER_ROUTE
 } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
 import {fetchPointsInCsv} from "../http/pointAPI";
 
 const Admin = observer( () => {
-    const {user} = useContext(Context);
     const navigate = useNavigate();
-
-    const logOut = () => {
-        user.setUser({})
-        user.setIsAuth(false)
-        localStorage.removeItem('token')
-        navigate(HOME_ROUTE)
-    }
 
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Панель администратора
-                    </Typography>
-                    <Stack direction="row" spacing={2} >
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            {user.user.login ? user.user.login : ""}
-                        </Typography>
-                        { user.isAuth ?
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            :
-                            <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
-                        }
-                    </Stack>
-                </Toolbar>
-            </AppBar>
             <NavBarDrawer/>
             <Box
                 component="main"
