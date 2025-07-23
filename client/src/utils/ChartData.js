@@ -1,3 +1,5 @@
+import {COLORS} from "./constants";
+
 export class ChartData {
     initialScore = 1000;
     bonusStep = 0;
@@ -54,16 +56,24 @@ export class ChartData {
                 {
                     type: 'line',
                     label: 'Значение процесса',
-                    borderColor: 'rgb(0, 0, 0)',
-                    borderWidth: 2,
+                    borderColor: function(context) {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                    borderWidth: 4,
                     fill: false,
                     data: pointsToShow.map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: 'rgb(255, 0, 60)',
-                    borderWidth: 2,
+                    borderColor: COLORS.graphGradientHigh,
+                    borderWidth: 4,
                     fill: false,
                     data: pointsToShow.map( () => { return this.criticalValue } ),
                 }
@@ -76,16 +86,24 @@ export class ChartData {
                 {
                     type: 'line',
                     label: 'Значение процесса',
-                    borderColor: 'rgb(0, 0, 0)',
-                    borderWidth: 2,
+                    borderColor: function(context) {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                    borderWidth: 4,
                     fill: false,
                     data: this.points.slice(0, -this.checkDangerNum).map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: 'rgb(255, 0, 60)',
-                    borderWidth: 2,
+                    borderColor: COLORS.graphGradientHigh,
+                    borderWidth: 4,
                     fill: false,
                     data: this.points.slice(0, -this.checkDangerNum).map( () => { return this.criticalValue } ),
                 }
@@ -250,16 +268,24 @@ export class ChartData {
                 {
                     type: 'line',
                     label: 'Значение процесса',
-                    borderColor: 'rgb(0, 0, 0)',
-                    borderWidth: 2,
+                    borderColor: function(context) {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) {
+                            // This case happens on initial chart load
+                            return;
+                        }
+                        return getGradient(ctx, chartArea);
+                    },
+                    borderWidth: 4,
                     fill: false,
                     data: newPoints.map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: 'rgb(255, 0, 60)',
-                    borderWidth: 2,
+                    borderColor: COLORS.graphGradientHigh,
+                    borderWidth: 4,
                     fill: false,
                     data: newPoints.map( () => { return this.criticalValue } ),
                 }
@@ -282,4 +308,21 @@ class Point {
         this.is_pause = is_pause;
         this.is_check = is_check;
     }
+}
+
+let width, height, gradient;
+function getGradient(ctx, chartArea) {
+    const chartWidth = chartArea.right - chartArea.left;
+    const chartHeight = chartArea.bottom - chartArea.top;
+    if (!gradient || width !== chartWidth || height !== chartHeight) {
+        // Create the gradient because this is either the first render
+        // or the size of the chart has changed
+        width = chartWidth;
+        height = chartHeight;
+        gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+        gradient.addColorStop(0, COLORS.graphGradientLow);
+        gradient.addColorStop(0.5, COLORS.graphGradientMiddle);
+        gradient.addColorStop(1, COLORS.graphGradientHigh);
+    }
+    return gradient;
 }

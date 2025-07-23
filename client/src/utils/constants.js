@@ -16,4 +16,7 @@ export const COLORS = {
     stopButton: '#ED0800',
     continueButton: '#25a040',
     takeHintButton: '#4681f4',
+    graphGradientLow: '#25a040',
+    graphGradientMiddle: '#d1cb26',
+    graphGradientHigh: '#ff003c',
 }
