@@ -47,7 +47,7 @@ export default function NavBarDrawer() {
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
-                        MUI
+                        Удержи процесс!
                     </Typography>
                     <Box
                         display="flex"

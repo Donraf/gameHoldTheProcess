@@ -2,7 +2,7 @@ import {makeAutoObservable} from "mobx";
 
 export default class NavBarStore {
     constructor() {
-        this._selectedPage = {};
+        this._selectedPage = "";
         makeAutoObservable(this);
     }
 
