@@ -20,6 +20,7 @@ import {
     Chart,
 } from 'react-chartjs-2';
 import {COLORS} from '../utils/constants'
+import './Home.css'
 
 import NavBarDrawer from "../components/NavBarDrawer";
 import {Context} from "../index";
@@ -115,7 +116,14 @@ const Home = observer( () => {
     const [isChartStopped, setIsChartStopped] = useState(false);
     const [isDanger, setIsDanger] = useState(false);
     const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
-    const [scoresChanges, setScoresChanges] = useState([]);
+    const [scoresChanges, setScoresChanges] = useState({
+        scoreChange: null,
+        updateFlag: false
+    });
+    const changeScore = (newScore) => setScoresChanges(v => { return  {
+        scoreChange: newScore,
+        updateFlag: !v.updateFlag
+    }})
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -137,7 +145,6 @@ const Home = observer( () => {
         if (!isChartPaused) {
             const interval = setInterval(() => {
                     chart.chartData.generateNextPoint();
-                    setScoresChanges(["+10"])
                     setTime(Date.now())
                     if (chart.chartData.isCrashed()) {
                         chart.chartData.chartCrashed()
@@ -160,9 +167,11 @@ const Home = observer( () => {
 
     useEffect( () => {
         if (isChartStopped) {
+            let oldScore = chart.chartData.score
             const isStopNeeded = chart.chartData.chartStopped()
             createGraph(chart.chartData.points, user.user.user_id)
             chart.chartData.restart()
+            changeScore(chart.chartData.score - oldScore)
             setIsHintModalOpened(false)
             setIsChartStopped(false);
             setIsChartPaused(false);
@@ -173,15 +182,6 @@ const Home = observer( () => {
             }
         }
     }, [isChartStopped]);
-
-    useEffect( () => {
-        setInterval(() => {
-                if (scoresChanges.length > 0) {
-                    setScoresChanges([]);
-                }
-            },
-            1500 / curSpeed);
-    }, [scoresChanges]);
 
     useEffect(() => {
         if (chosenHint === "AllSessions") {
@@ -352,6 +352,7 @@ const Home = observer( () => {
                         onClick={ () => {
                             setChosenHint("CurrentSession")
                             chart.chartData.chartHintUsed(200)
+                            changeScore(-200)
                         } }>
                         Показать всю текущую сессию (200 очков)
                     </Button>
@@ -364,6 +365,7 @@ const Home = observer( () => {
                         onClick={ () => {
                             setChosenHint("AllSessions")
                             chart.chartData.chartHintUsed(600)
+                            changeScore(-600)
                         } }>
                         Показать все свои предыдущие сессии (600 очков)
                     </Button>
@@ -381,8 +383,9 @@ const Home = observer( () => {
             >
                 <Toolbar />
                 <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
-                    <Box sx={{ p: 2, height: 100, overflow: 'hidden' }} ref={containerRef}>
-                        <Typography variant="h6">Очки: {chart.chartData.score}</Typography>
+                    <Box sx={{ p: 2, height: 100, overflow: 'hidden', display: 'flex', direction: 'row', gap: '5px' }} ref={containerRef}>
+                        <Typography variant="h3">Очки: {chart.chartData.score}</Typography>
+                        <Typography key={scoresChanges.updateFlag} className='move-up' variant="h3" color={scoresChanges.scoreChange < 0 ? 'red' : 'green'}> { scoresChanges.scoreChange > 0 ? '+' : ""}{scoresChanges.scoreChange}</Typography>
                     </Box>
                     <Button
                         sx={{
@@ -539,6 +542,7 @@ const Home = observer( () => {
                                             onClick={ () => {
                                                 setIsChartPaused(true)
                                                 chart.chartData.chartPaused()
+                                                changeScore(-50)
                                             } }>
                                             Пауза
                                         </Button>

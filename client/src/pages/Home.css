@@ -1,0 +1,13 @@
+.move-up {
+    animation: moveUp 1.5s forwards;
+}
+
+@keyframes moveUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-15px); }
+}
+
+@-webkit-keyframes moveUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-15px); }
+}
