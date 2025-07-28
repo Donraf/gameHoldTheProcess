@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const {User} = require('../models/models');
+const {User, ParameterSet, UserParameterSet} = require('../models/models');
 const {Op} = require("sequelize");
 
 const generateJwt = (id, login, role) => {
@@ -28,11 +28,13 @@ class UserController {
                 return next(ApiError.badRequest("User with this login already exists"))
             }
             const hashPassword = await bcrypt.hash(password, 5);
-            const user = await User.create({login: login, password: hashPassword, role: role});
+            const parSet = await ParameterSet.findOne()
+            const user = await User.create({login: login, password: hashPassword, role: role, cur_par_set_id: parSet.id});
             const token = generateJwt(user.user_id, login, role)
+            await UserParameterSet.create({user_id: user.user_id, parameter_set_id: parSet.id})
             return res.json({token});
         } catch (e) {
-            return next(ApiError.badRequest("Bad Request"));
+            return next(ApiError.badRequest("Bad Request " + e));
         }
     }
 
@@ -50,7 +52,7 @@ class UserController {
             const token = generateJwt(user.user_id, user.login, user.role);
             return res.json({token});
         } catch (e) {
-            return next(ApiError.badRequest("Bad Request"));
+            return next(ApiError.badRequest("Bad Request " + e));
         }
     }
 
@@ -91,6 +93,17 @@ class UserController {
             }
             const pageCount = Math.ceil(usersCount / 9)
             return res.json({pageCount: pageCount})
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request"));
+        }
+    }
+
+    async getParSet(req, res, next) {
+        try {
+            const {id} = req.params
+            const user = await User.findByPk(id)
+            const parSet = await ParameterSet.findByPk(user.cur_par_set_id)
+            return res.json(parSet)
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));
         }

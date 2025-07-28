@@ -4,9 +4,9 @@ const {Op} = require("sequelize");
 
 class ChartController {
     async create(req, res, next) {
-        const {user_id} = req.body
+        const {user_id, par_set_id} = req.body
         try {
-            const chart = await Chart.create({user_id: user_id});
+            const chart = await Chart.create({user_id: user_id, parameter_set_id: par_set_id});
             return res.json(chart);
         } catch (e) {
             return next(ApiError.badRequest("Bad Request"));

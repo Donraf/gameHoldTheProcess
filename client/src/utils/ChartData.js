@@ -18,6 +18,7 @@ export class ChartData {
         checkDangerNum = 3, // На сколько шагов вперед смотреть, чтобы выявлять опасность
         falseWarningProb = 0.1, // Вероятность ложной тревоги от системы ИИ
         missingDangerProb = 0.1, // Вероятность пропуска опасности системой ИИ
+        parSet = null,
     ) {
         this.score = this.initialScore;
         this.curIndex = 0;
@@ -31,6 +32,7 @@ export class ChartData {
         this.wasManualStop = false
         this.wasRealAlert = false
         this.wasFakeAlert = false
+        this.parSet = parSet;
         this.restart()
     }
 
@@ -116,10 +118,14 @@ export class ChartData {
     * Переходная функция звена первого порядка + шум.
     * */
     generatePoint() {
-        let k = .92
-        let T = 20
-        let newVal = (k * (1 - Math.exp(-this.points.length / T)) +
-            (Math.random() * 2 - 1) * 0.03).toFixed(2)
+        if (this.parSet === null) {
+            return new Point(this.curIndex, 0)
+        }
+        let gain_coef = this.parSet.gain_coef
+        let time_const = this.parSet.time_const
+        let noise_coef = this.parSet.noise_coef
+        let newVal = (gain_coef * (1 - Math.exp(-this.points.length / time_const)) +
+            (Math.random() * 2 - 1) * noise_coef).toFixed(2)
         if (newVal < 0) newVal = 0
         return new Point(this.curIndex, newVal)
     }
@@ -286,6 +292,11 @@ export class ChartData {
                 }
             ]
         }
+    }
+
+    setParSet(parSet) {
+        this.parSet = parSet
+        this.restart()
     }
 
 }

@@ -1,8 +1,8 @@
 import {$authHost, $host} from "./index";
 
-export const createGraph = async (points, user_id) => {
+export const createGraph = async (points, user_id, par_set_id) => {
     try {
-        const {data} = await $authHost.post('api/chart', {user_id: user_id});
+        const {data} = await $authHost.post('api/chart', {user_id: user_id, par_set_id: par_set_id});
         let graphId = data.id
         for (const point of points) {
             await $authHost.post('api/point',

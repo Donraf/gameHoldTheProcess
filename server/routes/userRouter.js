@@ -9,6 +9,7 @@ router.post('/pageCount', userController.getPageCount);
 router.post('/registration', userController.registration);
 router.post('/login', userController.login);
 router.get('/auth', authMiddleware, userController.check);
+router.get('/parSet/:id', userController.getParSet);
 router.get('/:id', userController.getOne);
 router.delete('/:id', checkRole("ADMIN"), userController.delete);
 router.put('/:id', checkRole("ADMIN"), userController.update);

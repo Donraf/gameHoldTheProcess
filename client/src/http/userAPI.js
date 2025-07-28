@@ -56,6 +56,15 @@ export const getUsersPageCount = async (filterTag = null, filterValue = null) =>
     }
 }
 
+export const getUserParSet = async (id) => {
+    try {
+        const {data} = await $host.get(`api/user/parSet/${id}`);
+        return data;
+    } catch (e) {
+        throw new Error("Error on getUserParSet\n" + e)
+    }
+}
+
 export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null) => {
     try {
         const {data} = await $host.post('api/user/users',
