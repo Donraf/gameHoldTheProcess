@@ -1,6 +1,6 @@
 import {
     AppBar,
-    Box, Button, CssBaseline,
+    Box, CssBaseline,
     ListItem,
     ListItemButton,
     ListItemIcon,
@@ -15,6 +15,7 @@ import {Context} from "../index";
 import ProfileNavIcon from "./icons/ProfileNavIcon";
 import AdminNavIcon from "./icons/AdminNavIcon";
 import StartGameNavIcon from "./icons/StartGameNavIcon";
+import LoginNavIcon from "./icons/LoginNavIcon";
 
 export default function NavBarDrawer() {
 
@@ -53,6 +54,7 @@ export default function NavBarDrawer() {
                     <Box
                         display="flex"
                         direction="row"
+                        gap="10px"
                     >
                         {navItems.map(item =>
                             <ListItem key={item.name} disablePadding>
@@ -68,8 +70,28 @@ export default function NavBarDrawer() {
                             </ListItem>
                         )}
                         { user.isAuth
-                            ? <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => logOut()}>Выйти</Button>
-                            : <Button sx={{color: "#FFFFFF", border: "white 1px solid"}} onClick={() => navigate(LOGIN_ROUTE)}>Войти</Button>
+                            ?
+                            <ListItem key="Выйти" disablePadding>
+                                <ListItemButton onClick={ () => {
+                                    logOut()
+                                } }>
+                                    <ListItemIcon>
+                                        <LoginNavIcon/>
+                                    </ListItemIcon>
+                                    <ListItemText primary="Выйти" />
+                                </ListItemButton>
+                            </ListItem>
+                            :
+                            <ListItem key="Войти" disablePadding>
+                                <ListItemButton onClick={ () => {
+                                    navigate(LOGIN_ROUTE)
+                                } }>
+                                    <ListItemIcon>
+                                        <LoginNavIcon/>
+                                    </ListItemIcon>
+                                    <ListItemText primary="Войти" />
+                                </ListItemButton>
+                            </ListItem>
                         }
                     </Box>
                 </Toolbar>
