@@ -597,7 +597,7 @@ const Home = observer( () => {
             </Box>
             {isDanger
                 ?
-                <Box sx={{
+                <Box className='alert-border' sx={{
                     position: 'fixed',
                     zIndex: 5500,
                     display: 'flex',
@@ -606,8 +606,9 @@ const Home = observer( () => {
                     left: '16px',
                     padding: '0.75rem',
                     borderRadius: '12px',
-                    border: '3px solid #A05657',
-                    backgroundColor: '#FFFFFF',
+                    border: '5px solid',
+                    borderColor: COLORS.stopButton,
+                    backgroundColor: '#eda8a8',
                 }} >
                     <Stack spacing={1}>
                         <Stack direction="row" spacing={1} alignItems={"center"} >
