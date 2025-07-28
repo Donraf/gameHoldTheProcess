@@ -28,12 +28,13 @@ export default function NavBarDrawer() {
         navigate(HOME_ROUTE)
     }
 
-    let navItems = [
-        {name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},
-        {name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
-    ]
+    let navItems = [{name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},]
 
-    if (user.user !== undefined && user.user.role === USER_ROLE_ADMIN) {
+    if (user.isAuth) {
+        navItems = navItems.concat([{name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>}])
+    }
+
+    if (user.isAuth && user.user.role === USER_ROLE_ADMIN) {
         navItems = [{name: 'Панель администратора', route: ADMIN_ROUTE, icon: <AdminNavIcon/>}].concat(navItems)
     }
 
