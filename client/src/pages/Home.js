@@ -145,6 +145,7 @@ const Home = observer( () => {
     useEffect(() => {
         if (!isChartPaused) {
             const interval = setInterval(() => {
+                    let oldScore = chart.chartData.score
                     chart.chartData.generateNextPoint();
                     setTime(Date.now())
                     if (chart.chartData.isCrashed()) {
@@ -157,6 +158,9 @@ const Home = observer( () => {
                     if (!isDanger && chart.chartData.isDanger()) {
                         setIsChartPaused(true)
                         setIsDanger(true)
+                    }
+                    if (chart.chartData.score !== oldScore) {
+                        changeScore(chart.chartData.score - oldScore)
                     }
                 },
                 1000 / curSpeed);
@@ -606,8 +610,6 @@ const Home = observer( () => {
                     left: '16px',
                     padding: '0.75rem',
                     borderRadius: '12px',
-                    border: '5px solid',
-                    borderColor: COLORS.stopButton,
                     backgroundColor: '#eda8a8',
                 }} >
                     <Stack spacing={1}>
