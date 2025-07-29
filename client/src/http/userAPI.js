@@ -56,12 +56,21 @@ export const getUsersPageCount = async (filterTag = null, filterValue = null) =>
     }
 }
 
-export const getUserParSet = async (id) => {
+export const getParSet = async (id) => {
     try {
         const {data} = await $host.get(`api/user/parSet/${id}`);
         return data;
     } catch (e) {
         throw new Error("Error on getUserParSet\n" + e)
+    }
+}
+
+export const getScore = async (userId, parSetId) => {
+    try {
+        const {data} = await $host.get(`api/user/parSet/${userId}/${parSetId}`);
+        return data;
+    } catch (e) {
+        throw new Error("Error on getScore\n" + e)
     }
 }
 

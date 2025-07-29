@@ -56,6 +56,22 @@ class UserController {
         }
     }
 
+    async updateScore(req, res, next){
+        try {
+            const {userId, parSetId, score} = req.body;
+            const userParSet = await UserParameterSet.findOne({
+                where: {
+                    user_id: { [Op.eq]: userId},
+                    parameter_set_id: { [Op.eq]: parSetId},
+                }})
+            userParSet.score = score
+            await userParSet.save()
+            return res.json(userParSet)
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request " + e));
+        }
+    }
+
     async check(req, res, next){
         try {
             const token = generateJwt(req.user.user_id, req.user.login, req.user.role)
@@ -105,7 +121,21 @@ class UserController {
             const parSet = await ParameterSet.findByPk(user.cur_par_set_id)
             return res.json(parSet)
         } catch (e) {
-            return next(ApiError.badRequest("Bad Request"));
+            return next(ApiError.badRequest("Bad Request for getParSet\n" + e));
+        }
+    }
+
+    async getScore(req, res, next) {
+        try {
+            const {userId, parSetId} = req.params
+            const userParSet = await UserParameterSet.findOne({
+                where: {
+                    user_id: { [Op.eq]: userId},
+                    parameter_set_id: { [Op.eq]: parSetId},
+                }})
+            return res.json(userParSet.score)
+        } catch (e) {
+            return next(ApiError.badRequest("Bad Request for getScore\n" + e));
         }
     }
 

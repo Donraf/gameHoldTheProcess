@@ -28,6 +28,7 @@ const Point = sequelize.define("Point", {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     x: {type: DataTypes.FLOAT, allowNull: false},
     y: {type: DataTypes.FLOAT, allowNull: false},
+    score: {type: DataTypes.FLOAT, allowNull: false},
     is_end: {type: DataTypes.BOOLEAN, allowNull: false},
     is_crash: {type: DataTypes.BOOLEAN, allowNull: false},
     is_useful_ai_signal: {type: DataTypes.BOOLEAN, allowNull: false},

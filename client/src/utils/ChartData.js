@@ -1,7 +1,6 @@
 import {COLORS} from "./constants";
 
 export class ChartData {
-    initialScore = 1000;
     bonusStep = 0;
     bonusRejectIncorrectAdvice = 800;
     bonusAcceptCorrectAdvice = 200;
@@ -19,8 +18,9 @@ export class ChartData {
         falseWarningProb = 0.05, // Вероятность ложной тревоги от системы ИИ
         missingDangerProb = 0.1, // Вероятность пропуска опасности системой ИИ
         parSet = null,
+        score = 0,
     ) {
-        this.score = this.initialScore;
+        this.score = score;
         this.curIndex = 0;
         this.maxPointsInSet = maxPointsToShow + checkDangerNum;
         this.criticalValue = criticalValue;
@@ -119,7 +119,7 @@ export class ChartData {
     * */
     generatePoint() {
         if (this.parSet === null) {
-            return new Point(this.curIndex, 0)
+            return new Point(this.curIndex, 0, this.score)
         }
         let gain_coef = this.parSet.gain_coef
         let time_const = this.parSet.time_const
@@ -127,7 +127,7 @@ export class ChartData {
         let newVal = (gain_coef * (1 - Math.exp(-this.points.length / time_const)) +
             (Math.random() * 2 - 1) * noise_coef).toFixed(2)
         if (newVal < 0) newVal = 0
-        return new Point(this.curIndex, newVal)
+        return new Point(this.curIndex, newVal, this.score)
     }
 
     /*
@@ -184,8 +184,6 @@ export class ChartData {
     }
 
     restart() {
-        this.changeEndGameScore()
-
         this.points = [];
         this.curIndex = 0;
         this.shouldSentAlert = true;
@@ -217,33 +215,35 @@ export class ChartData {
     chartPaused() {
         this.score -= this.penaltyPause
         this.points[this.points.length - this.checkDangerNum - 1].is_pause = true
+        this._updateScores()
     }
 
     chartHintUsed(cost) {
         this.score -= cost
         this.points[this.points.length - this.checkDangerNum - 1].is_check = true
+        this._updateScores()
+    }
+
+    _updateScores() {
+        for (let i = this.points.length - this.checkDangerNum - 1; i < this.points.length; i++) {
+            this.points[i].score = this.score
+        }
     }
 
     changeEndGameScore() {
         if (this.wasExplosion && this.wasRealAlert) {
             this.score -= this.penaltyRejectCorrectAdvice
-            return
         }
-
-        if (this.wasExplosion && !this.wasRealAlert) {
+        else if (this.wasExplosion && !this.wasRealAlert) {
             this.score -= this.penaltyExplosionNoAdvice
-            return
         }
-
-        if (this.wasManualStop && this.isRealDanger()) {
+        else if (this.wasManualStop && this.isRealDanger()) {
             if (this.wasRealAlert) {this.score += this.bonusAcceptCorrectAdvice} else {this.score += this.bonusCorrectStopNoAdvice}
-            return
         }
-
-        if (this.wasManualStop && !this.isRealDanger()) {
+        else if (this.wasManualStop && !this.isRealDanger()) {
             if (this.wasFakeAlert) {this.score -= this.penaltyAcceptIncorrectAdvice} else {this.score -= this.penaltyIncorrectStopNoAdvice}
-            return
         }
+        this._updateScores()
     }
 
     restoreFromPoints(points) {
@@ -252,6 +252,7 @@ export class ChartData {
             let newPoint = new Point(
                 points[i].x,
                 points[i].y,
+                points[i].score,
                 points[i].is_end,
                 points[i].is_crash,
                 points[i].is_useful_ai_signal,
@@ -299,13 +300,19 @@ export class ChartData {
         this.restart()
     }
 
+    setScore(score) {
+        this.score = score
+        this._updateScores()
+    }
+
 }
 
 class Point {
-    constructor(x, y, is_end=false, is_crash=false, is_useful_ai_signal=false, is_deceptive_ai_signal=false,
+    constructor(x, y, score, is_end=false, is_crash=false, is_useful_ai_signal=false, is_deceptive_ai_signal=false,
                 is_stop=false, is_pause=false, is_check=false) {
         this.x = x;
         this.y = y;
+        this.score = score;
         this.is_end = is_end;
         this.is_crash = is_crash;
         this.is_useful_ai_signal = is_useful_ai_signal;

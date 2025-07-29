@@ -34,7 +34,7 @@ import {ModalContent} from "../components/ModalContent";
 import {fetchPointsByChartId} from "../http/pointAPI";
 import {ChartData} from "../utils/ChartData";
 import {transformToUiDateDayTime} from "../utils/transformDate";
-import {getUserParSet} from "../http/userAPI";
+import {getParSet, getScore} from "../http/userAPI";
 
 ChartJS.register(
     LineController,
@@ -150,6 +150,7 @@ const Home = observer( () => {
                     setTime(Date.now())
                     if (chart.chartData.isCrashed()) {
                         chart.chartData.chartCrashed()
+                        chart.chartData.changeEndGameScore()
                         createGraph(chart.chartData.points, user.user.user_id, chart.chartData.parSet.id)
                         chart.chartData.restart()
                         setIsHintModalOpened(false)
@@ -174,6 +175,7 @@ const Home = observer( () => {
         if (isChartStopped) {
             let oldScore = chart.chartData.score
             const isStopNeeded = chart.chartData.chartStopped()
+            chart.chartData.changeEndGameScore()
             createGraph(chart.chartData.points, user.user.user_id, chart.chartData.parSet.id)
             chart.chartData.restart()
             changeScore(chart.chartData.score - oldScore)
@@ -210,10 +212,24 @@ const Home = observer( () => {
     useEffect( () => {
         if (user.isAuth) {
             async function updateParSet () {
-                const parSet = await getUserParSet(user.user.user_id)
+                const parSet = await getParSet(user.user.user_id)
                 chart.chartData.setParSet(parSet)
+                return parSet
             }
-            updateParSet()
+            updateParSet().then(
+                (parSet) => {
+                    async function updateScore () {
+                        const score = await getScore(user.user.user_id, parSet.id)
+                        chart.chartData.setScore(score)
+                        return score
+                    }
+                    updateScore().then( (score) => {
+                        changeScore(score)
+                    }
+                    )
+                }
+            )
+
         }
     }, [])
 

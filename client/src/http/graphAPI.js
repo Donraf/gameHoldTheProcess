@@ -3,6 +3,7 @@ import {$authHost, $host} from "./index";
 export const createGraph = async (points, user_id, par_set_id) => {
     try {
         const {data} = await $authHost.post('api/chart', {user_id: user_id, par_set_id: par_set_id});
+        await $authHost.post('api/user/score', {userId: user_id, parSetId: par_set_id, score: points[points.length - 1].score});
         let graphId = data.id
         for (const point of points) {
             await $authHost.post('api/point',
@@ -10,6 +11,7 @@ export const createGraph = async (points, user_id, par_set_id) => {
                     chart_id: graphId,
                     x: point.x,
                     y: point.y,
+                    score: point.score,
                     is_end: point.is_end,
                     is_crash: point.is_crash,
                     is_useful_ai_signal: point.is_useful_ai_signal,
