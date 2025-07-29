@@ -21,6 +21,9 @@ import {
 } from 'react-chartjs-2';
 import {COLORS} from '../utils/constants'
 import './Home.css'
+import alertSound from '../components/sounds/alert.mp3'
+import rightChoiceSound from '../components/sounds/rightChoice.mp3'
+import wrongChoiceSound from '../components/sounds/wrongChoice.mp3'
 
 import NavBarDrawer from "../components/NavBarDrawer";
 import {Context} from "../index";
@@ -35,6 +38,7 @@ import {fetchPointsByChartId} from "../http/pointAPI";
 import {ChartData} from "../utils/ChartData";
 import {transformToUiDateDayTime} from "../utils/transformDate";
 import {getParSet, getScore} from "../http/userAPI";
+import useSound from "use-sound";
 
 ChartJS.register(
     LineController,
@@ -88,6 +92,10 @@ const Home = observer( () => {
     const chartRef = useRef<ChartJS>(null);
     const fullChartRef = useRef<ChartJS>(null);
     const {user, chart} = useContext(Context);
+
+    const [playAlertSound] = useSound(alertSound)
+    const [playRightChoiceSound] = useSound(rightChoiceSound)
+    const [playWrongChoiceSound] = useSound(wrongChoiceSound)
 
     const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(false);
     const handleOpenRuleModal = () => setIsRuleModalOpened(true);
@@ -154,14 +162,21 @@ const Home = observer( () => {
                         createGraph(chart.chartData.points, user.user.user_id, chart.chartData.parSet.id)
                         chart.chartData.restart()
                         setIsHintModalOpened(false)
+                        playWrongChoiceSound()
                         enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
                     }
                     if (!isDanger && chart.chartData.isDanger()) {
+                        playAlertSound()
                         setIsChartPaused(true)
                         setIsDanger(true)
                     }
                     if (chart.chartData.score !== oldScore) {
                         changeScore(chart.chartData.score - oldScore)
+                        if (chart.chartData.score > oldScore) {
+                            playRightChoiceSound()
+                        } else if (chart.chartData.score < oldScore) {
+                            playWrongChoiceSound()
+                        }
                     }
                 },
                 1000 / curSpeed);
@@ -183,8 +198,10 @@ const Home = observer( () => {
             setIsChartStopped(false);
             setIsChartPaused(false);
             if (!isStopNeeded) {
+                playWrongChoiceSound()
                 enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {variant: "error", autoHideDuration: 5000, preventDuplicate: true})
             } else {
+                playRightChoiceSound()
                 enqueueSnackbar("Остановка процесса была верным решением. Получено вознаграждение!", {variant: "success", autoHideDuration: 5000, preventDuplicate: true})
             }
         }
