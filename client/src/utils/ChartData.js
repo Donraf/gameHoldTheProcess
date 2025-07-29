@@ -15,8 +15,8 @@ export class ChartData {
     constructor(
         maxPointsToShow = 10, // Сколько точек показывать на графике
         criticalValue = 0.9, // Критическое значение процесса
-        checkDangerNum = 3, // На сколько шагов вперед смотреть, чтобы выявлять опасность
-        falseWarningProb = 0.1, // Вероятность ложной тревоги от системы ИИ
+        checkDangerNum = 1, // На сколько шагов вперед смотреть, чтобы выявлять опасность
+        falseWarningProb = 0.05, // Вероятность ложной тревоги от системы ИИ
         missingDangerProb = 0.1, // Вероятность пропуска опасности системой ИИ
         parSet = null,
     ) {
@@ -157,7 +157,7 @@ export class ChartData {
         }
 
         if (this.points.length <= this.checkDangerNum
-            || this.points[this.points.length - this.checkDangerNum].y < 0.85 * this.criticalValue) {
+            || this.points[this.points.length - this.checkDangerNum].y < 0.9 * this.criticalValue) {
             return
         }
 
