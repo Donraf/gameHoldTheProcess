@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -10,16 +9,19 @@ import (
 	"example.com/gameHoldTheProcessServer/pkg/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
+
 	if err := initConfig(); err != nil {
-		log.Fatalf("error when initializing config: %s", err.Error())
+		logrus.Fatalf("error when initializing config: %s", err.Error())
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error when loading env variables: %s", err.Error())
+		logrus.Fatalf("error when loading env variables: %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -32,7 +34,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalf("error when initializing database: %s", err.Error())
+		logrus.Fatalf("error when initializing database: %s", err.Error())
 	}
 
 	repo := repository.NewRepository(db)
@@ -41,7 +43,7 @@ func main() {
 
 	srv := new(gameServer.Server)
 	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error when trying to run the server: %s", err.Error())
+		logrus.Fatalf("error when trying to run the server: %s", err.Error())
 	}
 }
 
