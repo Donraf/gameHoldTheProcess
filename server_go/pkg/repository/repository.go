@@ -8,6 +8,8 @@ import (
 type User interface {
 	CreateUser(user gameServer.User) (int, error)
 	GetUser(login, password string) (gameServer.User, error)
+	DeleteUser(id int) error
+	UpdateUser(id int, input gameServer.UpdateUserInput) error
 }
 
 type Chart interface {

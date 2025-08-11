@@ -43,20 +43,36 @@ func (u *UserService) GenerateToken(login, password string) (string, error) {
 		return "", err
 	}
 
+	token := createToken(user.Id, user.Login, user.Role)
+
+	return token.SignedString([]byte(signingKey))
+}
+
+func (u *UserService) RefreshToken(accessToken string) (string, error) {
+	claims, err := u.ParseToken(accessToken)
+	if err != nil {
+		return "", err
+	}
+
+	token := createToken(claims.UserId, claims.Login, claims.Role)
+
+	return token.SignedString([]byte(signingKey))
+}
+
+func createToken(id int, login, role string) *jwt.Token {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
-		user.Id,
-		user.Login,
-		user.Role,
+		id,
+		login,
+		role,
 	})
-
-	return token.SignedString([]byte(signingKey))
+	return token
 }
 
-func (u *UserService) ParseToken(accessToken string) (int, error) {
+func (u *UserService) ParseToken(accessToken string) (*tokenClaims, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -66,15 +82,15 @@ func (u *UserService) ParseToken(accessToken string) (int, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
-		return 0, errors.New("invalid token claims type")
+		return nil, errors.New("invalid token claims type")
 	}
 
-	return claims.UserId, nil
+	return claims, nil
 }
 
 func generatePasswordHash(password string) string {
@@ -82,4 +98,15 @@ func generatePasswordHash(password string) string {
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func (u *UserService) DeleteUser(id int) error {
+	return u.repo.DeleteUser(id)
+}
+
+func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+	return u.repo.UpdateUser(id, input)
 }

@@ -25,10 +25,10 @@ func (h *Handler) checkUserAuth(c *gin.Context) {
 		return
 	}
 
-	userId, err := h.services.User.ParseToken(headerParts[1])
+	claims, err := h.services.User.ParseToken(headerParts[1])
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
-	c.Set(userCtx, userId)
+	c.Set(userCtx, claims.UserId)
 }

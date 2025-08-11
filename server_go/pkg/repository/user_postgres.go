@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -33,4 +34,43 @@ func (u *UserPostgres) GetUser(login, password string) (gameServer.User, error) 
 	err := u.db.Get(&user, query, login, password)
 
 	return user, err
+}
+
+func (u *UserPostgres) DeleteUser(id int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", usersTable)
+	_, err := u.db.Exec(query, id)
+
+	return err
+}
+
+func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) error {
+	setValues := make([]string, 0)
+	args := make([]any, 0)
+	argId := 1
+
+	if input.Password != nil {
+		setValues = append(setValues, fmt.Sprintf("password=$%d", argId))
+		args = append(args, *input.Password)
+		argId++
+	}
+
+	if input.Role != nil {
+		setValues = append(setValues, fmt.Sprintf("role=$%d", argId))
+		args = append(args, *input.Role)
+		argId++
+	}
+
+	if input.CurParSetId != nil {
+		setValues = append(setValues, fmt.Sprintf("cur_par_set_id=$%d", argId))
+		args = append(args, *input.CurParSetId)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE user_id=$%d", usersTable, setQuery, argId)
+	args = append(args, id)
+
+	_, err := u.db.Exec(query, args...)
+	return err
 }
