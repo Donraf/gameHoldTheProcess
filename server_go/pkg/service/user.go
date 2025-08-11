@@ -108,5 +108,12 @@ func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error
 	if err := input.Validate(); err != nil {
 		return err
 	}
+	if input.Password != nil {
+		*input.Password = generatePasswordHash(*input.Password)
+	}
 	return u.repo.UpdateUser(id, input)
+}
+
+func (u *UserService) GetAllUsers() ([]gameServer.User, error) {
+	return u.repo.GetAllUsers()
 }

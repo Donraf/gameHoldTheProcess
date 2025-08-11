@@ -74,3 +74,11 @@ func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) erro
 	_, err := u.db.Exec(query, args...)
 	return err
 }
+
+func (u *UserPostgres) GetAllUsers() ([]gameServer.User, error) {
+	var users []gameServer.User
+	query := fmt.Sprintf("SELECT user_id, login, role, cur_par_set_id, created_at, updated_at FROM %s", usersTable)
+	err := u.db.Select(&users, query)
+
+	return users, err
+}

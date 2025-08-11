@@ -96,8 +96,20 @@ func (h *Handler) getScore(c *gin.Context) {
 
 }
 
-func (h *Handler) getAllUsers(c *gin.Context) {
+type getAllUsersResponse struct {
+	Data []gameServer.User `json:"data"`
+}
 
+func (h *Handler) getAllUsers(c *gin.Context) {
+	users, err := h.services.User.GetAllUsers()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllUsersResponse{
+		Data: users,
+	})
 }
 
 func (h *Handler) deleteUser(c *gin.Context) {

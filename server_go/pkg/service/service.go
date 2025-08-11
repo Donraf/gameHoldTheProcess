@@ -12,6 +12,7 @@ type User interface {
 	RefreshToken(accessToken string) (string, error)
 	DeleteUser(id int) error
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
+	GetAllUsers() ([]gameServer.User, error)
 }
 
 type Chart interface {

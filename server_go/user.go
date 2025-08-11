@@ -7,9 +7,9 @@ type User struct {
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	Role        string `json:"role" binding:"required"`
-	CurParSetId int    `json:"cur_par_set_id" binding:"required"`
-	CreatedAt   string `json:"created_at" binding:"required"`
-	UpdatedAt   string `json:"updated_at" binding:"required"`
+	CurParSetId int    `json:"cur_par_set_id" binding:"required" db:"cur_par_set_id"`
+	CreatedAt   string `json:"created_at" binding:"required" db:"created_at"`
+	UpdatedAt   string `json:"updated_at" binding:"required" db:"updated_at"`
 }
 
 type UpdateUserInput struct {
