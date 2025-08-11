@@ -19,4 +19,6 @@ export const COLORS = {
     graphGradientLow: '#25a040',
     graphGradientMiddle: '#d1cb26',
     graphGradientHigh: '#ff003c',
+    graphCriticalValue: '#904d30',
+    alertBackground: '#',
 }

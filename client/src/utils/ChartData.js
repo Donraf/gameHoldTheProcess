@@ -12,7 +12,7 @@ export class ChartData {
     penaltyPause = 50;
 
     constructor(
-        maxPointsToShow = 10, // Сколько точек показывать на графике
+        maxPointsToShow = 30, // Сколько точек показывать на графике
         criticalValue = 0.9, // Критическое значение процесса
         checkDangerNum = 1, // На сколько шагов вперед смотреть, чтобы выявлять опасность
         falseWarningProb = 0.05, // Вероятность ложной тревоги от системы ИИ
@@ -22,6 +22,7 @@ export class ChartData {
     ) {
         this.score = score;
         this.curIndex = 0;
+        this.maxPointsToShow = maxPointsToShow;
         this.maxPointsInSet = maxPointsToShow + checkDangerNum;
         this.criticalValue = criticalValue;
         this.checkDangerNum = checkDangerNum;
@@ -68,13 +69,22 @@ export class ChartData {
                         return getGradient(ctx, chartArea);
                     },
                     borderWidth: 4,
-                    fill: false,
+                    backgroundColor: function(ctx) {
+                        const val = ctx.dataset.data[ctx.dataset.data.length-1]
+                        if (val <= 0.5) {
+                            return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5)
+                        } else {
+                            return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4)
+                        }
+                    },
+                    fill:true,
                     data: pointsToShow.map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: COLORS.graphGradientHigh,
+                    pointStyle: false,
+                    borderColor: COLORS.graphCriticalValue,
                     borderWidth: 4,
                     fill: false,
                     data: pointsToShow.map( () => { return this.criticalValue } ),
@@ -98,13 +108,22 @@ export class ChartData {
                         return getGradient(ctx, chartArea);
                     },
                     borderWidth: 4,
-                    fill: false,
+                    backgroundColor: function(ctx) {
+                        const val = ctx.dataset.data[ctx.dataset.data.length-1]
+                        if (val <= 0.5) {
+                            return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5)
+                        } else {
+                            return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4)
+                        }
+                    },
+                    fill:true,
                     data: this.points.slice(0, -this.checkDangerNum).map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: COLORS.graphGradientHigh,
+                    pointStyle: false,
+                    borderColor: COLORS.graphCriticalValue,
                     borderWidth: 4,
                     fill: false,
                     data: this.points.slice(0, -this.checkDangerNum).map( () => { return this.criticalValue } ),
@@ -124,7 +143,7 @@ export class ChartData {
         let gain_coef = this.parSet.gain_coef
         let time_const = this.parSet.time_const
         let noise_coef = this.parSet.noise_coef
-        let newVal = (gain_coef * (1 - Math.exp(-this.points.length / time_const)) +
+        let newVal = (gain_coef * (1 - Math.exp(-this.curIndex / time_const)) +
             (Math.random() * 2 - 1) * noise_coef).toFixed(2)
         if (newVal < 0) newVal = 0
         return new Point(this.curIndex, newVal, this.score)
@@ -191,6 +210,10 @@ export class ChartData {
         this.wasManualStop = false;
         this.wasRealAlert = false;
         this.wasFakeAlert = false;
+        for (let i = 0; i < this.maxPointsToShow; i++) {
+            this.points.push(new Point(0, null, this.score));
+        }
+
         for (let i = 0; i < this.checkDangerNum + 1; i++) {
             this.generateNextPoint()
         }
@@ -280,13 +303,22 @@ export class ChartData {
                         return getGradient(ctx, chartArea);
                     },
                     borderWidth: 4,
-                    fill: false,
+                    backgroundColor: function(ctx) {
+                        const val = ctx.dataset.data[ctx.dataset.data.length-1]
+                        if (val <= 0.5) {
+                            return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5)
+                        } else {
+                            return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4)
+                        }
+                    },
+                    fill:true,
                     data: newPoints.map( point => { return point.y } ),
                 },
                 {
                     type: 'line',
                     label: 'Критическое значение процесса',
-                    borderColor: COLORS.graphGradientHigh,
+                    pointStyle: false,
+                    borderColor: COLORS.graphCriticalValue,
                     borderWidth: 4,
                     fill: false,
                     data: newPoints.map( () => { return this.criticalValue } ),
@@ -338,4 +370,31 @@ function getGradient(ctx, chartArea) {
         gradient.addColorStop(1, COLORS.graphGradientHigh);
     }
     return gradient;
+}
+
+function getGradientColor(start_color, end_color, percent) {
+    start_color = start_color.replace(/^\s*#|\s*$/g, '');
+    end_color = end_color.replace(/^\s*#|\s*$/g, '');
+
+    const start_red = parseInt(start_color.substr(0, 2), 16),
+        start_green = parseInt(start_color.substr(2, 2), 16),
+        start_blue = parseInt(start_color.substr(4, 2), 16);
+
+    const end_red = parseInt(end_color.substr(0, 2), 16),
+        end_green = parseInt(end_color.substr(2, 2), 16),
+        end_blue = parseInt(end_color.substr(4, 2), 16);
+
+    let diff_red = end_red - start_red;
+    let diff_green = end_green - start_green;
+    let diff_blue = end_blue - start_blue;
+
+    diff_red = ((diff_red * percent) + start_red).toString(16).split('.')[0];
+    diff_green = ((diff_green * percent) + start_green).toString(16).split('.')[0];
+    diff_blue = ((diff_blue * percent) + start_blue).toString(16).split('.')[0];
+
+    if (diff_red.length === 1) diff_red = '0' + diff_red
+    if (diff_green.length === 1) diff_green = '0' + diff_green
+    if (diff_blue.length === 1) diff_blue = '0' + diff_blue
+
+    return '#' + diff_red + diff_green + diff_blue + "40";
 }

@@ -14,7 +14,7 @@ import {
     PointElement,
     LineElement,
     Legend,
-    Tooltip,
+    Tooltip, Filler,
 } from 'chart.js';
 import {
     Chart,
@@ -48,7 +48,8 @@ ChartJS.register(
     PointElement,
     LineElement,
     Legend,
-    Tooltip
+    Tooltip,
+    Filler
 );
 
 async function chartToHintCharts(charts) {
@@ -159,7 +160,7 @@ const Home = observer( () => {
                     if (chart.chartData.isCrashed()) {
                         chart.chartData.chartCrashed()
                         chart.chartData.changeEndGameScore()
-                        createGraph(chart.chartData.points, user.user.user_id, chart.chartData.parSet.id)
+                        createGraph(chart.chartData.points.slice(chart.chartData.maxPointsToShow), user.user.user_id, chart.chartData.parSet.id)
                         chart.chartData.restart()
                         setIsHintModalOpened(false)
                         playWrongChoiceSound()
@@ -191,7 +192,7 @@ const Home = observer( () => {
             let oldScore = chart.chartData.score
             const isStopNeeded = chart.chartData.chartStopped()
             chart.chartData.changeEndGameScore()
-            createGraph(chart.chartData.points, user.user.user_id, chart.chartData.parSet.id)
+            createGraph(chart.chartData.points.slice(chart.chartData.maxPointsToShow), user.user.user_id, chart.chartData.parSet.id)
             chart.chartData.restart()
             changeScore(chart.chartData.score - oldScore)
             setIsHintModalOpened(false)
