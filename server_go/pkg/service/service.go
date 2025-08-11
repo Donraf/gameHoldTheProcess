@@ -1,8 +1,14 @@
 package service
 
-import "example.com/gameHoldTheProcessServer/pkg/repository"
+import (
+	gameServer "example.com/gameHoldTheProcessServer"
+	"example.com/gameHoldTheProcessServer/pkg/repository"
+)
 
 type User interface {
+	CreateUser(user gameServer.User) (int, error)
+	GenerateToken(login, password string) (string, error)
+	ParseToken(token string) (int, error)
 }
 
 type Chart interface {
@@ -18,5 +24,7 @@ type Service struct {
 }
 
 func NewService(repo *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		User: NewUserService(repo.User),
+	}
 }

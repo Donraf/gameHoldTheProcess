@@ -5,37 +5,37 @@ CREATE TABLE Users
     password       varchar(255) NOT NULL,
     role           varchar(255) NOT NULL,
     cur_par_set_id int          NOT NULL,
-    createdAt      timestamp    NOT NULL,
-    updatedAt      timestamp    NOT NULL
+    created_at     timestamp    NOT NULL,
+    updated_at     timestamp    NOT NULL
 );
 
-CREATE TABLE ParameterSets
+CREATE TABLE Parameter_Sets
 (
-    id         serial    PRIMARY KEY,
-    gain_coef  float     NOT NULL,
-    time_const float     NOT NULL,
-    noise_coef float     NOT NULL,
-    createdAt  timestamp NOT NULL,
-    updatedAt  timestamp NOT NULL
+    id          serial    PRIMARY KEY,
+    gain_coef   float     NOT NULL,
+    time_const  float     NOT NULL,
+    noise_coef  float     NOT NULL,
+    created_at  timestamp NOT NULL,
+    updated_at  timestamp NOT NULL
 );
 
-CREATE TABLE UserParameterSets
+CREATE TABLE User_Parameter_Sets
 (
-    score            int                               NOT NULL,
-    createdAt        timestamp                         NOT NULL,
-    updatedAt        timestamp                         NOT NULL,
-    user_id          int REFERENCES Users (user_id)    NOT NULL,
-    parameter_set_id int REFERENCES ParameterSets (id) NOT NULL,
+    score            int                                NOT NULL,
+    created_at       timestamp                          NOT NULL,
+    updated_at       timestamp                          NOT NULL,
+    user_id          int REFERENCES Users (user_id)     NOT NULL,
+    parameter_set_id int REFERENCES Parameter_Sets (id) NOT NULL,
     PRIMARY KEY (user_id, parameter_set_id)
 );
 
 CREATE TABLE Charts
 (
-    id               serial                                                PRIMARY KEY,
-    createdAt        timestamp                                             NOT NULL,
-    updatedAt        timestamp                                             NOT NULL,
-    parameter_set_id int REFERENCES ParameterSets (id) ON DELETE NO ACTION NOT NULL,
-    user_id          int REFERENCES Users (user_id) ON DELETE NO ACTION    NOT NULL
+    id               serial                                                 PRIMARY KEY,
+    created_at       timestamp                                              NOT NULL,
+    updated_at       timestamp                                              NOT NULL,
+    parameter_set_id int REFERENCES Parameter_Sets (id) ON DELETE NO ACTION NOT NULL,
+    user_id          int REFERENCES Users (user_id) ON DELETE NO ACTION     NOT NULL
 );
 
 CREATE TABLE Points
@@ -51,7 +51,7 @@ CREATE TABLE Points
     is_stop                boolean                                      NOT NULL,
     is_pause               boolean                                      NOT NULL,
     is_check               boolean                                      NOT NULL,
-    createdAt              timestamp                                    NOT NULL,
-    updatedAt              timestamp                                    NOT NULL,
+    created_at             timestamp                                    NOT NULL,
+    updated_at             timestamp                                    NOT NULL,
     chart_id               int REFERENCES Charts (id) ON DELETE CASCADE NOT NULL
 );

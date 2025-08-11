@@ -20,20 +20,23 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		user := api.Group("/user")
 		{
-			user.POST("/users", h.getAllUsers)
-			user.POST("/pageCount", h.getUsersPageCount)
 			user.POST("/registration", h.registration)
 			user.POST("/login", h.login)
-			user.POST("/score", h.updateScore)
-			user.GET("/auth", h.check)
-			user.GET("/parSet/:id", h.getParSet)
-			user.GET("/score/:userId/:parSetId", h.getScore)
-			user.GET("/:id", h.getOneUser)
-			user.DELETE("/:id", h.deleteUser)
-			user.PUT("/:id", h.updateUser)
+			userAuth := user.Group("", h.checkUserAuth)
+			{
+				userAuth.POST("/users", h.getAllUsers)
+				userAuth.POST("/pageCount", h.getUsersPageCount)
+				userAuth.POST("/score", h.updateScore)
+				userAuth.GET("/auth", h.check)
+				userAuth.GET("/parSet/:id", h.getParSet)
+				userAuth.GET("/score/:userId/:parSetId", h.getScore)
+				userAuth.GET("/:id", h.getOneUser)
+				userAuth.DELETE("/:id", h.deleteUser)
+				userAuth.PUT("/:id", h.updateUser)
+			}
 		}
 
-		chart := api.Group("/chart")
+		chart := api.Group("/chart", h.checkUserAuth)
 		{
 			chart.POST("/charts", h.getAllCharts)
 			chart.POST("/pageCount", h.getChartsPageCount)
@@ -44,7 +47,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			chart.PUT("/:id", h.updateChart)
 		}
 
-		point := api.Group("/point")
+		point := api.Group("/point", h.checkUserAuth)
 		{
 			point.POST("/", h.createPoint)
 			point.GET("/", h.getAllPoints)

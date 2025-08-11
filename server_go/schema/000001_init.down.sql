@@ -2,8 +2,8 @@ DROP TABLE Points;
 
 DROP TABLE Charts;
 
-DROP TABLE UserParameterSets;
+DROP TABLE User_Parameter_Sets;
 
 DROP TABLE Users;
 
-DROP TABLE ParameterSets;
+DROP TABLE Parameter_Sets;
