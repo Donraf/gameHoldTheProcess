@@ -17,6 +17,7 @@ type User interface {
 	GetUsersPageCount(input gameServer.GetUsersPageCountInput) (int, error)
 	GetParSet(id int) (gameServer.ParameterSet, error)
 	GetScore(userId, parSetId int) (int, error)
+	UpdateScore(input gameServer.UpdateScoreInput) error
 }
 
 type Chart interface {

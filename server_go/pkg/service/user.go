@@ -141,3 +141,7 @@ func (u *UserService) GetParSet(id int) (gameServer.ParameterSet, error) {
 func (u *UserService) GetScore(userId, parSetId int) (int, error) {
 	return u.repo.GetScore(userId, parSetId)
 }
+
+func (u *UserService) UpdateScore(input gameServer.UpdateScoreInput) error {
+	return u.repo.UpdateScore(input)
+}

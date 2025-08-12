@@ -173,3 +173,12 @@ func (u *UserPostgres) GetScore(userId, parSetId int) (int, error) {
 
 	return score, nil
 }
+
+func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
+	query := fmt.Sprintf("UPDATE %s SET score=$1 WHERE user_id=$2 AND parameter_set_id=$3", userParameterSetsTable)
+	_, err := u.db.Exec(query, input.Score, input.UserId, input.ParSetId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -36,3 +36,9 @@ type GetAllUsersInput struct {
 	FilterValue string `json:"filter_value"`
 	CurrentPage int    `json:"current_page"`
 }
+
+type UpdateScoreInput struct {
+	UserId   int `json:"userId"`
+	ParSetId int `json:"parSetId"`
+	Score    int `json:"score"`
+}

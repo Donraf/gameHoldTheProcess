@@ -53,7 +53,22 @@ func (h *Handler) login(c *gin.Context) {
 }
 
 func (h *Handler) updateScore(c *gin.Context) {
+	var input gameServer.UpdateScoreInput
 
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.services.User.UpdateScore(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
 }
 
 func (h *Handler) check(c *gin.Context) {
