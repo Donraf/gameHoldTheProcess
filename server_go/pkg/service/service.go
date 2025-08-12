@@ -14,6 +14,7 @@ type User interface {
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
 	GetAllUsers() ([]gameServer.User, error)
 	GetOneUser(id int) (gameServer.User, error)
+	GetUsersPageCount(input gameServer.GetUsersPageCountInput) (int, error)
 }
 
 type Chart interface {

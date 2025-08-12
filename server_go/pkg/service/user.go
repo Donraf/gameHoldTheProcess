@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -12,9 +13,10 @@ import (
 )
 
 const (
-	salt       = "asfawgredfghreas12edda"
-	signingKey = "peopfawd2enfpolw435sda"
-	tokenTTL   = 6 * time.Hour
+	salt             = "asfawgredfghreas12edda"
+	signingKey       = "peopfawd2enfpolw435sda"
+	tokenTTL         = 6 * time.Hour
+	defaultPageLimit = 9
 )
 
 type tokenClaims struct {
@@ -120,4 +122,14 @@ func (u *UserService) GetAllUsers() ([]gameServer.User, error) {
 
 func (u *UserService) GetOneUser(id int) (gameServer.User, error) {
 	return u.repo.GetOneUser(id)
+}
+
+func (u *UserService) GetUsersPageCount(input gameServer.GetUsersPageCountInput) (int, error) {
+	usersCount, err := u.repo.GetUsersCount(input)
+	if err != nil {
+		return 0, nil
+	}
+
+	pageCount := int(math.Ceil(float64(usersCount) / defaultPageLimit))
+	return pageCount, nil
 }

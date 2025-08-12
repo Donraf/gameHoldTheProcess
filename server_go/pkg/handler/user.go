@@ -102,8 +102,26 @@ func (h *Handler) getOneUser(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getUsersPageCount(c *gin.Context) {
+type getUsersPageCountResponse struct {
+	PageCount int `json:"pageCount"`
+}
 
+func (h *Handler) getUsersPageCount(c *gin.Context) {
+	var input gameServer.GetUsersPageCountInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pageCount, err := h.services.User.GetUsersPageCount(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getUsersPageCountResponse{
+		PageCount: pageCount,
+	})
 }
 
 func (h *Handler) getParSet(c *gin.Context) {

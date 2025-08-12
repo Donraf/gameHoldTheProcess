@@ -90,3 +90,28 @@ func (u *UserPostgres) GetOneUser(id int) (gameServer.User, error) {
 
 	return user, err
 }
+
+func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (int, error) {
+	var usersCount []int
+
+	switch input.FilterTag {
+	case "user_name":
+		{
+			query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login LIKE '%%%s%%'", usersTable, input.FilterValue)
+			err := u.db.Select(&usersCount, query)
+			if err != nil {
+				return 0, err
+			}
+		}
+	default:
+		{
+			query := fmt.Sprintf("SELECT COUNT(*) FROM %s", usersTable)
+			err := u.db.Select(&usersCount, query)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return usersCount[0], nil
+}

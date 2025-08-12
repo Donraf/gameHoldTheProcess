@@ -26,3 +26,8 @@ func (i *UpdateUserInput) Validate() error {
 	}
 	return nil
 }
+
+type GetUsersPageCountInput struct {
+	FilterTag   string `json:"filter_tag"`
+	FilterValue string `json:"filter_value"`
+}
