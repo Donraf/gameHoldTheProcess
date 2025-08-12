@@ -75,19 +75,19 @@ func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]game
 	switch input.FilterTag {
 	case "chart_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s WHERE id=%s", chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s WHERE id=%s OFFSET %v LIMIT 9", chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
 		}
 	case "user_login":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE '%%%s%%'", usersTable, chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE '%%%s%%' OFFSET %v LIMIT 9", usersTable, chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
 		}
 	case "user_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s WHERE user_id=%s", chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s WHERE user_id=%s OFFSET %v LIMIT 9", chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s", chartsTable)
+			query = fmt.Sprintf("SELECT id, created_at, updated_at, parameter_set_id, user_id FROM %s OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
 		}
 	}
 

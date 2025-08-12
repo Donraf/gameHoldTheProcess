@@ -12,9 +12,11 @@ type User interface {
 	RefreshToken(accessToken string) (string, error)
 	DeleteUser(id int) error
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
-	GetAllUsers() ([]gameServer.User, error)
+	GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error)
 	GetOneUser(id int) (gameServer.User, error)
 	GetUsersPageCount(input gameServer.GetUsersPageCountInput) (int, error)
+	GetParSet(id int) (gameServer.ParameterSet, error)
+	GetScore(userId, parSetId int) (int, error)
 }
 
 type Chart interface {

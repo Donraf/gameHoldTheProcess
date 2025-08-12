@@ -124,12 +124,54 @@ func (h *Handler) getUsersPageCount(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getParSet(c *gin.Context) {
+type getParSetResponse struct {
+	Data gameServer.ParameterSet `json:"data"`
+}
 
+func (h *Handler) getParSet(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	parSet, err := h.services.User.GetParSet(id)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getParSetResponse{
+		Data: parSet,
+	})
+}
+
+type getScoreResponse struct {
+	Score int `json:"data"`
 }
 
 func (h *Handler) getScore(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter userId")
+		return
+	}
 
+	parSetId, err := strconv.Atoi(c.Param("parSetId"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter parSetId")
+		return
+	}
+
+	score, err := h.services.User.GetScore(userId, parSetId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getScoreResponse{
+		Score: score,
+	})
 }
 
 type getAllUsersResponse struct {
@@ -137,7 +179,13 @@ type getAllUsersResponse struct {
 }
 
 func (h *Handler) getAllUsers(c *gin.Context) {
-	users, err := h.services.User.GetAllUsers()
+	var input gameServer.GetAllUsersInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	users, err := h.services.User.GetAllUsers(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

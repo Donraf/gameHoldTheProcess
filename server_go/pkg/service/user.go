@@ -116,8 +116,8 @@ func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error
 	return u.repo.UpdateUser(id, input)
 }
 
-func (u *UserService) GetAllUsers() ([]gameServer.User, error) {
-	return u.repo.GetAllUsers()
+func (u *UserService) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error) {
+	return u.repo.GetAllUsers(input)
 }
 
 func (u *UserService) GetOneUser(id int) (gameServer.User, error) {
@@ -132,4 +132,12 @@ func (u *UserService) GetUsersPageCount(input gameServer.GetUsersPageCountInput)
 
 	pageCount := int(math.Ceil(float64(usersCount) / defaultPageLimit))
 	return pageCount, nil
+}
+
+func (u *UserService) GetParSet(id int) (gameServer.ParameterSet, error) {
+	return u.repo.GetParSet(id)
+}
+
+func (u *UserService) GetScore(userId, parSetId int) (int, error) {
+	return u.repo.GetScore(userId, parSetId)
 }

@@ -10,9 +10,11 @@ type User interface {
 	GetUser(login, password string) (gameServer.User, error)
 	DeleteUser(id int) error
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
-	GetAllUsers() ([]gameServer.User, error)
+	GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error)
 	GetOneUser(id int) (gameServer.User, error)
 	GetUsersCount(input gameServer.GetUsersPageCountInput) (int, error)
+	GetParSet(id int) (gameServer.ParameterSet, error)
+	GetScore(userId, parSetId int) (int, error)
 }
 
 type Chart interface {

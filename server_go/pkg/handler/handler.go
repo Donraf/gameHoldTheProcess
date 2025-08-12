@@ -16,7 +16,11 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
-	router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	// config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:5439"}
+	config.AllowOrigins = []string{"*"}
+	config.AllowHeaders = []string{"Authorization", "Content-Type", "Accept", "Access-Control-Allow-Origin"}
+	router.Use(cors.New(config))
 
 	api := router.Group("/api")
 	{

@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -17,15 +18,37 @@ func NewUserPostgres(db *sqlx.DB) *UserPostgres {
 }
 
 func (u *UserPostgres) CreateUser(user gameServer.User) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (login, password, role, cur_par_set_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id", usersTable)
-
-	row := u.db.QueryRow(query, user.Login, user.Password, user.Role, user.CurParSetId, user.CreatedAt, user.UpdatedAt)
-	if err := row.Scan(&id); err != nil {
+	tx, err := u.db.Beginx()
+	if err != nil {
 		return 0, err
 	}
 
-	return id, nil
+	var parSetId int
+	query := fmt.Sprintf("SELECT id FROM %s LIMIT 1", parameterSetsTable)
+	row := tx.QueryRow(query)
+	if err := row.Scan(&parSetId); err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	var userId int
+	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	query = fmt.Sprintf("INSERT INTO %s (login, password, role, cur_par_set_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id", usersTable)
+	row = tx.QueryRow(query, user.Login, user.Password, user.Role, parSetId, timeNow, timeNow)
+	if err := row.Scan(&userId); err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)", userParameterSetsTable)
+	_, err = tx.Exec(query, 1000, userId, parSetId, timeNow, timeNow)
+	if err != nil {
+		tx.Rollback()
+		return 0, nil
+	}
+
+	tx.Commit()
+	return userId, nil
 }
 
 func (u *UserPostgres) GetUser(login, password string) (gameServer.User, error) {
@@ -75,12 +98,25 @@ func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) erro
 	return err
 }
 
-func (u *UserPostgres) GetAllUsers() ([]gameServer.User, error) {
+func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error) {
 	var users []gameServer.User
-	query := fmt.Sprintf("SELECT user_id, login, role, cur_par_set_id, created_at, updated_at FROM %s", usersTable)
+	var query string
+
+	switch input.FilterTag {
+	case "user_name":
+		{
+			query = fmt.Sprintf("SELECT user_id, login, role, cur_par_set_id, created_at, updated_at FROM %s WHERE login LIKE '%%%s%%' OFFSET %v LIMIT 9", usersTable, input.FilterValue, (input.CurrentPage-1)*9)
+		}
+	default:
+		{
+			query = fmt.Sprintf("SELECT user_id, login, role, cur_par_set_id, created_at, updated_at FROM %s OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+		}
+	}
+
 	err := u.db.Select(&users, query)
 
 	return users, err
+
 }
 
 func (u *UserPostgres) GetOneUser(id int) (gameServer.User, error) {
@@ -112,4 +148,28 @@ func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (i
 	}
 
 	return usersCount, nil
+}
+
+func (u *UserPostgres) GetParSet(id int) (gameServer.ParameterSet, error) {
+	var parSet gameServer.ParameterSet
+	query := fmt.Sprintf("SELECT id, gain_coef, time_const, noise_coef FROM %s AS ut JOIN %s AS pst ON ut.cur_par_set_id=pst.id WHERE user_id=$1", usersTable, parameterSetsTable)
+
+	err := u.db.Get(&parSet, query, id)
+	if err != nil {
+		return parSet, err
+	}
+
+	return parSet, nil
+}
+
+func (u *UserPostgres) GetScore(userId, parSetId int) (int, error) {
+	var score int
+	query := fmt.Sprintf("SELECT score FROM %s WHERE user_id=$1 AND parameter_set_id=$2", userParameterSetsTable)
+
+	row := u.db.QueryRow(query, userId, parSetId)
+	if err := row.Scan(&score); err != nil {
+		return 0, err
+	}
+
+	return score, nil
 }

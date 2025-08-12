@@ -11,7 +11,7 @@ type Chart struct {
 }
 
 type CreateChartInput struct {
-	ParameterSetId int `json:"parameter_set_id" binding:"required" db:"parameter_set_id"`
+	ParameterSetId int `json:"par_set_id" binding:"required" db:"parameter_set_id"`
 	UserId         int `json:"user_id" binding:"required" db:"user_id"`
 }
 
@@ -40,8 +40,8 @@ func (i *GetAllChartsInput) Validate() error {
 
 type Point struct {
 	Id                  int     `json:"id" db:"id"`
-	X                   float32 `json:"x" binding:"required" db:"x"`
-	Y                   float32 `json:"y" binding:"required" db:"y"`
+	X                   float32 `json:"x" db:"x"`
+	Y                   float32 `json:"y" db:"y"`
 	Score               float32 `json:"score" binding:"required" db:"score"`
 	IsEnd               bool    `json:"is_end" db:"is_end"`
 	IsCrash             bool    `json:"is_crash" db:"is_crash"`
@@ -73,10 +73,10 @@ type PointForCSV struct {
 }
 
 type ParameterSet struct {
-	Id        int     `json:"-"`
-	GainCoef  float32 `json:"gain_coef"`
-	TimeConst float32 `json:"time_const"`
-	NoiseCoef float32 `json:"noise_coef"`
+	Id        int     `json:"id" db:"id"`
+	GainCoef  float32 `json:"gain_coef" db:"gain_coef"`
+	TimeConst float32 `json:"time_const" db:"time_const"`
+	NoiseCoef float32 `json:"noise_coef" db:"noise_coef"`
 	CreatedAt string  `json:"created_at" binding:"required" db:"created_at"`
 	UpdatedAt string  `json:"updated_at" binding:"required" db:"updated_at"`
 }

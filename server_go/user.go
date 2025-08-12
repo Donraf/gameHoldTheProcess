@@ -7,9 +7,9 @@ type User struct {
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	Role        string `json:"role" binding:"required"`
-	CurParSetId int    `json:"cur_par_set_id" binding:"required" db:"cur_par_set_id"`
-	CreatedAt   string `json:"created_at" binding:"required" db:"created_at"`
-	UpdatedAt   string `json:"updated_at" binding:"required" db:"updated_at"`
+	CurParSetId int    `json:"cur_par_set_id" db:"cur_par_set_id"`
+	CreatedAt   string `json:"created_at" db:"created_at"`
+	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 
 type UpdateUserInput struct {
@@ -30,4 +30,10 @@ func (i *UpdateUserInput) Validate() error {
 type GetUsersPageCountInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`
+}
+
+type GetAllUsersInput struct {
+	FilterTag   string `json:"filter_tag"`
+	FilterValue string `json:"filter_value"`
+	CurrentPage int    `json:"current_page"`
 }
