@@ -44,7 +44,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			chart.POST("/", h.createChart)
 			chart.GET("/:id", h.getOneChart)
 			chart.DELETE("/:id", h.deleteChart)
-			chart.PUT("/:id", h.updateChart)
 		}
 
 		point := api.Group("/point", h.checkUserAuth)
@@ -55,7 +54,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			point.GET("/chart_id/:chart_id", h.getAllPointsById)
 			point.GET("/:id", h.getOnePoint)
 			point.DELETE("/:id", h.deletePoint)
-			point.PUT("/:id", h.updatePoint)
 		}
 	}
 
