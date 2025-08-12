@@ -5,8 +5,7 @@ CREATE TABLE Users
     password       varchar(255) NOT NULL,
     role           varchar(255) NOT NULL,
     cur_par_set_id int          NOT NULL,
-    created_at     timestamp    NOT NULL,
-    updated_at     timestamp    NOT NULL
+    created_at     timestamp    NOT NULL
 );
 
 CREATE TABLE Parameter_Sets
@@ -15,15 +14,13 @@ CREATE TABLE Parameter_Sets
     gain_coef   float     NOT NULL,
     time_const  float     NOT NULL,
     noise_coef  float     NOT NULL,
-    created_at  timestamp NOT NULL,
-    updated_at  timestamp NOT NULL
+    created_at  timestamp NOT NULL
 );
 
 CREATE TABLE User_Parameter_Sets
 (
     score            int                                NOT NULL,
     created_at       timestamp                          NOT NULL,
-    updated_at       timestamp                          NOT NULL,
     user_id          int REFERENCES Users (user_id)     NOT NULL,
     parameter_set_id int REFERENCES Parameter_Sets (id) NOT NULL,
     PRIMARY KEY (user_id, parameter_set_id)
@@ -33,7 +30,6 @@ CREATE TABLE Charts
 (
     id               serial                                                 PRIMARY KEY,
     created_at       timestamp                                              NOT NULL,
-    updated_at       timestamp                                              NOT NULL,
     parameter_set_id int REFERENCES Parameter_Sets (id) ON DELETE NO ACTION NOT NULL,
     user_id          int REFERENCES Users (user_id) ON DELETE NO ACTION     NOT NULL
 );
@@ -44,7 +40,6 @@ CREATE TABLE Points
     x                      float                                        NOT NULL,
     y                      float                                        NOT NULL,
     score                  float                                        NOT NULL,
-    is_end                 boolean                                      NOT NULL,
     is_crash               boolean                                      NOT NULL,
     is_useful_ai_signal    boolean                                      NOT NULL,
     is_deceptive_ai_signal boolean                                      NOT NULL,
@@ -52,6 +47,18 @@ CREATE TABLE Points
     is_pause               boolean                                      NOT NULL,
     is_check               boolean                                      NOT NULL,
     created_at             timestamp                                    NOT NULL,
-    updated_at             timestamp                                    NOT NULL,
     chart_id               int REFERENCES Charts (id) ON DELETE CASCADE NOT NULL
 );
+
+INSERT INTO Parameter_Sets (id, gain_coef, time_const, noise_coef, created_at)
+    VALUES 
+    (1, 0.92, 20, 0.03, '2025-08-12 18:50:37.359879');
+
+INSERT INTO Users (login, password, role, cur_par_set_id, created_at)
+    VALUES 
+    ('admin', '61736661776772656466676872656173313265646461d033e22ae348aeb5660fc2140aec35850c4da997', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
+
+INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, created_at)
+    VALUES 
+    (1, 1, 1000, '2025-08-12 18:50:37.359879');
+

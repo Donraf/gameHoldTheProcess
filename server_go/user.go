@@ -9,7 +9,6 @@ type User struct {
 	Role        string `json:"role" binding:"required"`
 	CurParSetId int    `json:"cur_par_set_id" db:"cur_par_set_id"`
 	CreatedAt   string `json:"created_at" db:"created_at"`
-	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 
 type UpdateUserInput struct {
