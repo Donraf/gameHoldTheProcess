@@ -82,3 +82,11 @@ func (u *UserPostgres) GetAllUsers() ([]gameServer.User, error) {
 
 	return users, err
 }
+
+func (u *UserPostgres) GetOneUser(id int) (gameServer.User, error) {
+	var user gameServer.User
+	query := fmt.Sprintf("SELECT user_id, login, role, cur_par_set_id, created_at, updated_at FROM %s WHERE user_id=$1", usersTable)
+	err := u.db.Get(&user, query, id)
+
+	return user, err
+}

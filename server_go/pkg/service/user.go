@@ -117,3 +117,7 @@ func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error
 func (u *UserService) GetAllUsers() ([]gameServer.User, error) {
 	return u.repo.GetAllUsers()
 }
+
+func (u *UserService) GetOneUser(id int) (gameServer.User, error) {
+	return u.repo.GetOneUser(id)
+}

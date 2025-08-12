@@ -80,8 +80,26 @@ func (h *Handler) check(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getOneUser(c *gin.Context) {
+type getOneUserResponse struct {
+	Data gameServer.User `json:"data"`
+}
 
+func (h *Handler) getOneUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	user, err := h.services.User.GetOneUser(id)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getOneUserResponse{
+		Data: user,
+	})
 }
 
 func (h *Handler) getUsersPageCount(c *gin.Context) {
