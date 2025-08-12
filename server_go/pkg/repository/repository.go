@@ -24,6 +24,11 @@ type Chart interface {
 }
 
 type Point interface {
+	CreatePoint(input gameServer.Point) (int, error)
+	GetOnePoint(id int) (gameServer.Point, error)
+	GetAllPointsById(id int) ([]gameServer.Point, error)
+	DeletePoint(id int) error
+	GetAllPointsForCSV() ([]gameServer.PointForCSV, error)
 }
 
 type Repository struct {
@@ -36,5 +41,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		User:  NewUserPostgres(db),
 		Chart: NewChartPostgres(db),
+		Point: NewPointPostgres(db),
 	}
 }

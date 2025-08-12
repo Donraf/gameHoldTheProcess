@@ -27,6 +27,11 @@ type Chart interface {
 }
 
 type Point interface {
+	CreatePoint(input gameServer.Point) (int, error)
+	GetOnePoint(id int) (gameServer.Point, error)
+	GetAllPointsById(id int) ([]gameServer.Point, error)
+	DeletePoint(id int) error
+	GetCsvOfPoints() (string, error)
 }
 
 type Service struct {
@@ -39,5 +44,6 @@ func NewService(repo *repository.Repository) *Service {
 	return &Service{
 		User:  NewUserService(repo.User),
 		Chart: NewChartService(repo.Chart),
+		Point: NewPointService(repo.Point),
 	}
 }

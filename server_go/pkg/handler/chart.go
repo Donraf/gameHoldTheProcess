@@ -38,7 +38,7 @@ func (h *Handler) getOneChart(c *gin.Context) {
 		return
 	}
 
-	chart, err := h.services.GetOneChart(id)
+	chart, err := h.services.Chart.GetOneChart(id)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -130,8 +130,4 @@ func (h *Handler) deleteChart(c *gin.Context) {
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
 	})
-}
-
-func (h *Handler) updateChart(c *gin.Context) {
-
 }
