@@ -6,7 +6,7 @@ import (
 )
 
 type User interface {
-	CreateUser(user gameServer.User) (int, error)
+	CreateUser(user gameServer.User) (string, error)
 	GenerateToken(login, password string) (string, error)
 	ParseToken(token string) (*tokenClaims, error)
 	RefreshToken(accessToken string) (string, error)

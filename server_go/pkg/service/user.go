@@ -33,9 +33,16 @@ func NewUserService(repo repository.User) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (u *UserService) CreateUser(user gameServer.User) (int, error) {
+func (u *UserService) CreateUser(user gameServer.User) (string, error) {
 	user.Password = generatePasswordHash(user.Password)
-	return u.repo.CreateUser(user)
+	userId, err := u.repo.CreateUser(user)
+	if err != nil {
+		return "", err
+	}
+
+	token := createToken(userId, user.Login, user.Role)
+
+	return token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 }
 
 func (u *UserService) GenerateToken(login, password string) (string, error) {

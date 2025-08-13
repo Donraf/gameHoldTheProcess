@@ -17,14 +17,14 @@ func (h *Handler) registration(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.User.CreateUser(input)
+	token, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, map[string]any{
-		"id": id,
+		"token": token,
 	})
 }
 
