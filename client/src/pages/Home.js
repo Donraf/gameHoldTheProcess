@@ -58,7 +58,7 @@ async function chartToHintCharts(charts) {
         let points = await fetchPointsByChartId(charts[i].id)
         let hintChart = {
             id: charts[i].id,
-            createdAt: charts[i].createdAt,
+            createdAt: charts[i].created_at,
             points: points
         }
         hintCharts.push(hintChart)

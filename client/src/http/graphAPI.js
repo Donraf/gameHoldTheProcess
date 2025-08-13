@@ -1,18 +1,17 @@
-import {$authHost, $host} from "./index";
+import {$authHost} from "./index";
 
 export const createGraph = async (points, user_id, par_set_id) => {
     try {
-        const {data} = await $authHost.post('api/chart', {user_id: user_id, par_set_id: par_set_id});
+        const {data} = await $authHost.post('api/chart/', {user_id: user_id, par_set_id: par_set_id});
         await $authHost.post('api/user/score', {userId: user_id, parSetId: par_set_id, score: points[points.length - 1].score});
         let graphId = data.id
         for (const point of points) {
-            await $authHost.post('api/point',
+            await $authHost.post('api/point/',
                 {
                     chart_id: graphId,
-                    x: point.x,
-                    y: point.y,
+                    x: parseFloat(point.x),
+                    y: parseFloat(point.y),
                     score: point.score,
-                    is_end: point.is_end,
                     is_crash: point.is_crash,
                     is_useful_ai_signal: point.is_useful_ai_signal,
                     is_deceptive_ai_signal: point.is_deceptive_ai_signal,
@@ -30,10 +29,10 @@ export const createGraph = async (points, user_id, par_set_id) => {
 
 export const getGraphsPageCount = async (filterTag = null, filterValue = null) => {
     try {
-        const pageCount = await $host.post('api/chart/pageCount',
+        const pageCount = await $authHost.post('api/chart/pageCount',
             {
                 filter_tag: filterTag,
-                filter_value: filterValue,
+                filter_value: String(filterValue),
             }
         );
         return pageCount.data.pageCount;
@@ -44,10 +43,10 @@ export const getGraphsPageCount = async (filterTag = null, filterValue = null) =
 
 export const getGraphsCount = async (filterTag = null, filterValue = null) => {
     try {
-        const graphCount = await $host.post('api/chart/count',
+        const graphCount = await $authHost.post('api/chart/count',
             {
                 filter_tag: filterTag,
-                filter_value: filterValue,
+                filter_value: String(filterValue),
             }
         );
         return graphCount.data.count;
@@ -58,14 +57,14 @@ export const getGraphsCount = async (filterTag = null, filterValue = null) => {
 
 export const fetchGraphs = async (filterTag = null, filterValue = null, currentPage = null) => {
     try {
-        const {data} = await $host.post('api/chart/charts',
+        const {data} = await $authHost.post('api/chart/charts',
             {
                 filter_tag: filterTag,
-                filter_value: filterValue,
+                filter_value: String(filterValue),
                 current_page: currentPage,
             }
         );
-        return data;
+        return data.data;
     } catch (e) {
         throw e;
     }

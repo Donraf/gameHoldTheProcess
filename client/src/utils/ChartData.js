@@ -276,7 +276,6 @@ export class ChartData {
                 points[i].x,
                 points[i].y,
                 points[i].score,
-                points[i].is_end,
                 points[i].is_crash,
                 points[i].is_useful_ai_signal,
                 points[i].is_deceptive_ai_signal,
@@ -340,12 +339,11 @@ export class ChartData {
 }
 
 class Point {
-    constructor(x, y, score, is_end=false, is_crash=false, is_useful_ai_signal=false, is_deceptive_ai_signal=false,
+    constructor(x, y, score, is_crash=false, is_useful_ai_signal=false, is_deceptive_ai_signal=false,
                 is_stop=false, is_pause=false, is_check=false) {
         this.x = x;
         this.y = y;
         this.score = score;
-        this.is_end = is_end;
         this.is_crash = is_crash;
         this.is_useful_ai_signal = is_useful_ai_signal;
         this.is_deceptive_ai_signal = is_deceptive_ai_signal;

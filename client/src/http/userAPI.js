@@ -44,10 +44,10 @@ export const check = async () => {
 
 export const getUsersPageCount = async (filterTag = null, filterValue = null) => {
     try {
-        const pageCount = await $host.post('api/user/pageCount',
+        const pageCount = await $authHost.post('api/user/pageCount',
             {
                 filter_tag: filterTag,
-                filter_value: filterValue,
+                filter_value: String(filterValue),
             }
         );
         return pageCount.data.pageCount;
@@ -58,8 +58,8 @@ export const getUsersPageCount = async (filterTag = null, filterValue = null) =>
 
 export const getParSet = async (id) => {
     try {
-        const {data} = await $host.get(`api/user/parSet/${id}`);
-        return data;
+        const {data} = await $authHost.get(`api/user/parSet/${id}`);
+        return data.data;
     } catch (e) {
         throw new Error("Error on getUserParSet\n" + e)
     }
@@ -67,8 +67,8 @@ export const getParSet = async (id) => {
 
 export const getScore = async (userId, parSetId) => {
     try {
-        const {data} = await $host.get(`api/user/parSet/${userId}/${parSetId}`);
-        return data;
+        const {data} = await $authHost.get(`api/user/score/${userId}/${parSetId}`);
+        return data.data;
     } catch (e) {
         throw new Error("Error on getScore\n" + e)
     }
@@ -76,14 +76,14 @@ export const getScore = async (userId, parSetId) => {
 
 export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null) => {
     try {
-        const {data} = await $host.post('api/user/users',
+        const {data} = await $authHost.post('api/user/users',
             {
                 filter_tag: filterTag,
-                filter_value: filterValue,
+                filter_value: String(filterValue),
                 current_page: currentPage,
             }
         );
-        return data;
+        return data.data;
     } catch (e) {
         throw e;
     }
@@ -91,7 +91,7 @@ export const fetchUsers = async (filterTag = null, filterValue = null, currentPa
 
 export const fetchUser = async (id) => {
     try {
-        const {data} = await $host.get(`api/user/${id}`);
+        const {data} = await $authHost.get(`api/user/${id}`);
         return data;
     } catch (e) {
         throw e;
