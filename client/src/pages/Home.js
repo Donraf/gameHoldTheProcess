@@ -39,6 +39,10 @@ import {ChartData} from "../utils/ChartData";
 import {transformToUiDateDayTime} from "../utils/transformDate";
 import {getParSet, getScore} from "../http/userAPI";
 import useSound from "use-sound";
+import PlayButtonIcon from '../components/icons/PlayButtonIcon';
+import StopButtonIcon from '../components/icons/StopButtonIcon';
+import TakeHintButtonIcon from '../components/icons/TakeHintButtonIcon';
+import PauseButtonIcon from '../components/icons/PauseButtonIcon';
 
 ChartJS.register(
     LineController,
@@ -395,7 +399,7 @@ const Home = observer( () => {
                     <Button
                         sx={{
                             color: "#FFFFFF",
-                            backgroundColor: "#9356A0",
+                            backgroundColor: COLORS.takeHintButton,
                             flexGrow: 1,
                         }}
                         onClick={ () => {
@@ -408,7 +412,7 @@ const Home = observer( () => {
                     <Button
                         sx={{
                             color: "#FFFFFF",
-                            backgroundColor: "#9356A0",
+                            backgroundColor: COLORS.takeHintButton,
                             flexGrow: 1,
                         }}
                         onClick={ () => {
@@ -583,19 +587,22 @@ const Home = observer( () => {
                                                             setIsChartPaused(false)
                                                             setIsDanger(false)
                                                         } }
+                                                        startIcon={<PlayButtonIcon/>}
                                                     >Продолжить
                                                     </Button>
                                                     : <Button
                                                         sx={{
                                                             color: "#FFFFFF",
-                                                            backgroundColor: "#9356A0",
+                                                            backgroundColor: COLORS.takeHintButton,
                                                             flexGrow: 1,
                                                         }}
                                                         onClick={ () => {
                                                             setIsChartPaused(true)
                                                             chart.chartData.chartPaused()
                                                             changeScore(-50)
-                                                        } }>
+                                                        } }
+                                                        startIcon={<PauseButtonIcon/>}
+                                                        >
                                                         Пауза
                                                     </Button>
                                                 }
@@ -609,7 +616,9 @@ const Home = observer( () => {
                                                     onClick={ () => {
                                                         setIsChartStopped(true)
                                                         setIsDanger(false)
-                                                    } }>
+                                                    } }
+                                                    startIcon={<StopButtonIcon/>}
+                                                    >
                                                     Завершить процесс
                                                 </Button>
                                             </Stack>
@@ -620,7 +629,9 @@ const Home = observer( () => {
                                                         backgroundColor: COLORS.takeHintButton,
                                                         flexGrow: 1,
                                                     }}
-                                                    onClick={ () => { handleOpenHintModal() } }>
+                                                    onClick={ () => { handleOpenHintModal() } }
+                                                    startIcon={<TakeHintButtonIcon/>}
+                                                    >
                                                     Купить подсказки
                                                 </Button>
                                                 : <></>
@@ -644,12 +655,12 @@ const Home = observer( () => {
                     left: '16px',
                     padding: '0.75rem',
                     borderRadius: '12px',
-                    backgroundColor: '#eda8a8',
+                    backgroundColor: COLORS.alertBackground,
                 }} >
                     <Stack spacing={1}>
                         <Stack direction="row" spacing={1} alignItems={"center"} >
                             <DangerIcon/>
-                            <Typography>Внимание! Опасность взрыва! Решите, что делать!</Typography>
+                            <Typography variant="h5">Опасность взрыва! Решите, что делать.</Typography>
                         </Stack>
                         <Stack direction="row" spacing={1} >
                             <Button
@@ -662,7 +673,9 @@ const Home = observer( () => {
                                     setIsChartPaused(false)
                                     setIsDanger(false)
                                     handleCloseHintModal()
-                                } }>
+                                } }
+                                startIcon={<PlayButtonIcon/>}
+                                >
                                 Продолжить процесс
                             </Button>
                             <Button
@@ -671,8 +684,10 @@ const Home = observer( () => {
                                     backgroundColor: COLORS.takeHintButton,
                                     flexGrow: 1,
                                 }}
-                                onClick={ () => { handleOpenHintModal() } }>
-                                Показать подсказку
+                                onClick={ () => { handleOpenHintModal() } }
+                                startIcon={<TakeHintButtonIcon/>}
+                                >
+                                Купить подсказки
                             </Button>
                             <Button
                                 sx={{
@@ -683,7 +698,9 @@ const Home = observer( () => {
                                 onClick={ () => {
                                     setIsChartStopped(true)
                                     setIsDanger(false)
-                                } }>
+                                } }
+                                startIcon={<StopButtonIcon/>}
+                                >
                                 Завершить процесс
                             </Button>
                         </Stack>

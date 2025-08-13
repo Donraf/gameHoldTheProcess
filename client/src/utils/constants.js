@@ -20,5 +20,5 @@ export const COLORS = {
     graphGradientMiddle: '#d1cb26',
     graphGradientHigh: '#ff003c',
     graphCriticalValue: '#904d30',
-    alertBackground: '#',
+    alertBackground: '#edd5d5',
 }
