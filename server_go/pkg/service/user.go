@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -13,8 +14,6 @@ import (
 )
 
 const (
-	salt             = "asfawgredfghreas12edda"
-	signingKey       = "peopfawd2enfpolw435sda"
 	tokenTTL         = 6 * time.Hour
 	defaultPageLimit = 9
 )
@@ -47,7 +46,7 @@ func (u *UserService) GenerateToken(login, password string) (string, error) {
 
 	token := createToken(user.Id, user.Login, user.Role)
 
-	return token.SignedString([]byte(signingKey))
+	return token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 }
 
 func (u *UserService) RefreshToken(accessToken string) (string, error) {
@@ -58,7 +57,7 @@ func (u *UserService) RefreshToken(accessToken string) (string, error) {
 
 	token := createToken(claims.UserId, claims.Login, claims.Role)
 
-	return token.SignedString([]byte(signingKey))
+	return token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 }
 
 func createToken(id int, login, role string) *jwt.Token {
@@ -80,7 +79,7 @@ func (u *UserService) ParseToken(accessToken string) (*tokenClaims, error) {
 			return nil, errors.New("invalid signing method")
 		}
 
-		return []byte(signingKey), nil
+		return []byte(os.Getenv("JWT_SIGNING_KEY")), nil
 	})
 
 	if err != nil {
@@ -99,7 +98,7 @@ func generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("PASSWORD_SALT"))))
 }
 
 func (u *UserService) DeleteUser(id int) error {

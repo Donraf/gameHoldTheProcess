@@ -56,7 +56,7 @@ INSERT INTO Parameter_Sets (id, gain_coef, time_const, noise_coef, created_at)
 
 INSERT INTO Users (login, password, role, cur_par_set_id, created_at)
     VALUES 
-    ('admin', '61736661776772656466676872656173313265646461d033e22ae348aeb5660fc2140aec35850c4da997', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
+    ('admin', '3977434d73306272346e626430366432396b4177374d7a473665564771474577d033e22ae348aeb5660fc2140aec35850c4da997', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
 
 INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, created_at)
     VALUES 
