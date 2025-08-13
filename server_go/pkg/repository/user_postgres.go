@@ -47,8 +47,7 @@ func (u *UserPostgres) CreateUser(user gameServer.User) (int, error) {
 		return 0, nil
 	}
 
-	tx.Commit()
-	return userId, nil
+	return userId, tx.Commit()
 }
 
 func (u *UserPostgres) GetUser(login, password string) (gameServer.User, error) {
