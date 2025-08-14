@@ -8,9 +8,13 @@ export const ADMIN_GRAPH_ROUTE = ADMIN_ROUTE + '/graph';
 
 export const USER_PROFILE_ROUTE = '/profile';
 
+export const RESEARCHER_ROOM_ROUTE = '/researcher';
+
 // User roles
 export const USER_ROLE_USER = 'User';
 export const USER_ROLE_ADMIN = 'ADMIN';
+export const USER_ROLE_RESEARCHER = 'Researcher';
+
 
 export const COLORS = {
     stopButton: '#ED0800',
@@ -21,4 +25,5 @@ export const COLORS = {
     graphGradientHigh: '#ff003c',
     graphCriticalValue: '#904d30',
     alertBackground: '#edd5d5',
+    mainTheme: '#9356A0'
 }

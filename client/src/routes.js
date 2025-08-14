@@ -5,6 +5,7 @@ import {
     HOME_ROUTE,
     LOGIN_ROUTE,
     REGISTRATION_ROUTE,
+    RESEARCHER_ROOM_ROUTE,
     USER_PROFILE_ROUTE,
 } from "./utils/constants";
 import Admin from "./pages/Admin";
@@ -13,6 +14,7 @@ import Auth from "./pages/Auth";
 import AdminUser from "./pages/AdminUser";
 import UserProfile from "./pages/UserProfile";
 import AdminGraph from "./pages/AdminGraph";
+import ResearcherRoom from "./pages/ResearcherRoom";
 
 export const authRoutes = [
     {
@@ -30,6 +32,10 @@ export const authRoutes = [
     {
         path: USER_PROFILE_ROUTE,
         Component: <UserProfile />
+    },
+        {
+        path: RESEARCHER_ROOM_ROUTE,
+        Component: <ResearcherRoom />
     },
 ]
 

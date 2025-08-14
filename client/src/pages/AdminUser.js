@@ -129,8 +129,8 @@ const AdminUser = () => {
         let filteredDataFromQuery
         let newPageCount
         if (filterInput) {
-            filteredDataFromQuery = await fetchUsers("user_name", filterInput, page);
-            newPageCount = await getUsersPageCount("user_name", filterInput)
+            filteredDataFromQuery = await fetchUsers("login", filterInput, page);
+            newPageCount = await getUsersPageCount("login", filterInput)
         } else {
             filteredDataFromQuery = await fetchUsers(null, null, page);
             newPageCount = await getUsersPageCount()

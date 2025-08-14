@@ -1,7 +1,7 @@
 import React, {useContext, useState} from 'react';
 import {Box, Button, Card, Stack, TextField, Typography} from "@mui/material";
 import {NavLink, useLocation, useNavigate} from "react-router-dom";
-import {HOME_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE} from "../utils/constants";
+import {HOME_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE, RESEARCHER_ROOM_ROUTE, USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER} from "../utils/constants";
 import {login, registration} from "../http/userAPI";
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
@@ -14,6 +14,7 @@ const Auth = observer( () => {
     const isLogin = location.pathname === LOGIN_ROUTE;
     const [userLogin, setUserLogin] = useState('')
     const [password, setPassword] = useState('')
+    const [name, setName] = useState('')
 
     const { enqueueSnackbar } = useSnackbar();
 
@@ -23,12 +24,17 @@ const Auth = observer( () => {
             if (isLogin) {
                 data = await login(userLogin, password);
             } else {
-                data = await registration(userLogin, password);
+                data = await registration(userLogin, password, name);
             }
             if (data !== undefined) {
                 user.setUser(data);
                 user.setIsAuth(true);
-                navigate(HOME_ROUTE);
+
+                if (data.role === USER_ROLE_RESEARCHER) {
+                    navigate(RESEARCHER_ROOM_ROUTE);
+                } else {
+                    navigate(HOME_ROUTE);
+                }
             }
         } catch (e) {
             enqueueSnackbar("Ошибка при авторизации или регистрации", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
@@ -59,6 +65,14 @@ const Auth = observer( () => {
                                id="outlined-basic"
                                label="Введите ваш логин"
                                variant="outlined"/>
+                    {isLogin 
+                    ? <></>
+                    : <TextField onChange={ event => {setName(event.target.value)}}
+                               value={name}
+                               id="outlined-basic"
+                               label="Введите ФИО"
+                               variant="outlined"/>
+                    }
                     <TextField onChange={ event => {setPassword(event.target.value)}}
                                value={password}
                                id="outlined-basic"

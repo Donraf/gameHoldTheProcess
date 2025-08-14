@@ -11,10 +11,10 @@ export const createUser = async (user) => {
     }
 }
 
-export const registration = async (login, password) => {
+export const registration = async (login, password, name) => {
     try {
         const {data} = await $host.post('api/user/registration', {login: login,
-            password: password, role: USER_ROLE_USER});
+            password: password, role: USER_ROLE_USER, name: name});
         localStorage.setItem('token', data.token);
         return jwtDecode(data.token);
     } catch (e) {
@@ -83,6 +83,9 @@ export const fetchUsers = async (filterTag = null, filterValue = null, currentPa
                 current_page: currentPage,
             }
         );
+        if (data.data === null || data.data.length === 0) {
+            return []
+        }
         return data.data;
     } catch (e) {
         throw e;
@@ -115,5 +118,19 @@ export const updateUser = async (id, updateInfo) => {
         return data;
     } catch (e) {
         throw e;
+    }
+}
+
+export const createGroup = async (name, userId) => {
+    try {
+        const {data} = await $authHost.post('api/user/group',
+        {
+            creator_id: userId,
+            name: name
+        }
+    );
+        return data;
+    } catch (e) {
+        throw new Error("Error when creating a user\n" + e)
     }
 }

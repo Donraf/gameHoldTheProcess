@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import React, {useContext} from "react";
 import {useNavigate} from "react-router-dom";
-import {ADMIN_ROUTE, HOME_ROUTE, LOGIN_ROUTE, USER_PROFILE_ROUTE, USER_ROLE_ADMIN} from "../utils/constants";
+import {ADMIN_ROUTE, HOME_ROUTE, LOGIN_ROUTE, RESEARCHER_ROOM_ROUTE, USER_PROFILE_ROUTE, USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER} from "../utils/constants";
 import {Context} from "../index";
 import ProfileNavIcon from "./icons/ProfileNavIcon";
 import AdminNavIcon from "./icons/AdminNavIcon";
@@ -29,14 +29,29 @@ export default function NavBarDrawer() {
         navigate(HOME_ROUTE)
     }
 
-    let navItems = [{name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},]
+    let navItems = []
 
-    if (user.isAuth) {
-        navItems = navItems.concat([{name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>}])
+    if (user.isAuth && user.user.role === USER_ROLE_USER) {
+        navItems = navItems.concat([
+            {name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},
+            {name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
+        ])
     }
 
     if (user.isAuth && user.user.role === USER_ROLE_ADMIN) {
-        navItems = [{name: 'Панель администратора', route: ADMIN_ROUTE, icon: <AdminNavIcon/>}].concat(navItems)
+        navItems = [
+            {name: 'Панель администратора', route: ADMIN_ROUTE, icon: <AdminNavIcon/>},
+            {name: 'Комната исследователя', route: RESEARCHER_ROOM_ROUTE, icon: <AdminNavIcon/>},
+            {name: 'Начать игру', route: HOME_ROUTE, icon: <StartGameNavIcon/>},
+            {name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
+        ]
+    }
+
+    if (user.isAuth && user.user.role === USER_ROLE_RESEARCHER) {
+        navItems = [
+            {name: 'Комната исследователя', route: RESEARCHER_ROOM_ROUTE, icon: <AdminNavIcon/>},
+            {name: 'Настройки', route: USER_PROFILE_ROUTE, icon: <ProfileNavIcon/>},
+        ]
     }
 
     return (
