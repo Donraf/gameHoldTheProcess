@@ -11,10 +11,10 @@ export const createUser = async (user) => {
     }
 }
 
-export const registration = async (login, password, name) => {
+export const registration = async (login, password, name, groupId = null) => {
     try {
         const {data} = await $host.post('api/user/registration', {login: login,
-            password: password, role: USER_ROLE_USER, name: name});
+            password: password, role: USER_ROLE_USER, name: name, group_id: groupId});
         localStorage.setItem('token', data.token);
         return jwtDecode(data.token);
     } catch (e) {

@@ -1,8 +1,8 @@
 import React, {useContext, useState} from 'react';
-import {Box, Button, Card, Stack, TextField, Typography} from "@mui/material";
+import {Box, Button, Card, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography} from "@mui/material";
 import {NavLink, useLocation, useNavigate} from "react-router-dom";
 import {HOME_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE, RESEARCHER_ROOM_ROUTE, USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER} from "../utils/constants";
-import {login, registration} from "../http/userAPI";
+import {getAllGroups, login, registration} from "../http/userAPI";
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
 import {useSnackbar} from "notistack";
@@ -16,6 +16,10 @@ const Auth = observer( () => {
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
 
+    const [isOpenedGroupSelect, setIsOpenedGroupSelect] = useState(false)
+    const [fetchedGroups, setFetchedGroups] = useState([])
+    const [selectedGroup, setSelectedGroup] = useState("")
+
     const { enqueueSnackbar } = useSnackbar();
 
     const click = async () => {
@@ -24,7 +28,11 @@ const Auth = observer( () => {
             if (isLogin) {
                 data = await login(userLogin, password);
             } else {
-                data = await registration(userLogin, password, name);
+                let groupId = null
+                if (selectedGroup !== "") {
+                    groupId = selectedGroup.id
+                }
+                data = await registration(userLogin, password, name, groupId);
             }
             if (data !== undefined) {
                 user.setUser(data);
@@ -39,6 +47,14 @@ const Auth = observer( () => {
         } catch (e) {
             enqueueSnackbar("Ошибка при авторизации или регистрации", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
         }
+    }
+
+    const fetchGroups = () => {
+        getAllGroups().then(
+            (data) => {
+                setFetchedGroups(data)
+            }
+        )
     }
 
     return (
@@ -62,22 +78,59 @@ const Auth = observer( () => {
                     </Typography>
                     <TextField onChange={ event => {setUserLogin(event.target.value)}}
                                value={userLogin}
-                               id="outlined-basic"
+                               id="login-field"
                                label="Введите ваш логин"
                                variant="outlined"/>
                     {isLogin 
                     ? <></>
                     : <TextField onChange={ event => {setName(event.target.value)}}
                                value={name}
-                               id="outlined-basic"
+                               id="name-field"
                                label="Введите ФИО"
                                variant="outlined"/>
                     }
                     <TextField onChange={ event => {setPassword(event.target.value)}}
                                value={password}
-                               id="outlined-basic"
+                               id="password-field"
                                label="Введите ваш пароль"
                                variant="outlined"/>
+                    {isLogin 
+                    ? <></>
+                    : <>
+                    <FormControlLabel
+                        control={<Switch onChange={ (event) => {
+                            event.target.checked ? fetchGroups() : setSelectedGroup("")
+                            setIsOpenedGroupSelect(event.target.checked)
+                        }}/>}
+                        label="Состою в группе"
+                        id="group-switch"
+                    />
+                        {isOpenedGroupSelect 
+                        ? <>
+                        <TextField
+                            select
+                            value={selectedGroup}
+                            onChange={(event) => {
+                                const newSelectedGroup = event.target.value
+                                setSelectedGroup(newSelectedGroup)
+                            }}
+                            id="group-select"
+                            variant={"outlined"}
+                            sx={{
+                                flexGrow: 9,
+                            }}
+                        >
+                            {fetchedGroups.map((item) =>
+                                <MenuItem id={ "groupItem" + item.id} value={item}>
+                                    {item.name}
+                                </MenuItem>
+                            )}
+                        </TextField>
+                        </>
+                        :<></>
+                        }
+                    </>
+                    }
                     <Stack alignItems={'center'} justifyContent={'space-between'} direction={'row'} spacing={4}>
                         <Stack direction={'row'} align={'center'} alignItems={'center'} >
                             {

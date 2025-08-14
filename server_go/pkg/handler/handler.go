@@ -27,6 +27,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			user.POST("/registration", h.registration)
 			user.POST("/login", h.login)
+			user.GET("/groups", h.getAllGroups)
 			userAuth := user.Group("", h.checkUserAuth)
 			{
 				userAuth.POST("/users", h.getAllUsers)
@@ -37,7 +38,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.GET("/parSet/:id", h.getParSet)
 				userAuth.GET("/score/:userId/:parSetId", h.getScore)
 				userAuth.GET("/:id", h.getOneUser)
-				userAuth.GET("/groups", h.getAllGroups)
 				userAuth.DELETE("/:id", h.deleteUser)
 				userAuth.PUT("/:id", h.updateUser)
 			}
