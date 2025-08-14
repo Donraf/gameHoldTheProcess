@@ -6,9 +6,7 @@ import {
   LOGIN_ROUTE,
   REGISTRATION_ROUTE,
   RESEARCHER_ROOM_ROUTE,
-  USER_ROLE_ADMIN,
   USER_ROLE_RESEARCHER,
-  USER_ROLE_USER,
 } from "../utils/constants";
 import { getAllGroups, login, registration } from "../http/userAPI";
 import { observer } from "mobx-react-lite";

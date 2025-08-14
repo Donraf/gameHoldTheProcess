@@ -1,6 +1,6 @@
 import { $authHost, $host } from "./index";
 import { jwtDecode } from "jwt-decode";
-import { USER_ROLE_ADMIN, USER_ROLE_USER } from "../utils/constants";
+import { USER_ROLE_USER } from "../utils/constants";
 
 export const createUser = async (user) => {
   try {
