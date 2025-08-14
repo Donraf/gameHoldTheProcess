@@ -63,6 +63,9 @@ export const fetchGraphs = async (filterTag = null, filterValue = null, currentP
       filter_value: String(filterValue),
       current_page: currentPage,
     });
+    if (data.data === null || data.data.length === 0) {
+      return [];
+    }
     return data.data;
   } catch (e) {
     throw e;
