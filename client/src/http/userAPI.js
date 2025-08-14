@@ -134,3 +134,15 @@ export const createGroup = async (name, userId) => {
         throw new Error("Error when creating a user\n" + e)
     }
 }
+
+export const getAllGroups = async () => {
+    try {
+        const {data} = await $authHost.get(`api/user/groups`);
+        if (data.data === null || data.data.length === 0) {
+            return []
+        }
+        return data.data;
+    } catch (e) {
+        throw e;
+    }
+}

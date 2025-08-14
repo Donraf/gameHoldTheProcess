@@ -3,6 +3,7 @@ import dateFormat from "dateformat";
 import {
     Box, Button,
     CssBaseline,
+    MenuItem,
     Modal,
     Pagination, Paper,
     Stack,
@@ -15,24 +16,22 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import {useSnackbar} from "notistack";
-import {deleteGraph, fetchGraphs, getGraphsPageCount} from "../http/graphAPI";
 import AddIcon from '../components/icons/AddIcon';
 import { COLORS } from '../utils/constants';
-import { createGroup, fetchUsers, getUsersPageCount } from '../http/userAPI';
+import { createGroup, fetchUsers, getAllGroups, getUsersPageCount } from '../http/userAPI';
 import { ModalContent } from '../components/ModalContent';
 import { Context } from '..';
 
 const ResearcherRoom = () => {
     const {user} = useContext(Context);
-
-    const [updateTrigger, setUpdateTrigger] = useState(false);
     const [isDataFetched, setIsDataFetched] = useState(false);
     const [filterInput, setFilterInput] = useState("");
     const [filteredData, setFilteredData] = useState([])
-    const [page, setPage] = React.useState(1);
-    const [pageCount, setPageCount] = React.useState(1);
-
-    const [name, setName] = React.useState("");
+    const [page, setPage] = useState(1);
+    const [pageCount, setPageCount] = useState(1);
+    const [fetchedGroups, setFetchedGroups] = useState([])
+    const [selectedGroupName, setSelectedGroupName] = useState("")
+    const [name, setName] = useState("");
 
     const [isCreateGroupModalOpened, setIsCreateGroupModalOpened] = React.useState(false);
     const handleOpenCreateGroupModal = () => setIsCreateGroupModalOpened(true);
@@ -42,6 +41,10 @@ const ResearcherRoom = () => {
     const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
+        fetchGroups()
+    }, [])
+
+    useEffect(() => {
         setIsDataFetched(false);
         filterData(false).then( () => {setIsDataFetched(true) } )
     }, [page])
@@ -49,7 +52,7 @@ const ResearcherRoom = () => {
     useEffect(() => {
         setIsDataFetched(false);
         filterData(true).then( () => {setIsDataFetched(true) } )
-    }, [updateTrigger])
+    }, [filterInput])
 
     useEffect(() => {
         snackErrTexts.map(text => enqueueSnackbar(text, {variant: "error", autoHideDuration: 3000, preventDuplicate: true}))
@@ -68,12 +71,20 @@ const ResearcherRoom = () => {
                 _ => {
                     enqueueSnackbar("Группа добавлена", {variant: "success", autoHideDuration: 3000, preventDuplicate: true})
                     setName('');
-                    setUpdateTrigger(!updateTrigger)
+                    fetchGroups();
                 },
                 _ => {
                 enqueueSnackbar("Ошибка при добавлении группы", {variant: "error", autoHideDuration: 3000, preventDuplicate: true})
                 }
             )
+    }
+
+    const fetchGroups = () => {
+        getAllGroups().then(
+            (data) => {
+                setFetchedGroups(data)
+            }
+        )
     }
 
     const filterData = async ( updatePage ) => {
@@ -129,19 +140,27 @@ const ResearcherRoom = () => {
                         Выбрать группу участников
                     </Typography>
                     <Stack direction="row" gap={1}>
-                    <TextField
-                        onChange={ event => {
-                            setFilterInput(event.target.value);
-                            setUpdateTrigger(!updateTrigger);
-                        }}
-                        value={filterInput}
-                        id="outlined-basic"
-                        label="Выберите группу участников"
-                        variant="outlined"
-                        sx={{
-                            flexGrow: 9,
-                        }}
-                        />
+                        <TextField
+                            select
+                            value={selectedGroupName}
+                            onChange={(event) => {
+                                const newSelectedGroupName = event.target.value
+                                setSelectedGroupName(newSelectedGroupName)
+                                setFilterInput(newSelectedGroupName)
+                            }}
+                            id="group-select"
+                            variant={"outlined"}
+                            sx={{
+                                flexGrow: 9,
+                            }}
+                        >
+                            {fetchedGroups.map((item) =>
+                                <MenuItem id={ "groupItem" + item.id} value={item.name}>
+                                    {item.name}
+                                </MenuItem>
+                            )}
+                        </TextField>
+                        
                         <Button
                         variant="outlined"
                             sx={{
@@ -155,7 +174,6 @@ const ResearcherRoom = () => {
                             Добавить группу
                         </Button>
                     </Stack>
-
                     <TableContainer component={Paper}>
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">
                             <TableHead>
