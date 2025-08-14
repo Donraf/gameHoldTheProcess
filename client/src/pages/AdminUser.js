@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { USER_ROLE_ADMIN, USER_ROLE_USER } from "../utils/constants";
+import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER } from "../utils/constants";
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  MenuItem,
   Pagination,
   Paper,
   Stack,
@@ -25,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import { createUser, deleteUser, fetchUsers, getUsersPageCount, updateUser } from "../http/userAPI";
+import { createUser, deleteUser, fetchUsers, getAllGroups, getUsersPageCount, updateUser } from "../http/userAPI";
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import EditIcon from "../components/icons/EditIcon";
@@ -34,7 +35,10 @@ import { useSnackbar } from "notistack";
 const AdminUser = () => {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [role, setRole] = useState(USER_ROLE_USER);
+  const [fetchedGroups, setFetchedGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
 
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRole, setUpdateRole] = useState(USER_ROLE_USER);
@@ -50,6 +54,23 @@ const AdminUser = () => {
 
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
+
+  const roleNameArr = [
+    [USER_ROLE_USER, "Пользователь"],
+    [USER_ROLE_ADMIN, "Администратор"],
+    [USER_ROLE_RESEARCHER, "Исследователь"],
+  ];
+  const roleNameMap = new Map(roleNameArr);
+
+  const fetchGroups = () => {
+    getAllGroups().then((data) => {
+      setFetchedGroups(data);
+    });
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -83,16 +104,20 @@ const AdminUser = () => {
     if (password === "") {
       snackErrors.push("Введите логин пользователя");
     }
+    if (name === "") {
+      snackErrors.push("Введите ФИО пользователя");
+    }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
       return;
     }
 
-    createUser({
-      login: login,
-      password: password,
-      role: role,
-    }).then(
+    let groupId = null;
+    if (selectedGroup !== "") {
+      groupId = selectedGroup.id;
+    }
+
+    createUser(login, password, name, role, groupId).then(
       (_) => {
         enqueueSnackbar("Пользователь добавлен", {
           variant: "success",
@@ -101,7 +126,9 @@ const AdminUser = () => {
         });
         setLogin("");
         setPassword("");
+        setName("");
         setRole(USER_ROLE_USER);
+        setSelectedGroup("");
         setUpdateTrigger(!updateTrigger);
       },
       (_) => {
@@ -216,8 +243,18 @@ const AdminUser = () => {
               setLogin(event.target.value);
             }}
             value={login}
-            id="outlined-basic"
+            id="login-field"
             label="Введите логин пользователя"
+            required={true}
+            variant="outlined"
+          />
+          <TextField
+            onChange={(event) => {
+              setName(event.target.value);
+            }}
+            value={name}
+            id="name-field"
+            label="Введите ФИО пользователя"
             required={true}
             variant="outlined"
           />
@@ -226,21 +263,46 @@ const AdminUser = () => {
               setPassword(event.target.value);
             }}
             value={password}
-            id="outlined-basic"
+            id="password-field"
             label="Введите пароль пользователя"
             required={true}
             variant="outlined"
           />
-          <FormControlLabel
-            control={
-              <Switch
-                onChange={(event) => {
-                  event.target.checked ? setRole(USER_ROLE_ADMIN) : setRole(USER_ROLE_USER);
-                }}
-              />
-            }
-            label="Сделать администратором?"
-          />
+          <TextField
+            select
+            value={role}
+            onChange={(event) => {
+              const newRole = event.target.value;
+              setRole(newRole);
+            }}
+            id="role-select"
+            variant={"outlined"}
+          >
+            {roleNameArr.map((item, i) => (
+              <MenuItem id={"roleItem" + i} value={item[0]}>
+                {item[1]}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            value={selectedGroup}
+            onChange={(event) => {
+              const newSelectedGroup = event.target.value;
+              setSelectedGroup(newSelectedGroup);
+            }}
+            id="group-select"
+            variant={"outlined"}
+            sx={{
+              flexGrow: 9,
+            }}
+          >
+            {fetchedGroups.map((item) => (
+              <MenuItem id={"groupItem" + item.id} value={item}>
+                {item.name}
+              </MenuItem>
+            ))}
+          </TextField>
           <Button
             sx={{ width: "fit-content", height: "40px" }}
             variant="contained"
@@ -271,7 +333,7 @@ const AdminUser = () => {
                 <TableRow>
                   <TableCell />
                   <TableCell>Логин</TableCell>
-                  <TableCell>Администратор?</TableCell>
+                  <TableCell>Роль</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -299,7 +361,7 @@ const AdminUser = () => {
                       <TableCell component="th" scope="row">
                         {user.login}
                       </TableCell>
-                      <TableCell>{user.role}</TableCell>
+                      <TableCell>{roleNameMap.get(user.role)}</TableCell>
                     </TableRow>
                   ))
                 ) : (

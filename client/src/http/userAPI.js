@@ -2,9 +2,15 @@ import { $authHost, $host } from "./index";
 import { jwtDecode } from "jwt-decode";
 import { USER_ROLE_USER } from "../utils/constants";
 
-export const createUser = async (user) => {
+export const createUser = async (login, password, name, role, groupId = null) => {
   try {
-    const { data } = await $authHost.post("api/user/registration", user);
+    const { data } = await $authHost.post("api/user/registration", {
+      login: login,
+      password: password,
+      role: role,
+      name: name,
+      group_id: groupId,
+    });
     return jwtDecode(data.token);
   } catch (e) {
     throw new Error("Error when creating a user\n" + e);
