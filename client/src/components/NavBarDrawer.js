@@ -92,7 +92,7 @@ export default function NavBarDrawer() {
       <CssBaseline />
       <AppBar component="nav">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, userSelect: "none" }}>
             Удержи процесс!
           </Typography>
           <Box display="flex" direction="row" gap="10px">

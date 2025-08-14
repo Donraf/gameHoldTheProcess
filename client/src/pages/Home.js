@@ -460,12 +460,22 @@ const Home = observer(() => {
             }}
             ref={containerRef}
           >
-            <Typography variant="h3">Очки: {chart.chartData.score}</Typography>
+            <Typography
+              variant="h3"
+              sx={{
+                userSelect: "none",
+              }}
+            >
+              Очки: {chart.chartData.score}
+            </Typography>
             <Typography
               key={scoresChanges.updateFlag}
               className="move-up"
               variant="h3"
               color={scoresChanges.scoreChange < 0 ? "red" : "green"}
+              sx={{
+                userSelect: "none",
+              }}
             >
               {" "}
               {scoresChanges.scoreChange > 0 ? "+" : ""}
@@ -588,7 +598,14 @@ const Home = observer(() => {
                         borderRadius: "4px",
                       }}
                     >
-                      <Typography variant="h6">{"x" + curSpeed.toString()}</Typography>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          userSelect: "none",
+                        }}
+                      >
+                        {"x" + curSpeed.toString()}
+                      </Typography>
                     </Box>
                     <Box
                       sx={{
@@ -701,7 +718,14 @@ const Home = observer(() => {
           <Stack spacing={1}>
             <Stack direction="row" spacing={1} alignItems={"center"}>
               <DangerIcon />
-              <Typography variant="h5">Опасность взрыва! Решите, что делать.</Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  userSelect: "none",
+                }}
+              >
+                Опасность взрыва! Решите, что делать.
+              </Typography>
             </Stack>
             <Stack direction="row" spacing={1}>
               <Button
