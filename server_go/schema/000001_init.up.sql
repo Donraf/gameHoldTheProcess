@@ -12,7 +12,7 @@ CREATE TABLE Users
 CREATE TABLE Groups
 (
     id         serial                         PRIMARY KEY,
-    name       varchar(255)                   NOT NULL,
+    name       varchar(255)                   NOT NULL UNIQUE,
     created_at timestamp                      NOT NULL,
     creator_id int REFERENCES Users (user_id) NOT NULL
 );
