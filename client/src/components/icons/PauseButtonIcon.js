@@ -1,7 +1,7 @@
 export default function PauseButtonIcon() {
   return (
     <svg width="24" height="24" viewBox="-1 0 8 8" version="1.1" xmlns="http://www.w3.org/2000/svg">
-      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+      <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
         <g id="Dribbble-Light-Preview" transform="translate(-227.000000, -3765.000000)" fill="#ffffff">
           <g id="icons" transform="translate(56.000000, 160.000000)">
             <path

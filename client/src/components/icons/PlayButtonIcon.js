@@ -2,7 +2,7 @@ export default function PlayButtonIcon() {
   return (
     <svg width="24" height="24" viewBox="-0.5 0 7 7" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs></defs>
-      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+      <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
         <g id="Dribbble-Light-Preview" transform="translate(-347.000000, -3766.000000)" fill="#ffffff">
           <g id="icons" transform="translate(56.000000, 160.000000)">
             <path
