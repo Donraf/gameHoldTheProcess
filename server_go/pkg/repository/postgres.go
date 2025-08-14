@@ -21,6 +21,8 @@ const (
 	pointsTable            = "points"
 	userParameterSetsTable = "user_parameter_sets"
 	usersTable             = "users"
+	groupsTable            = "groups"
+	userGroupsTable        = "user_groups"
 )
 
 func NewPostgresDB(cfg Config) (*sqlx.DB, error) {

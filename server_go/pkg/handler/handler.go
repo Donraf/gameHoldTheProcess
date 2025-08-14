@@ -32,10 +32,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/users", h.getAllUsers)
 				userAuth.POST("/pageCount", h.getUsersPageCount)
 				userAuth.POST("/score", h.updateScore)
+				userAuth.POST("/group", h.createGroup)
 				userAuth.GET("/auth", h.check)
 				userAuth.GET("/parSet/:id", h.getParSet)
 				userAuth.GET("/score/:userId/:parSetId", h.getScore)
 				userAuth.GET("/:id", h.getOneUser)
+				userAuth.GET("/groups", h.getAllGroups)
 				userAuth.DELETE("/:id", h.deleteUser)
 				userAuth.PUT("/:id", h.updateUser)
 			}

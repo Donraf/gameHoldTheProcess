@@ -33,7 +33,7 @@ func NewUserService(repo repository.User) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (u *UserService) CreateUser(user gameServer.User) (string, error) {
+func (u *UserService) CreateUser(user gameServer.RegisterUserInput) (string, error) {
 	user.Password = generatePasswordHash(user.Password)
 	userId, err := u.repo.CreateUser(user)
 	if err != nil {
@@ -150,4 +150,12 @@ func (u *UserService) GetScore(userId, parSetId int) (int, error) {
 
 func (u *UserService) UpdateScore(input gameServer.UpdateScoreInput) error {
 	return u.repo.UpdateScore(input)
+}
+
+func (u *UserService) GetAllGroups() ([]gameServer.Group, error) {
+	return u.repo.GetAllGroups()
+}
+
+func (u *UserService) CreateGroup(input gameServer.CreateGroupInput) (int, error) {
+	return u.repo.CreateGroup(input)
 }

@@ -6,9 +6,26 @@ type User struct {
 	Id          int    `json:"-" db:"user_id"`
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
+	Name        string `json:"name" binding:"required" db:"name"`
 	Role        string `json:"role" binding:"required"`
 	CurParSetId int    `json:"cur_par_set_id" db:"cur_par_set_id"`
 	CreatedAt   string `json:"created_at" db:"created_at"`
+}
+
+type Group struct {
+	Id        int    `json:"id" db:"id"`
+	Name      string `json:"name" db:"name"`
+	CreatedAt string `json:"created_at" db:"created_at"`
+	CreatorId int    `json:"creator_id" db:"creator_id"`
+}
+
+type RegisterUserInput struct {
+	Login       string `json:"login" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Role        string `json:"role" binding:"required"`
+	CurParSetId int    `json:"cur_par_set_id"`
+	GroupId     int    `json:"group_id"`
 }
 
 type UpdateUserInput struct {
@@ -41,4 +58,9 @@ type UpdateScoreInput struct {
 	UserId   int `json:"userId"`
 	ParSetId int `json:"parSetId"`
 	Score    int `json:"score"`
+}
+
+type CreateGroupInput struct {
+	CreatorId int    `json:"creator_id"`
+	Name      string `json:"name"`
 }

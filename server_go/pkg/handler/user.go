@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) registration(c *gin.Context) {
-	var input gameServer.User
+	var input gameServer.RegisterUserInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -249,5 +249,39 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
+	})
+}
+
+type getAllGroupsResponse struct {
+	Data []gameServer.Group `json:"data"`
+}
+
+func (h *Handler) getAllGroups(c *gin.Context) {
+	groups, err := h.services.User.GetAllGroups()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllGroupsResponse{
+		Data: groups,
+	})
+}
+
+func (h *Handler) createGroup(c *gin.Context) {
+	var input gameServer.CreateGroupInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.User.CreateGroup(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]any{
+		"id": id,
 	})
 }

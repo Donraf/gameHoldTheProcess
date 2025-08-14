@@ -3,9 +3,25 @@ CREATE TABLE Users
     user_id        serial       PRIMARY KEY,
     login          varchar(255) NOT NULL UNIQUE,
     password       varchar(255) NOT NULL,
+    name           varchar(255) NOT NULL,
     role           varchar(255) NOT NULL,
     cur_par_set_id int          NOT NULL,
     created_at     timestamp    NOT NULL
+);
+
+CREATE TABLE Groups
+(
+    id         serial                         PRIMARY KEY,
+    name       varchar(255)                   NOT NULL,
+    created_at timestamp                      NOT NULL,
+    creator_id int REFERENCES Users (user_id) NOT NULL
+);
+
+CREATE TABLE User_Groups
+(
+    user_id  int REFERENCES Users (user_id) NOT NULL,
+    group_id int REFERENCES Groups (id)     NOT NULL,
+    PRIMARY KEY (user_id, group_id)
 );
 
 CREATE TABLE Parameter_Sets
@@ -54,9 +70,9 @@ INSERT INTO Parameter_Sets (id, gain_coef, time_const, noise_coef, created_at)
     VALUES 
     (1, 0.92, 20, 0.03, '2025-08-12 18:50:37.359879');
 
-INSERT INTO Users (login, password, role, cur_par_set_id, created_at)
+INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
     VALUES 
-    ('admin', '3977434d73306272346e626430366432396b4177374d7a473665564771474577d033e22ae348aeb5660fc2140aec35850c4da997', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
+    ('admin', '3977434d73306272346e626430366432396b4177374d7a473665564771474577d033e22ae348aeb5660fc2140aec35850c4da997', 'Максим', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
 
 INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, created_at)
     VALUES 

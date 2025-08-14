@@ -6,7 +6,7 @@ import (
 )
 
 type User interface {
-	CreateUser(user gameServer.User) (int, error)
+	CreateUser(user gameServer.RegisterUserInput) (int, error)
 	GetUser(login, password string) (gameServer.User, error)
 	DeleteUser(id int) error
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
@@ -16,6 +16,8 @@ type User interface {
 	GetParSet(id int) (gameServer.ParameterSet, error)
 	GetScore(userId, parSetId int) (int, error)
 	UpdateScore(input gameServer.UpdateScoreInput) error
+	GetAllGroups() ([]gameServer.Group, error)
+	CreateGroup(input gameServer.CreateGroupInput) (int, error)
 }
 
 type Chart interface {

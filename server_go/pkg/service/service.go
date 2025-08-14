@@ -6,7 +6,7 @@ import (
 )
 
 type User interface {
-	CreateUser(user gameServer.User) (string, error)
+	CreateUser(user gameServer.RegisterUserInput) (string, error)
 	GenerateToken(login, password string) (string, error)
 	ParseToken(token string) (*tokenClaims, error)
 	RefreshToken(accessToken string) (string, error)
@@ -18,6 +18,8 @@ type User interface {
 	GetParSet(id int) (gameServer.ParameterSet, error)
 	GetScore(userId, parSetId int) (int, error)
 	UpdateScore(input gameServer.UpdateScoreInput) error
+	GetAllGroups() ([]gameServer.Group, error)
+	CreateGroup(input gameServer.CreateGroupInput) (int, error)
 }
 
 type Chart interface {
