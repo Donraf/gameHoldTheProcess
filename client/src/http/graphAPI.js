@@ -58,6 +58,9 @@ export const getGraphsCount = async (filterTag = null, filterValue = null) => {
 
 export const fetchGraphs = async (filterTag = null, filterValue = null, currentPage = null) => {
   try {
+    if (currentPage === null || currentPage <= 0) {
+      currentPage = 1;
+    }
     const { data } = await $authHost.post("api/chart/charts", {
       filter_tag: filterTag,
       filter_value: String(filterValue),
