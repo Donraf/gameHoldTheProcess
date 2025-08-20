@@ -96,6 +96,16 @@ func (i *UpdateScoreInput) Vaildate() error {
 }
 
 type CreateGroupInput struct {
-	CreatorId int    `json:"creator_id"`
-	Name      string `json:"name"`
+	CreatorId int    `json:"creator_id" binding:"required"`
+	Name      string `json:"name" binding:"required"`
+}
+
+func (i *CreateGroupInput) Validate() error {
+	if i.CreatorId <= 0 {
+		return errors.New("creator id is non-positive")
+	}
+	if i.Name == "" {
+		return errors.New("name is empty")
+	}
+	return nil
 }

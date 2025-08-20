@@ -1475,3 +1475,105 @@ func TestHandler_getAllGroups(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_createGroup(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		createGroupInput    gameServer.CreateGroupInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"creator_id": 1, "name": "n"}`,
+			createGroupInput: gameServer.CreateGroupInput{
+				CreatorId: 1,
+				Name:      "n",
+			},
+			mockBehavior: func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {
+				r.EXPECT().CreateGroup(createGroupInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"id":1}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"creator_id": 1, "name": "n"}`,
+			createGroupInput: gameServer.CreateGroupInput{
+				CreatorId: 1,
+				Name:      "n",
+			},
+			mockBehavior: func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {
+				r.EXPECT().CreateGroup(createGroupInput).Return(0, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:               "incorrect creator id - wrong type",
+			inputBody:          `{"creator_id": "1", "name": "n"}`,
+			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect creator id - zero value",
+			inputBody:          `{"creator_id": 0, "name": "n"}`,
+			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect creator id - negative value",
+			inputBody:          `{"creator_id": -1, "name": "n"}`,
+			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect name - wrong type",
+			inputBody:          `{"creator_id": 1, "name": 1}`,
+			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect name - empty value",
+			inputBody:          `{"creator_id": 1, "name": ""}`,
+			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.createGroupInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/group", handler.createGroup)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/group", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
