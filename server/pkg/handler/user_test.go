@@ -675,3 +675,123 @@ func TestHandler_getOneUser(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getUsersPageCount(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput)
+
+	tests := []struct {
+		name                   string
+		inputBody              string
+		getUsersPageCountInput gameServer.GetUsersPageCountInput
+		mockBehavior           mockBehavior
+		expectedStatusCode     int
+		expectedRequestBody    string
+		isError                bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"filter_tag": "f", "filter_value": "f"}`,
+			getUsersPageCountInput: gameServer.GetUsersPageCountInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {
+				r.EXPECT().GetUsersPageCount(getUsersPageCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"pageCount":1}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"filter_tag": "f", "filter_value": "f"}`,
+			getUsersPageCountInput: gameServer.GetUsersPageCountInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {
+				r.EXPECT().GetUsersPageCount(getUsersPageCountInput).Return(0, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:      "empty filter tag",
+			inputBody: `{"filter_tag": "", "filter_value": "f"}`,
+			getUsersPageCountInput: gameServer.GetUsersPageCountInput{
+				FilterTag:   "",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {
+				r.EXPECT().GetUsersPageCount(getUsersPageCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"pageCount":1}`,
+		},
+		{
+			name:      "empty filter value",
+			inputBody: `{"filter_tag": "f", "filter_value": ""}`,
+			getUsersPageCountInput: gameServer.GetUsersPageCountInput{
+				FilterTag:   "f",
+				FilterValue: "",
+			},
+			mockBehavior: func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {
+				r.EXPECT().GetUsersPageCount(getUsersPageCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"pageCount":1}`,
+		},
+		{
+			name:      "empty filter tag and value",
+			inputBody: `{"filter_tag": "", "filter_value": ""}`,
+			getUsersPageCountInput: gameServer.GetUsersPageCountInput{
+				FilterTag:   "",
+				FilterValue: "",
+			},
+			mockBehavior: func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {
+				r.EXPECT().GetUsersPageCount(getUsersPageCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"pageCount":1}`,
+		},
+		{
+			name:               "incorrect filter tag - wrong type",
+			inputBody:          `{"filter_tag": 1, "filter_value": "f"}`,
+			mockBehavior:       func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect filter value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": 1}`,
+			mockBehavior:       func(r *service.MockUser, getUsersPageCountInput gameServer.GetUsersPageCountInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.getUsersPageCountInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/pageCount", handler.getUsersPageCount)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/pageCount", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
