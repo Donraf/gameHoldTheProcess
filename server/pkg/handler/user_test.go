@@ -1263,3 +1263,152 @@ func TestHandler_deleteUser(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_updateUser(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput)
+	ptrString := func(s string) *string { return &s }
+	ptrInt := func(i int) *int { return &i }
+
+	tests := []struct {
+		name                string
+		paramId             string
+		inputBody           string
+		updateUserInput     gameServer.UpdateUserInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			paramId:   "1",
+			inputBody: `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			updateUserInput: gameServer.UpdateUserInput{
+				Password:    ptrString("p"),
+				Role:        ptrString("User"),
+				CurParSetId: ptrInt(1),
+			},
+			mockBehavior: func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().UpdateUser(idInt, updateUserInput).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:      "internal server error",
+			paramId:   "1",
+			inputBody: `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			updateUserInput: gameServer.UpdateUserInput{
+				Password:    ptrString("p"),
+				Role:        ptrString("User"),
+				CurParSetId: ptrInt(1),
+			},
+			mockBehavior: func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().UpdateUser(idInt, updateUserInput).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:               "all empty fields",
+			paramId:            "1",
+			inputBody:          `{}`,
+			updateUserInput:    gameServer.UpdateUserInput{},
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - negative value",
+			paramId:            "-1",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - zero value",
+			paramId:            "0",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - not a number",
+			paramId:            "abc",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect field password - wrong type",
+			paramId:            "1",
+			inputBody:          `{"password": 1, "role": "User", "cur_par_set_id": 1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect field role - wrong type",
+			paramId:            "1",
+			inputBody:          `{"password": "p", "role": 1, "cur_par_set_id": 1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect field current parameter set id - wrong type",
+			paramId:            "1",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": "1"}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect field current parameter set id - zero value",
+			paramId:            "1",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 0}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect field current parameter set id - negative value",
+			paramId:            "1",
+			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": -1}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.paramId, tt.updateUserInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.PUT("/:id", handler.updateUser)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("PUT", fmt.Sprintf("/%s", tt.paramId), bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}

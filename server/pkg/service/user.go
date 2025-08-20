@@ -113,9 +113,6 @@ func (u *UserService) DeleteUser(id int) error {
 }
 
 func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error {
-	if err := input.Validate(); err != nil {
-		return err
-	}
 	if input.Password != nil {
 		*input.Password = generatePasswordHash(*input.Password)
 	}

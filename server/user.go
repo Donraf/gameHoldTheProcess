@@ -55,6 +55,9 @@ func (i *UpdateUserInput) Validate() error {
 		i.CurParSetId == nil {
 		return errors.New("no values to update")
 	}
+	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
+		return errors.New("current parameter set id is non-positive")
+	}
 	return nil
 }
 

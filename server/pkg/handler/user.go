@@ -241,13 +241,18 @@ func (h *Handler) deleteUser(c *gin.Context) {
 
 func (h *Handler) updateUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	if err != nil || id <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
 		return
 	}
 
 	var input gameServer.UpdateUserInput
 	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
