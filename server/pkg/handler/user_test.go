@@ -1412,3 +1412,66 @@ func TestHandler_updateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getAllGroups(t *testing.T) {
+	type mockBehavior func(r *service.MockUser)
+
+	tests := []struct {
+		name                string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name: "ok",
+			mockBehavior: func(r *service.MockUser) {
+				r.EXPECT().GetAllGroups().Return([]gameServer.Group{
+					{
+						Id:        1,
+						Name:      "n",
+						CreatedAt: "2023-10-01T00:00:00Z",
+						CreatorId: 1,
+					},
+				},
+					nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1}]}`,
+		},
+		{
+			name: "internal server error",
+			mockBehavior: func(r *service.MockUser) {
+				r.EXPECT().GetAllGroups().Return(nil, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/groups", handler.getAllGroups)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/groups", nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
