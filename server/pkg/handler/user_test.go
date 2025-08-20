@@ -491,3 +491,95 @@ func TestHandler_updateScore(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_check(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, accessToken string)
+
+	tests := []struct {
+		name                string
+		headerName          string
+		headerValue         string
+		token               string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:        "ok",
+			headerName:  "Authorization",
+			headerValue: "Bearer token",
+			token:       "token",
+			mockBehavior: func(r *service.MockUser, accessToken string) {
+				r.EXPECT().RefreshToken(accessToken).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:               "empty header name",
+			headerName:         "",
+			headerValue:        "Bearer token",
+			token:              "token",
+			mockBehavior:       func(r *service.MockUser, accessToken string) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
+			name:               "incorrect header value",
+			headerName:         "Authorization",
+			headerValue:        "Bearere token",
+			token:              "token",
+			mockBehavior:       func(r *service.MockUser, accessToken string) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
+			name:               "empty token",
+			headerName:         "Authorization",
+			headerValue:        "Bearer ",
+			token:              "token",
+			mockBehavior:       func(r *service.MockUser, accessToken string) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
+			name:        "internal error",
+			headerName:  "Authorization",
+			headerValue: "Bearer token",
+			token:       "token",
+			mockBehavior: func(r *service.MockUser, accessToken string) {
+				r.EXPECT().RefreshToken(accessToken).Return("", errors.New(""))
+			},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.token)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/auth", handler.check)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/auth", nil)
+			req.Header.Set(tt.headerName, tt.headerValue)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
