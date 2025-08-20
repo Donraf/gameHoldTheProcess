@@ -24,8 +24,23 @@ type RegisterUserInput struct {
 	Password    string `json:"password" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	Role        string `json:"role" binding:"required"`
-	CurParSetId int    `json:"cur_par_set_id"`
-	GroupId     int    `json:"group_id"`
+	CurParSetId *int   `json:"cur_par_set_id"`
+	GroupId     *int   `json:"group_id"`
+}
+
+func (i *RegisterUserInput) Vaildate() error {
+	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
+		return errors.New("current parameter set id is non-positive")
+	}
+	if i.GroupId != nil && *i.GroupId <= 0 {
+		return errors.New("current group id is non-positive")
+	}
+	return nil
+}
+
+type LoginInput struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type UpdateUserInput struct {

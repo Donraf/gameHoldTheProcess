@@ -47,9 +47,9 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 		return 0, err
 	}
 
-	if input.GroupId != 0 {
+	if input.GroupId != nil {
 		query = fmt.Sprintf("INSERT INTO %s (user_id, group_id) VALUES ($1, $2)", userGroupsTable)
-		_, err = tx.Exec(query, userId, input.GroupId)
+		_, err = tx.Exec(query, userId, *input.GroupId)
 		if err != nil {
 			tx.Rollback()
 			return 0, err

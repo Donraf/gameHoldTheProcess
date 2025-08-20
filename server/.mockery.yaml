@@ -1,0 +1,7 @@
+filename: mocks.go
+packages:
+    example.com/gameHoldTheProcessServer/pkg/service:
+        interfaces:
+            User:
+            Chart:
+            Point:

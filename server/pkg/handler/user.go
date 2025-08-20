@@ -17,6 +17,11 @@ func (h *Handler) registration(c *gin.Context) {
 		return
 	}
 
+	if err := input.Vaildate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	token, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -28,13 +33,8 @@ func (h *Handler) registration(c *gin.Context) {
 	})
 }
 
-type loginInput struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func (h *Handler) login(c *gin.Context) {
-	var input loginInput
+	var input gameServer.LoginInput
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
