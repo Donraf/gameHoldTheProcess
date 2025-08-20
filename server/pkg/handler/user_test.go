@@ -205,11 +205,141 @@ func TestHandler_registration(t *testing.T) {
 			services := &service.Service{User: userMock}
 			handler := NewHandler(services)
 
+			gin.SetMode(gin.TestMode)
 			r := gin.New()
 			r.POST("/registration", handler.registration)
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/registration", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_login(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, loginInput gameServer.LoginInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		loginInput          gameServer.LoginInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"login": "l", "password": "p"}`,
+			loginInput: gameServer.LoginInput{
+				Login:    "l",
+				Password: "p",
+			},
+			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
+				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:               "broken json input syntax",
+			inputBody:          `{"login": "l", "password": "p"`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:      "redundant fields",
+			inputBody: `{"login": "l", "password": "p", "abc123": "abc123"}`,
+			loginInput: gameServer.LoginInput{
+				Login:    "l",
+				Password: "p",
+			},
+			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
+				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"login": "l", "password": "p"}`,
+			loginInput: gameServer.LoginInput{
+				Login:    "l",
+				Password: "p",
+			},
+			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
+				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:               "no login",
+			inputBody:          `{"password": "p"}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "empty login",
+			inputBody:          `{"login": "", "password": "p"}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect login",
+			inputBody:          `{"login": 1, "password": "p"}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "no password",
+			inputBody:          `{"login": "l"}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "empty password",
+			inputBody:          `{"login": "l", "password": ""}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect password",
+			inputBody:          `{"login": "l", "password": 1}`,
+			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.loginInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/login", handler.login)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/login", bytes.NewBufferString(tt.inputBody))
 
 			r.ServeHTTP(w, req)
 
