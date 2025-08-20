@@ -205,6 +205,11 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	users, err := h.services.User.GetAllUsers(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

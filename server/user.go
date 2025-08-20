@@ -69,6 +69,13 @@ type GetAllUsersInput struct {
 	CurrentPage int    `json:"current_page"`
 }
 
+func (i *GetAllUsersInput) Validate() error {
+	if i.CurrentPage <= 0 {
+		return errors.New("current page is equal or less than zero")
+	}
+	return nil
+}
+
 type UpdateScoreInput struct {
 	UserId   int `json:"userId"`
 	ParSetId int `json:"parSetId"`

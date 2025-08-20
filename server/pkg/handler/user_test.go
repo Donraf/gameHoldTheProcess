@@ -996,3 +996,189 @@ func TestHandler_getScore(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getAllUsers(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		getAllUsersInput    gameServer.GetAllUsersInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"filter_tag": "f", "filter_value": "f", "current_page": 1}`,
+			getAllUsersInput: gameServer.GetAllUsersInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {
+				r.EXPECT().GetAllUsers(getAllUsersInput).Return([]gameServer.User{
+					{
+						Id:          1,
+						Login:       "l",
+						Password:    "p",
+						Name:        "n",
+						Role:        "User",
+						CurParSetId: 1,
+						CreatedAt:   "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"filter_tag": "f", "filter_value": "f", "current_page": 1}`,
+			getAllUsersInput: gameServer.GetAllUsersInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {
+				r.EXPECT().GetAllUsers(getAllUsersInput).Return(nil, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:      "empty filter tag",
+			inputBody: `{"filter_tag": "", "filter_value": "f", "current_page": 1}`,
+			getAllUsersInput: gameServer.GetAllUsersInput{
+				FilterTag:   "",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {
+				r.EXPECT().GetAllUsers(getAllUsersInput).Return([]gameServer.User{
+					{
+						Id:          1,
+						Login:       "l",
+						Password:    "p",
+						Name:        "n",
+						Role:        "User",
+						CurParSetId: 1,
+						CreatedAt:   "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "empty filter value",
+			inputBody: `{"filter_tag": "f", "filter_value": "", "current_page": 1}`,
+			getAllUsersInput: gameServer.GetAllUsersInput{
+				FilterTag:   "f",
+				FilterValue: "",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {
+				r.EXPECT().GetAllUsers(getAllUsersInput).Return([]gameServer.User{
+					{
+						Id:          1,
+						Login:       "l",
+						Password:    "p",
+						Name:        "n",
+						Role:        "User",
+						CurParSetId: 1,
+						CreatedAt:   "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "empty filter tag and value",
+			inputBody: `{"filter_tag": "", "filter_value": "", "current_page": 1}`,
+			getAllUsersInput: gameServer.GetAllUsersInput{
+				FilterTag:   "",
+				FilterValue: "",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {
+				r.EXPECT().GetAllUsers(getAllUsersInput).Return([]gameServer.User{
+					{
+						Id:          1,
+						Login:       "l",
+						Password:    "p",
+						Name:        "n",
+						Role:        "User",
+						CurParSetId: 1,
+						CreatedAt:   "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:               "incorrect filter tag - wrong type",
+			inputBody:          `{"filter_tag": 1, "filter_value": "f", "current_page": 1}`,
+			mockBehavior:       func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect filter value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": 1, "current_page": 1}`,
+			mockBehavior:       func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": "1"}`,
+			mockBehavior:       func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - zero value",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": 0}`,
+			mockBehavior:       func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - negative value",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": -1}`,
+			mockBehavior:       func(r *service.MockUser, getAllUsersInput gameServer.GetAllUsersInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.getAllUsersInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/users", handler.getAllUsers)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/users", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
