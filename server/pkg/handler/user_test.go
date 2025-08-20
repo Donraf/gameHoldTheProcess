@@ -3,7 +3,9 @@ package handler
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -571,6 +573,96 @@ func TestHandler_check(t *testing.T) {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/auth", nil)
 			req.Header.Set(tt.headerName, tt.headerValue)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_getOneUser(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, id string)
+
+	tests := []struct {
+		name                string
+		paramId             string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:    "ok",
+			paramId: "1",
+			mockBehavior: func(r *service.MockUser, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetOneUser(idInt).Return(gameServer.User{
+					Id:          1,
+					Login:       "l",
+					Password:    "p",
+					Name:        "n",
+					Role:        "User",
+					CurParSetId: 1,
+					CreatedAt:   "2023-10-01T00:00:00Z",
+				},
+					nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}}`,
+		},
+		{
+			name:               "incorrect parameter id - negative value",
+			paramId:            "-1",
+			mockBehavior:       func(r *service.MockUser, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - zero value",
+			paramId:            "0",
+			mockBehavior:       func(r *service.MockUser, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - not a number",
+			paramId:            "abc",
+			mockBehavior:       func(r *service.MockUser, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "internal server error",
+			paramId: "1",
+			mockBehavior: func(r *service.MockUser, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetOneUser(idInt).Return(gameServer.User{}, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.paramId)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/:id", handler.getOneUser)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.paramId), nil)
 
 			r.ServeHTTP(w, req)
 
