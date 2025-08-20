@@ -883,3 +883,116 @@ func TestHandler_getParSet(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getScore(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, userId, parSetId string)
+
+	tests := []struct {
+		name                string
+		paramUserId         string
+		paramParSetId       string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:          "ok",
+			paramUserId:   "1",
+			paramParSetId: "1",
+			mockBehavior: func(r *service.MockUser, userId, parSetId string) {
+				userIdInt, _ := strconv.Atoi(userId)
+				parSetIdInt, _ := strconv.Atoi(parSetId)
+				r.EXPECT().GetScore(userIdInt, parSetIdInt).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":1}`,
+		},
+		{
+			name:               "incorrect parameter user id - negative value",
+			paramUserId:        "-1",
+			paramParSetId:      "1",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter user id - zero value",
+			paramUserId:        "0",
+			paramParSetId:      "1",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter user id - not a number",
+			paramUserId:        "abc",
+			paramParSetId:      "1",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter parameter set id - negative value",
+			paramUserId:        "1",
+			paramParSetId:      "-1",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter parameter set id - zero value",
+			paramUserId:        "1",
+			paramParSetId:      "0",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter parameter set id - not a number",
+			paramUserId:        "1",
+			paramParSetId:      "abc",
+			mockBehavior:       func(r *service.MockUser, userId, parSetId string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:          "internal server error",
+			paramUserId:   "1",
+			paramParSetId: "1",
+			mockBehavior: func(r *service.MockUser, userId, parSetId string) {
+				userIdInt, _ := strconv.Atoi(userId)
+				parSetIdInt, _ := strconv.Atoi(parSetId)
+				r.EXPECT().GetScore(userIdInt, parSetIdInt).Return(0, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.paramUserId, tt.paramParSetId)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/score/:userId/:parSetId", handler.getScore)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", fmt.Sprintf("/score/%s/%s", tt.paramUserId, tt.paramParSetId), nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}

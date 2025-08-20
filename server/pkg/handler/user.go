@@ -172,13 +172,13 @@ type getScoreResponse struct {
 
 func (h *Handler) getScore(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
-	if err != nil {
+	if err != nil || userId <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter userId")
 		return
 	}
 
 	parSetId, err := strconv.Atoi(c.Param("parSetId"))
-	if err != nil {
+	if err != nil || parSetId <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter parSetId")
 		return
 	}
