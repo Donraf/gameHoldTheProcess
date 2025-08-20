@@ -352,3 +352,142 @@ func TestHandler_login(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_updateScore(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		updateScoreInput    gameServer.UpdateScoreInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			updateScoreInput: gameServer.UpdateScoreInput{
+				UserId:   1,
+				ParSetId: 1,
+				Score:    100,
+			},
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "broken json input syntax",
+			inputBody:          `{"login": "l", "password": "p"`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:      "redundant fields",
+			inputBody: `{"userId": 1, "parSetId": 1, "score": 100, "abc123": "abc123"}`,
+			updateScoreInput: gameServer.UpdateScoreInput{
+				UserId:   1,
+				ParSetId: 1,
+				Score:    100,
+			},
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			updateScoreInput: gameServer.UpdateScoreInput{
+				UserId:   1,
+				ParSetId: 1,
+				Score:    100,
+			},
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				r.EXPECT().UpdateScore(updateScoreInput).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:               "incorrect user id - wrong type",
+			inputBody:          `{"userId": "1", "parSetId": 1, "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect user id - negative value",
+			inputBody:          `{"userId": -1, "parSetId": 1, "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect user id - zero value",
+			inputBody:          `{"userId": 0, "parSetId": 1, "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter set id - wrong type",
+			inputBody:          `{"userId": 1, "parSetId": "1", "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter set id - negative value",
+			inputBody:          `{"userId": 1, "parSetId": -1, "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter set id - zero value",
+			inputBody:          `{"userId": 1, "parSetId": 0, "score": 100}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect score - wrong type",
+			inputBody:          `{"userId": 1, "parSetId": 1, "score": "100"}`,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.updateScoreInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/score", handler.updateScore)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/score", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}

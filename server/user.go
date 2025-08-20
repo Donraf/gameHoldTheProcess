@@ -75,6 +75,16 @@ type UpdateScoreInput struct {
 	Score    int `json:"score"`
 }
 
+func (i *UpdateScoreInput) Vaildate() error {
+	if i.ParSetId <= 0 {
+		return errors.New("parameter set id is non-positive")
+	}
+	if i.UserId <= 0 {
+		return errors.New("group id is non-positive")
+	}
+	return nil
+}
+
 type CreateGroupInput struct {
 	CreatorId int    `json:"creator_id"`
 	Name      string `json:"name"`

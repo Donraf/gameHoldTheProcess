@@ -60,6 +60,11 @@ func (h *Handler) updateScore(c *gin.Context) {
 		return
 	}
 
+	if err := input.Vaildate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	err := h.services.User.UpdateScore(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
