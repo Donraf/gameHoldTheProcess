@@ -51,7 +51,7 @@ type Point struct {
 	Id                  int     `json:"id" db:"id"`
 	X                   float32 `json:"x" db:"x"`
 	Y                   float32 `json:"y" db:"y"`
-	Score               float32 `json:"score" binding:"required" db:"score"`
+	Score               float32 `json:"score" db:"score"`
 	IsCrash             bool    `json:"is_crash" db:"is_crash"`
 	IsUsefulAiSignal    bool    `json:"is_useful_ai_signal" db:"is_useful_ai_signal"`
 	IsDeceptiveAiSignal bool    `json:"is_deceptive_ai_signal" db:"is_deceptive_ai_signal"`
@@ -60,6 +60,16 @@ type Point struct {
 	IsCheck             bool    `json:"is_check" db:"is_check"`
 	ChartId             int     `json:"chart_id" binding:"required" db:"chart_id"`
 	CreatedAt           string  `json:"created_at" db:"created_at"`
+}
+
+func (p *Point) Validate() error {
+	if p.X < 0 {
+		return errors.New("x coordinate is less than zero")
+	}
+	if p.ChartId <= 0 {
+		return errors.New("chart id is equal or less than zero")
+	}
+	return nil
 }
 
 type PointForCSV struct {

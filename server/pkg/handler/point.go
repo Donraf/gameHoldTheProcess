@@ -15,6 +15,11 @@ func (h *Handler) createPoint(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	id, err := h.services.Point.CreatePoint(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
