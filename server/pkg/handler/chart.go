@@ -16,6 +16,11 @@ func (h *Handler) createChart(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	id, err := h.services.Chart.CreateChart(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

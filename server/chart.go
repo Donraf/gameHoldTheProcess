@@ -14,6 +14,16 @@ type CreateChartInput struct {
 	UserId         int `json:"user_id" binding:"required" db:"user_id"`
 }
 
+func (i *CreateChartInput) Validate() error {
+	if i.ParameterSetId <= 0 {
+		return errors.New("parameter set id is equal or less than zero")
+	}
+	if i.UserId <= 0 {
+		return errors.New("user id is equal or less than zero")
+	}
+	return nil
+}
+
 type GetChartsPageCountInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`
