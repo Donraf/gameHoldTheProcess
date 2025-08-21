@@ -126,7 +126,7 @@ func (h *Handler) getAllCharts(c *gin.Context) {
 
 func (h *Handler) deleteChart(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	if err != nil || id <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
 		return
 	}

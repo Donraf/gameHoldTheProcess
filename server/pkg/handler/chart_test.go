@@ -623,3 +623,84 @@ func TestHandler_getAllCharts(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_deleteChart(t *testing.T) {
+	type mockBehavior func(r *service.MockChart, id string)
+
+	tests := []struct {
+		name                string
+		paramId             string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:    "ok",
+			paramId: "1",
+			mockBehavior: func(r *service.MockChart, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().DeleteChart(idInt).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "incorrect parameter id - negative value",
+			paramId:            "-1",
+			mockBehavior:       func(r *service.MockChart, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - zero value",
+			paramId:            "0",
+			mockBehavior:       func(r *service.MockChart, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter id - not a number",
+			paramId:            "abc",
+			mockBehavior:       func(r *service.MockChart, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "internal server error",
+			paramId: "1",
+			mockBehavior: func(r *service.MockChart, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().DeleteChart(idInt).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(chartMock, tt.paramId)
+
+			services := &service.Service{Chart: chartMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.DELETE("/:id", handler.deleteChart)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", fmt.Sprintf("/%s", tt.paramId), nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
