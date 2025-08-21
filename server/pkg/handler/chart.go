@@ -108,6 +108,11 @@ func (h *Handler) getAllCharts(c *gin.Context) {
 		return
 	}
 
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	charts, err := h.services.Chart.GetAllCharts(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

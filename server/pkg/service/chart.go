@@ -46,9 +46,6 @@ func (s *ChartService) GetChartsCount(input gameServer.GetChartsCountInput) (int
 }
 
 func (s *ChartService) GetAllCharts(input gameServer.GetAllChartsInput) ([]gameServer.Chart, error) {
-	if err := input.Validate(); err != nil {
-		return nil, err
-	}
 	return s.repo.GetAllCharts(input)
 }
 

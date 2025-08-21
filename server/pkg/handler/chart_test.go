@@ -449,3 +449,177 @@ func TestHandler_getChartsCount(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getAllCharts(t *testing.T) {
+	type mockBehavior func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		getAllChartsInput   gameServer.GetAllChartsInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"filter_tag": "f", "filter_value": "f", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return([]gameServer.Chart{
+					{
+						Id:             1,
+						ParameterSetId: 1,
+						UserId:         1,
+						CreatedAt:      "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"filter_tag": "f", "filter_value": "f", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return(nil, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:      "empty filter tag",
+			inputBody: `{"filter_tag": "", "filter_value": "f", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "",
+				FilterValue: "f",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return([]gameServer.Chart{
+					{
+						Id:             1,
+						ParameterSetId: 1,
+						UserId:         1,
+						CreatedAt:      "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "empty filter value",
+			inputBody: `{"filter_tag": "f", "filter_value": "", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "f",
+				FilterValue: "",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return([]gameServer.Chart{
+					{
+						Id:             1,
+						ParameterSetId: 1,
+						UserId:         1,
+						CreatedAt:      "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:      "empty filter tag and value",
+			inputBody: `{"filter_tag": "", "filter_value": "", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "",
+				FilterValue: "",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return([]gameServer.Chart{
+					{
+						Id:             1,
+						ParameterSetId: 1,
+						UserId:         1,
+						CreatedAt:      "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:               "incorrect filter tag - wrong type",
+			inputBody:          `{"filter_tag": 1, "filter_value": "f", "current_page": 1}`,
+			mockBehavior:       func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect filter value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": 1, "current_page": 1}`,
+			mockBehavior:       func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": "1"}`,
+			mockBehavior:       func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - zero value",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": 0}`,
+			mockBehavior:       func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect current page value - negative value",
+			inputBody:          `{"filter_tag": "f", "filter_value": "f", "current_page": -1}`,
+			mockBehavior:       func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(chartMock, tt.getAllChartsInput)
+
+			services := &service.Service{Chart: chartMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/charts", handler.getAllCharts)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/charts", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
