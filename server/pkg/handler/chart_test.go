@@ -329,3 +329,123 @@ func TestHandler_getChartsPageCount(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getChartsCount(t *testing.T) {
+	type mockBehavior func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput)
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		getChartsCountInput gameServer.GetChartsCountInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `{"filter_tag": "f", "filter_value": "f"}`,
+			getChartsCountInput: gameServer.GetChartsCountInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {
+				r.EXPECT().GetChartsCount(getChartsCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"count":1}`,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `{"filter_tag": "f", "filter_value": "f"}`,
+			getChartsCountInput: gameServer.GetChartsCountInput{
+				FilterTag:   "f",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {
+				r.EXPECT().GetChartsCount(getChartsCountInput).Return(0, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+		{
+			name:      "empty filter tag",
+			inputBody: `{"filter_tag": "", "filter_value": "f"}`,
+			getChartsCountInput: gameServer.GetChartsCountInput{
+				FilterTag:   "",
+				FilterValue: "f",
+			},
+			mockBehavior: func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {
+				r.EXPECT().GetChartsCount(getChartsCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"count":1}`,
+		},
+		{
+			name:      "empty filter value",
+			inputBody: `{"filter_tag": "f", "filter_value": ""}`,
+			getChartsCountInput: gameServer.GetChartsCountInput{
+				FilterTag:   "f",
+				FilterValue: "",
+			},
+			mockBehavior: func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {
+				r.EXPECT().GetChartsCount(getChartsCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"count":1}`,
+		},
+		{
+			name:      "empty filter tag and value",
+			inputBody: `{"filter_tag": "", "filter_value": ""}`,
+			getChartsCountInput: gameServer.GetChartsCountInput{
+				FilterTag:   "",
+				FilterValue: "",
+			},
+			mockBehavior: func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {
+				r.EXPECT().GetChartsCount(getChartsCountInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"count":1}`,
+		},
+		{
+			name:               "incorrect filter tag - wrong type",
+			inputBody:          `{"filter_tag": 1, "filter_value": "f"}`,
+			mockBehavior:       func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect filter value - wrong type",
+			inputBody:          `{"filter_tag": "f", "filter_value": 1}`,
+			mockBehavior:       func(r *service.MockChart, getChartsCountInput gameServer.GetChartsCountInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(chartMock, tt.getChartsCountInput)
+
+			services := &service.Service{Chart: chartMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/count", handler.getChartsCount)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/count", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
