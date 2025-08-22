@@ -59,7 +59,7 @@ type getAllPointsByIdResponse struct {
 
 func (h *Handler) getAllPointsById(c *gin.Context) {
 	chartId, err := strconv.Atoi(c.Param("chart_id"))
-	if err != nil {
+	if err != nil || chartId <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter chart_id")
 		return
 	}

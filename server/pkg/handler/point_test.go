@@ -219,3 +219,100 @@ func TestHandler_getOnePoint(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getAllPointsById(t *testing.T) {
+	type mockBehavior func(r *service.MockPoint, id string)
+
+	tests := []struct {
+		name                string
+		paramChartId        string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:         "ok",
+			paramChartId: "1",
+			mockBehavior: func(r *service.MockPoint, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetAllPointsById(idInt).Return([]gameServer.Point{
+					{
+						Id:                  1,
+						X:                   1,
+						Y:                   1,
+						Score:               1,
+						IsCrash:             false,
+						IsUsefulAiSignal:    false,
+						IsDeceptiveAiSignal: false,
+						IsStop:              false,
+						IsPause:             false,
+						IsCheck:             false,
+						ChartId:             1,
+						CreatedAt:           "2023-10-01T00:00:00Z",
+					},
+				},
+					nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+		},
+		{
+			name:               "incorrect parameter chart id - negative value",
+			paramChartId:       "-1",
+			mockBehavior:       func(r *service.MockPoint, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter chart id - zero value",
+			paramChartId:       "0",
+			mockBehavior:       func(r *service.MockPoint, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "incorrect parameter chart id - not a number",
+			paramChartId:       "abc",
+			mockBehavior:       func(r *service.MockPoint, id string) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:         "internal server error",
+			paramChartId: "1",
+			mockBehavior: func(r *service.MockPoint, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetAllPointsById(idInt).Return(nil, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pointMock := service.NewMockPoint(t)
+			tt.mockBehavior(pointMock, tt.paramChartId)
+
+			services := &service.Service{Point: pointMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/chart_id/:chart_id", handler.getAllPointsById)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", fmt.Sprintf("/chart_id/%s", tt.paramChartId), nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
