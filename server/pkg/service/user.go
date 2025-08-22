@@ -18,7 +18,7 @@ const (
 	defaultPageLimit = 9
 )
 
-type tokenClaims struct {
+type TokenClaims struct {
 	jwt.StandardClaims
 	UserId int    `json:"user_id"`
 	Login  string `json:"login"`
@@ -68,7 +68,7 @@ func (u *UserService) RefreshToken(accessToken string) (string, error) {
 }
 
 func createToken(id int, login, role string) *jwt.Token {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -80,8 +80,8 @@ func createToken(id int, login, role string) *jwt.Token {
 	return token
 }
 
-func (u *UserService) ParseToken(accessToken string) (*tokenClaims, error) {
-	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (any, error) {
+func (u *UserService) ParseToken(accessToken string) (*TokenClaims, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &TokenClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
@@ -93,7 +93,7 @@ func (u *UserService) ParseToken(accessToken string) (*tokenClaims, error) {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*tokenClaims)
+	claims, ok := token.Claims.(*TokenClaims)
 	if !ok {
 		return nil, errors.New("invalid token claims type")
 	}

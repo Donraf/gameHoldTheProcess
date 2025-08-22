@@ -637,23 +637,23 @@ func (_c *MockUser_GetUsersPageCount_Call) RunAndReturn(run func(input gameServe
 }
 
 // ParseToken provides a mock function for the type MockUser
-func (_mock *MockUser) ParseToken(token string) (*tokenClaims, error) {
+func (_mock *MockUser) ParseToken(token string) (*TokenClaims, error) {
 	ret := _mock.Called(token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ParseToken")
 	}
 
-	var r0 *tokenClaims
+	var r0 *TokenClaims
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (*tokenClaims, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(string) (*TokenClaims, error)); ok {
 		return returnFunc(token)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) *tokenClaims); ok {
+	if returnFunc, ok := ret.Get(0).(func(string) *TokenClaims); ok {
 		r0 = returnFunc(token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*tokenClaims)
+			r0 = ret.Get(0).(*TokenClaims)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
@@ -688,12 +688,12 @@ func (_c *MockUser_ParseToken_Call) Run(run func(token string)) *MockUser_ParseT
 	return _c
 }
 
-func (_c *MockUser_ParseToken_Call) Return(tokenClaimsMoqParam *tokenClaims, err error) *MockUser_ParseToken_Call {
-	_c.Call.Return(tokenClaimsMoqParam, err)
+func (_c *MockUser_ParseToken_Call) Return(tokenClaims *TokenClaims, err error) *MockUser_ParseToken_Call {
+	_c.Call.Return(tokenClaims, err)
 	return _c
 }
 
-func (_c *MockUser_ParseToken_Call) RunAndReturn(run func(token string) (*tokenClaims, error)) *MockUser_ParseToken_Call {
+func (_c *MockUser_ParseToken_Call) RunAndReturn(run func(token string) (*TokenClaims, error)) *MockUser_ParseToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

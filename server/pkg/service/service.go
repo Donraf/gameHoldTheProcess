@@ -8,7 +8,7 @@ import (
 type User interface {
 	CreateUser(user gameServer.RegisterUserInput) (string, error)
 	GenerateToken(login, password string) (string, error)
-	ParseToken(token string) (*tokenClaims, error)
+	ParseToken(token string) (*TokenClaims, error)
 	RefreshToken(accessToken string) (string, error)
 	DeleteUser(id int) error
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
