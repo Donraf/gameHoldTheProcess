@@ -41,7 +41,7 @@ func (p *PointPostgres) GetOnePoint(id int) (gameServer.Point, error) {
 
 func (p *PointPostgres) GetAllPointsById(id int) ([]gameServer.Point, error) {
 	var points []gameServer.Point
-	query := fmt.Sprintf("SELECT id, x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, created_at, chart_id FROM %s WHERE chart_id=$1", pointsTable)
+	query := fmt.Sprintf("SELECT id, x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, created_at, chart_id FROM %s WHERE chart_id=$1 ORDER BY x", pointsTable)
 	err := p.db.Select(&points, query, id)
 
 	return points, err
