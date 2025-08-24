@@ -76,7 +76,7 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4);
+              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
             }
           },
           fill: true,
@@ -121,7 +121,7 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4);
+              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
             }
           },
           fill: true,
@@ -328,7 +328,7 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, (val - 0.5) / 0.4);
+              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
             }
           },
           fill: true,
