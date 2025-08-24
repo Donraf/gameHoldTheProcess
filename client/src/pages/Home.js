@@ -114,6 +114,7 @@ const Home = observer(() => {
   const [curPageHintChartsNum, setCurPageHintChartsNum] = React.useState(1);
   const [curLocalHintChartNum, setCurLocalHintChartNum] = React.useState(1);
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
+  const [crashProb, setCrashProb] = React.useState(0);
 
   const containerRef = React.useRef(null);
 
@@ -250,6 +251,11 @@ const Home = observer(() => {
       fetchData().then(() => {
         setHintModalDataFetched(true);
       });
+    } else if (chosenHint === "CrashProbability") {
+      setHintModalDataFetched(false);
+      let crashProb = chart.chartData.getCrashProb();
+      setCrashProb(crashProb);
+      setHintModalDataFetched(true);
     }
   }, [chosenHint]);
 
@@ -405,6 +411,20 @@ const Home = observer(() => {
             </Stack>
           </>
         );
+      case "CrashProbability":
+        return (
+          <>
+            {hintModalDataFetched ? (
+              <>
+                <Typography>Вероятность взрыва {crashProb}%</Typography>
+              </>
+            ) : (
+              <>
+                <Typography>Расчет вероятности...</Typography>
+              </>
+            )}
+          </>
+        );
       default:
         return (
           <>
@@ -436,6 +456,20 @@ const Home = observer(() => {
               }}
             >
               Показать все свои предыдущие сессии (600 очков)
+            </Button>
+            <Button
+              sx={{
+                color: "#FFFFFF",
+                backgroundColor: COLORS.takeHintButton,
+                flexGrow: 1,
+              }}
+              onClick={() => {
+                setChosenHint("CrashProbability");
+                chart.chartData.chartHintUsed(600);
+                changeScore(-600);
+              }}
+            >
+              Рассчитать вероятность взрыва по похожим случаям (600 очков)
             </Button>
           </>
         );

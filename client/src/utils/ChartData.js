@@ -155,10 +155,8 @@ export class ChartData {
     let gain_coef = this.parSet.gain_coef;
     let time_const = this.parSet.time_const;
     let noise_coef = this.parSet.noise_coef;
-    let newVal = (
-      gain_coef * (1 - Math.exp(-this.curIndex / time_const)) +
-      (Math.random() * 2 - 1) * noise_coef
-    ).toFixed(2);
+    let newVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const)) +
+      (Math.random() * 2 - 1) * noise_coef;
     if (newVal < 0) newVal = 0;
     return new Point(this.curIndex, newVal, this.score);
   }
@@ -361,6 +359,19 @@ export class ChartData {
   setScore(score) {
     this.score = score;
     this._updateScores();
+  }
+
+  getCrashProb() {
+    if (this.parSet === null) {
+      return 0;
+    }
+    let gain_coef = this.parSet.gain_coef;
+    let time_const = this.parSet.time_const;
+    let noise_coef = this.parSet.noise_coef;
+    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const))
+    let crashProb = (knownPart + noise_coef - this.criticalValue) / (2 * noise_coef) * 100;
+    if (crashProb < 0) crashProb = 0;
+    return crashProb
   }
 }
 
