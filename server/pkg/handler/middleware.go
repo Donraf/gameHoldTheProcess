@@ -10,6 +10,10 @@ import (
 const (
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
+	userCtxRole         = "role"
+	roleUser            = "User"
+	roleAdmin           = "ADMIN"
+	roleResearcher      = "Researcher"
 )
 
 func (h *Handler) checkUserAuth(c *gin.Context) {
@@ -32,4 +36,21 @@ func (h *Handler) checkUserAuth(c *gin.Context) {
 	}
 
 	c.Set(userCtx, claims.UserId)
+	c.Set(userCtxRole, claims.Role)
+}
+
+func (h *Handler) checkAdminRole(c *gin.Context) {
+	role, exists := c.Get(userCtxRole)
+	if !exists || role != roleAdmin {
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
+		return
+	}
+}
+
+func (h *Handler) checkResearcherRole(c *gin.Context) {
+	role, exists := c.Get(userCtxRole)
+	if !exists || (role != roleAdmin && role != roleResearcher) {
+		newErrorResponse(c, http.StatusForbidden, "not enough rights")
+		return
+	}
 }

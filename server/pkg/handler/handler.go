@@ -38,8 +38,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.GET("/parSet/:id", h.getParSet)
 				userAuth.GET("/score/:userId/:parSetId", h.getScore)
 				userAuth.GET("/:id", h.getOneUser)
-				userAuth.DELETE("/:id", h.deleteUser)
-				userAuth.PUT("/:id", h.updateUser)
+				userAuth.DELETE("/:id", h.checkAdminRole, h.deleteUser)
+				userAuth.PUT("/:id", h.checkAdminRole, h.updateUser)
 			}
 		}
 
@@ -50,16 +50,16 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			chart.POST("/count", h.getChartsCount)
 			chart.POST("/", h.createChart)
 			chart.GET("/:id", h.getOneChart)
-			chart.DELETE("/:id", h.deleteChart)
+			chart.DELETE("/:id", h.checkAdminRole, h.deleteChart)
 		}
 
 		point := api.Group("/point", h.checkUserAuth)
 		{
 			point.POST("/", h.createPoint)
-			point.GET("/csv", h.getAllPointsInCsv)
+			point.GET("/csv", h.checkResearcherRole, h.getAllPointsInCsv)
 			point.GET("/chart_id/:chart_id", h.getAllPointsById)
 			point.GET("/:id", h.getOnePoint)
-			point.DELETE("/:id", h.deletePoint)
+			point.DELETE("/:id", h.checkAdminRole, h.deletePoint)
 		}
 	}
 
