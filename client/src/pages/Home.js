@@ -316,7 +316,13 @@ const Home = observer(() => {
       case "CurrentSession":
         return (
           <>
-            <Typography>Вся текущая сессия</Typography>
+            <Typography
+              sx={{
+                userSelect: "none",
+              }}
+            >
+              Вся текущая сессия
+            </Typography>
             <Chart ref={fullChartRef} options={options} data={chart.chartData.fullData} />
             <Button
               sx={{
@@ -341,14 +347,36 @@ const Home = observer(() => {
           <>
             {hintModalDataFetched && hintCharts.length > 0 ? (
               <>
-                <Typography>Все предыдущие сессии</Typography>
-                <Typography>
+                <Typography
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
+                  Все предыдущие сессии
+                </Typography>
+                <Typography
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
                   Игровая сессия {transformToUiDateDayTime(hintCharts[curLocalHintChartNum].createdAt)}
                 </Typography>
                 <Chart ref={fullChartRef} options={options} data={chartData.data} />
               </>
             ) : (
-              <>{hintCharts.length <= 0 ? <Typography>Предыдущих сессий нет</Typography> : <></>}</>
+              <>
+                {hintCharts.length <= 0 ? (
+                  <Typography
+                    sx={{
+                      userSelect: "none",
+                    }}
+                  >
+                    Предыдущих сессий нет
+                  </Typography>
+                ) : (
+                  <></>
+                )}
+              </>
             )}
             <Stack display="flex" direction="row" spacing={1}>
               <Box
@@ -377,7 +405,14 @@ const Home = observer(() => {
                   borderRadius: "4px",
                 }}
               >
-                <Typography variant="h6">{curHintChartNum + "/" + countHintCharts}</Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
+                  {curHintChartNum + "/" + countHintCharts}
+                </Typography>
               </Box>
               <Box
                 sx={{
@@ -416,11 +451,35 @@ const Home = observer(() => {
           <>
             {hintModalDataFetched ? (
               <>
-                <Typography>Вероятность взрыва {crashProb}%</Typography>
+                <Typography
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
+                  Вероятность взрыва {crashProb}%
+                </Typography>
+                <Button
+                  sx={{
+                    color: "#FFFFFF",
+                    backgroundColor: "#9356A0",
+                    flexGrow: 1,
+                  }}
+                  onClick={() => {
+                    setChosenHint("");
+                  }}
+                >
+                  Назад
+                </Button>
               </>
             ) : (
               <>
-                <Typography>Расчет вероятности...</Typography>
+                <Typography
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
+                  Расчет вероятности...
+                </Typography>
               </>
             )}
           </>
@@ -428,7 +487,13 @@ const Home = observer(() => {
       default:
         return (
           <>
-            <Typography>Какую подсказку хотите купить?</Typography>
+            <Typography
+              sx={{
+                userSelect: "none",
+              }}
+            >
+              Какую подсказку хотите купить?
+            </Typography>
             <Button
               sx={{
                 color: "#FFFFFF",
@@ -469,7 +534,7 @@ const Home = observer(() => {
                 changeScore(-600);
               }}
             >
-              Рассчитать вероятность взрыва по похожим случаям (600 очков)
+              Рассчитать вероятность взрыва (600 очков)
             </Button>
           </>
         );
