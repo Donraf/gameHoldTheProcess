@@ -151,3 +151,31 @@ export const getAllGroups = async () => {
     throw e;
   }
 };
+
+export const getPlayersStat = async (filterTag = null, filterValue = null, currentPage = null) => {
+  try {
+    const { data } = await $authHost.post("api/user/playersStat", {
+      filter_tag: filterTag,
+      filter_value: String(filterValue),
+      current_page: currentPage,
+    });
+    if (data.data === null || data.data.length === 0) {
+      return [];
+    }
+    return data.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const getPlayersPageCount = async (filterTag = null, filterValue = null) => {
+  try {
+    const pageCount = await $authHost.post("api/user/playersPageCount", {
+      filter_tag: filterTag,
+      filter_value: String(filterValue),
+    });
+    return pageCount.data.pageCount;
+  } catch (e) {
+    throw e;
+  }
+};

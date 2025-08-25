@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import dateFormat from "dateformat";
 import {
   Box,
   Button,
@@ -7,27 +6,19 @@ import {
   MenuItem,
   Modal,
   Pagination,
-  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import ImageButton from "../components/ImageButton/ImageButton";
-import DeleteIcon from "../components/icons/DeleteIcon";
 import { useSnackbar } from "notistack";
 import AddIcon from "../components/icons/AddIcon";
 import { COLORS } from "../utils/constants";
-import { createGroup, fetchUsers, getAllGroups, getUsersPageCount } from "../http/userAPI";
+import { createGroup, getAllGroups, getPlayersPageCount, getPlayersStat } from "../http/userAPI";
 import { ModalContent } from "../components/ModalContent";
 import { Context } from "..";
+import PlayersGrid from "../components/PlayersGrid";
 
 const ResearcherRoom = () => {
   const { user } = useContext(Context);
@@ -78,7 +69,7 @@ const ResearcherRoom = () => {
   const tryCreateGroup = () => {
     let snackErrors = [];
     if (name === "") {
-      snackErrors.push("Введите наименование производителя");
+      snackErrors.push("Введите наименование группы");
     }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
@@ -115,11 +106,11 @@ const ResearcherRoom = () => {
     let filteredDataFromQuery;
     let newPageCount;
     if (filterInput) {
-      filteredDataFromQuery = await fetchUsers("group_name", filterInput, page);
-      newPageCount = await getUsersPageCount("group_name", filterInput);
+      filteredDataFromQuery = await getPlayersStat("group_name", filterInput, page);
+      newPageCount = await getPlayersPageCount("group_name", filterInput);
     } else {
-      filteredDataFromQuery = await fetchUsers(null, null, page);
-      newPageCount = await getUsersPageCount();
+      filteredDataFromQuery = await getPlayersStat(null, null, page);
+      newPageCount = await getPlayersPageCount();
     }
     setPageCount(newPageCount);
     if (updatePage) setPage(1);
@@ -209,42 +200,7 @@ const ResearcherRoom = () => {
               Добавить группу
             </Button>
           </Stack>
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell />
-                  <TableCell>Логин игрока</TableCell>
-                  <TableCell>ID игрока</TableCell>
-                  <TableCell>ФИО игрока</TableCell>
-                  <TableCell>Время добавления</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {isDataFetched ? (
-                  filteredData.map((user) => (
-                    <TableRow key={user.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell sx={{ width: 75 }}>
-                        <Stack direction="row" spacing={1}>
-                          <ImageButton onClick={() => {}}>
-                            <DeleteIcon />
-                          </ImageButton>
-                        </Stack>
-                      </TableCell>
-                      <TableCell component="th" scope="row">
-                        {user.login}
-                      </TableCell>
-                      <TableCell>{user.user_id}</TableCell>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{dateFormat(user.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <></>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <PlayersGrid players={filteredData} />
           {isDataFetched ? (
             <Pagination
               sx={{ pt: "16px" }}
