@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
+  Autocomplete,
   Box,
   Button,
   CssBaseline,
-  MenuItem,
   Modal,
   Pagination,
   Stack,
@@ -164,27 +164,20 @@ const ResearcherRoom = () => {
             Выбрать группу участников
           </Typography>
           <Stack direction="row" gap={1}>
-            <TextField
-              select
-              value={selectedGroupName}
-              onChange={(event) => {
-                const newSelectedGroupName = event.target.value;
+            <Autocomplete
+              options={fetchedGroups}
+              getOptionLabel={(group) => group.name}
+              renderInput={(params) => <TextField {...params} label="Выберите группу" />}
+              value={fetchedGroups.find((group) => group.name === selectedGroupName) || null}
+              onChange={(_, newValue) => {
+                const newSelectedGroupName = newValue ? newValue.name : "";
                 setSelectedGroupName(newSelectedGroupName);
                 setFilterInput(newSelectedGroupName);
               }}
-              id="group-select"
-              variant={"outlined"}
               sx={{
                 flexGrow: 9,
               }}
-            >
-              {fetchedGroups.map((item) => (
-                <MenuItem id={"groupItem" + item.id} value={item.name}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </TextField>
-
+            />
             <Button
               variant="outlined"
               sx={{
