@@ -510,6 +510,128 @@ func (_c *MockUser_GetParSet_Call) RunAndReturn(run func(id int) (gameServer.Par
 	return _c
 }
 
+// GetPlayersPageCount provides a mock function for the type MockUser
+func (_mock *MockUser) GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error) {
+	ret := _mock.Called(input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlayersPageCount")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetPlayersPageCountInput) (int, error)); ok {
+		return returnFunc(input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetPlayersPageCountInput) int); ok {
+		r0 = returnFunc(input)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(gameServer.GetPlayersPageCountInput) error); ok {
+		r1 = returnFunc(input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUser_GetPlayersPageCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlayersPageCount'
+type MockUser_GetPlayersPageCount_Call struct {
+	*mock.Call
+}
+
+// GetPlayersPageCount is a helper method to define mock.On call
+//   - input gameServer.GetPlayersPageCountInput
+func (_e *MockUser_Expecter) GetPlayersPageCount(input interface{}) *MockUser_GetPlayersPageCount_Call {
+	return &MockUser_GetPlayersPageCount_Call{Call: _e.mock.On("GetPlayersPageCount", input)}
+}
+
+func (_c *MockUser_GetPlayersPageCount_Call) Run(run func(input gameServer.GetPlayersPageCountInput)) *MockUser_GetPlayersPageCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 gameServer.GetPlayersPageCountInput
+		if args[0] != nil {
+			arg0 = args[0].(gameServer.GetPlayersPageCountInput)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUser_GetPlayersPageCount_Call) Return(n int, err error) *MockUser_GetPlayersPageCount_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockUser_GetPlayersPageCount_Call) RunAndReturn(run func(input gameServer.GetPlayersPageCountInput) (int, error)) *MockUser_GetPlayersPageCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPlayersStat provides a mock function for the type MockUser
+func (_mock *MockUser) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error) {
+	ret := _mock.Called(input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlayersStat")
+	}
+
+	var r0 []gameServer.PlayerStat
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error)); ok {
+		return returnFunc(input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetPlayersStatInput) []gameServer.PlayerStat); ok {
+		r0 = returnFunc(input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]gameServer.PlayerStat)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(gameServer.GetPlayersStatInput) error); ok {
+		r1 = returnFunc(input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUser_GetPlayersStat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlayersStat'
+type MockUser_GetPlayersStat_Call struct {
+	*mock.Call
+}
+
+// GetPlayersStat is a helper method to define mock.On call
+//   - input gameServer.GetPlayersStatInput
+func (_e *MockUser_Expecter) GetPlayersStat(input interface{}) *MockUser_GetPlayersStat_Call {
+	return &MockUser_GetPlayersStat_Call{Call: _e.mock.On("GetPlayersStat", input)}
+}
+
+func (_c *MockUser_GetPlayersStat_Call) Run(run func(input gameServer.GetPlayersStatInput)) *MockUser_GetPlayersStat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 gameServer.GetPlayersStatInput
+		if args[0] != nil {
+			arg0 = args[0].(gameServer.GetPlayersStatInput)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUser_GetPlayersStat_Call) Return(playerStats []gameServer.PlayerStat, err error) *MockUser_GetPlayersStat_Call {
+	_c.Call.Return(playerStats, err)
+	return _c
+}
+
+func (_c *MockUser_GetPlayersStat_Call) RunAndReturn(run func(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error)) *MockUser_GetPlayersStat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetScore provides a mock function for the type MockUser
 func (_mock *MockUser) GetScore(userId int, parSetId int) (int, error) {
 	ret := _mock.Called(userId, parSetId)

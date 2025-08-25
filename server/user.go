@@ -2,6 +2,12 @@ package gameServer
 
 import "errors"
 
+const (
+	RoleUser       = "User"
+	RoleAdmin      = "ADMIN"
+	RoleResearcher = "Researcher"
+)
+
 type User struct {
 	Id          int    `json:"user_id" db:"user_id"`
 	Login       string `json:"login" binding:"required"`
@@ -17,6 +23,13 @@ type Group struct {
 	Name      string `json:"name" db:"name"`
 	CreatedAt string `json:"created_at" db:"created_at"`
 	CreatorId int    `json:"creator_id" db:"creator_id"`
+}
+
+type PlayerStat struct {
+	Name        string         `json:"name" db:"name"`
+	Login       string         `json:"login" db:"login"`
+	CurParSetId int            `json:"cur_par_set_id" db:"cur_par_set_id"`
+	ParSets     []ParameterSet `json:"par_sets"`
 }
 
 type RegisterUserInput struct {
@@ -108,4 +121,22 @@ func (i *CreateGroupInput) Validate() error {
 		return errors.New("name is empty")
 	}
 	return nil
+}
+
+type GetPlayersStatInput struct {
+	FilterTag   string `json:"filter_tag"`
+	FilterValue string `json:"filter_value"`
+	CurrentPage int    `json:"current_page"`
+}
+
+func (i *GetPlayersStatInput) Validate() error {
+	if i.CurrentPage <= 0 {
+		return errors.New("current page is equal or less than zero")
+	}
+	return nil
+}
+
+type GetPlayersPageCountInput struct {
+	FilterTag   string `json:"filter_tag"`
+	FilterValue string `json:"filter_value"`
 }

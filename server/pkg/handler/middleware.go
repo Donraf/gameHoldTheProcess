@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,9 +12,6 @@ const (
 	authorizationHeader = "Authorization"
 	userCtx             = "userId"
 	userCtxRole         = "role"
-	roleUser            = "User"
-	roleAdmin           = "ADMIN"
-	roleResearcher      = "Researcher"
 )
 
 func (h *Handler) checkUserAuth(c *gin.Context) {
@@ -41,7 +39,7 @@ func (h *Handler) checkUserAuth(c *gin.Context) {
 
 func (h *Handler) checkAdminRole(c *gin.Context) {
 	role, exists := c.Get(userCtxRole)
-	if !exists || role != roleAdmin {
+	if !exists || role != gameServer.RoleAdmin {
 		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}
@@ -49,7 +47,7 @@ func (h *Handler) checkAdminRole(c *gin.Context) {
 
 func (h *Handler) checkResearcherRole(c *gin.Context) {
 	role, exists := c.Get(userCtxRole)
-	if !exists || (role != roleAdmin && role != roleResearcher) {
+	if !exists || (role != gameServer.RoleAdmin && role != gameServer.RoleResearcher) {
 		newErrorResponse(c, http.StatusForbidden, "not enough rights")
 		return
 	}

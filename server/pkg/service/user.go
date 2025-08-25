@@ -156,3 +156,17 @@ func (u *UserService) GetAllGroups() ([]gameServer.Group, error) {
 func (u *UserService) CreateGroup(input gameServer.CreateGroupInput) (int, error) {
 	return u.repo.CreateGroup(input)
 }
+
+func (u *UserService) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error) {
+	return u.repo.GetPlayersStat(input)
+}
+
+func (u *UserService) GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error) {
+	playersCount, err := u.repo.GetPlayersPageCount(input)
+	if err != nil {
+		return 0, nil
+	}
+
+	pageCount := int(math.Ceil(float64(playersCount) / defaultPageLimit))
+	return pageCount, nil
+}

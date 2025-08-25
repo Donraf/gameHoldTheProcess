@@ -305,3 +305,52 @@ func (h *Handler) createGroup(c *gin.Context) {
 		"id": id,
 	})
 }
+
+type getPlayersStatResponse struct {
+	Data []gameServer.PlayerStat `json:"data"`
+}
+
+func (h *Handler) getPlayersStat(c *gin.Context) {
+	var input gameServer.GetPlayersStatInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	users, err := h.services.User.GetPlayersStat(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getPlayersStatResponse{
+		Data: users,
+	})
+}
+
+type getPlayersPageCountResponse struct {
+	PageCount int `json:"pageCount"`
+}
+
+func (h *Handler) getPlayersPageCount(c *gin.Context) {
+	var input gameServer.GetPlayersPageCountInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pageCount, err := h.services.User.GetPlayersPageCount(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getPlayersPageCountResponse{
+		PageCount: pageCount,
+	})
+}
