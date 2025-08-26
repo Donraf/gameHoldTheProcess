@@ -141,3 +141,46 @@ func (h *Handler) deleteChart(c *gin.Context) {
 		Status: "ok",
 	})
 }
+
+type getAllParSetsResponse struct {
+	Data []gameServer.ParameterSet `json:"data"`
+}
+
+func (h *Handler) getAllParSets(c *gin.Context) {
+	var input gameServer.GetAllParSetsInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	parSets, err := h.services.Chart.GetAllParSets(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllParSetsResponse{
+		Data: parSets,
+	})
+}
+
+type getParSetsPageCountResponse struct {
+	PageCount int `json:"pageCount"`
+}
+
+func (h *Handler) getParSetsPageCount(c *gin.Context) {
+	pageCount, err := h.services.Chart.GetParSetsPageCount()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getParSetsPageCountResponse{
+		PageCount: pageCount,
+	})
+}

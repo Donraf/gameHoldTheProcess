@@ -52,3 +52,17 @@ func (s *ChartService) GetAllCharts(input gameServer.GetAllChartsInput) ([]gameS
 func (s *ChartService) DeleteChart(id int) error {
 	return s.repo.DeleteChart(id)
 }
+
+func (s *ChartService) GetAllParSets(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error) {
+	return s.repo.GetAllParSets(input)
+}
+
+func (s *ChartService) GetParSetsPageCount() (int, error) {
+	parSetsCount, err := s.repo.GetParSetsCount()
+	if err != nil {
+		return 0, nil
+	}
+
+	pageCount := int(math.Ceil(float64(parSetsCount) / defaultPageLimit))
+	return pageCount, nil
+}

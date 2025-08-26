@@ -47,6 +47,17 @@ func (i *GetAllChartsInput) Validate() error {
 	return nil
 }
 
+type GetAllParSetsInput struct {
+	CurrentPage int `json:"current_page"`
+}
+
+func (i *GetAllParSetsInput) Validate() error {
+	if i.CurrentPage <= 0 {
+		return errors.New("current page is equal or less than zero")
+	}
+	return nil
+}
+
 type Point struct {
 	Id                  int     `json:"id" db:"id"`
 	X                   float32 `json:"x" db:"x"`

@@ -1188,6 +1188,68 @@ func (_c *MockChart_GetAllCharts_Call) RunAndReturn(run func(input gameServer.Ge
 	return _c
 }
 
+// GetAllParSets provides a mock function for the type MockChart
+func (_mock *MockChart) GetAllParSets(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error) {
+	ret := _mock.Called(input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllParSets")
+	}
+
+	var r0 []gameServer.ParameterSet
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error)); ok {
+		return returnFunc(input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(gameServer.GetAllParSetsInput) []gameServer.ParameterSet); ok {
+		r0 = returnFunc(input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]gameServer.ParameterSet)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(gameServer.GetAllParSetsInput) error); ok {
+		r1 = returnFunc(input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockChart_GetAllParSets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllParSets'
+type MockChart_GetAllParSets_Call struct {
+	*mock.Call
+}
+
+// GetAllParSets is a helper method to define mock.On call
+//   - input gameServer.GetAllParSetsInput
+func (_e *MockChart_Expecter) GetAllParSets(input interface{}) *MockChart_GetAllParSets_Call {
+	return &MockChart_GetAllParSets_Call{Call: _e.mock.On("GetAllParSets", input)}
+}
+
+func (_c *MockChart_GetAllParSets_Call) Run(run func(input gameServer.GetAllParSetsInput)) *MockChart_GetAllParSets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 gameServer.GetAllParSetsInput
+		if args[0] != nil {
+			arg0 = args[0].(gameServer.GetAllParSetsInput)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockChart_GetAllParSets_Call) Return(parameterSets []gameServer.ParameterSet, err error) *MockChart_GetAllParSets_Call {
+	_c.Call.Return(parameterSets, err)
+	return _c
+}
+
+func (_c *MockChart_GetAllParSets_Call) RunAndReturn(run func(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error)) *MockChart_GetAllParSets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetChartsCount provides a mock function for the type MockChart
 func (_mock *MockChart) GetChartsCount(input gameServer.GetChartsCountInput) (int, error) {
 	ret := _mock.Called(input)
@@ -1364,6 +1426,59 @@ func (_c *MockChart_GetOneChart_Call) Return(chart gameServer.Chart, err error) 
 }
 
 func (_c *MockChart_GetOneChart_Call) RunAndReturn(run func(id int) (gameServer.Chart, error)) *MockChart_GetOneChart_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetParSetsPageCount provides a mock function for the type MockChart
+func (_mock *MockChart) GetParSetsPageCount() (int, error) {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetParSetsPageCount")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (int, error)); ok {
+		return returnFunc()
+	}
+	if returnFunc, ok := ret.Get(0).(func() int); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockChart_GetParSetsPageCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParSetsPageCount'
+type MockChart_GetParSetsPageCount_Call struct {
+	*mock.Call
+}
+
+// GetParSetsPageCount is a helper method to define mock.On call
+func (_e *MockChart_Expecter) GetParSetsPageCount() *MockChart_GetParSetsPageCount_Call {
+	return &MockChart_GetParSetsPageCount_Call{Call: _e.mock.On("GetParSetsPageCount")}
+}
+
+func (_c *MockChart_GetParSetsPageCount_Call) Run(run func()) *MockChart_GetParSetsPageCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockChart_GetParSetsPageCount_Call) Return(n int, err error) *MockChart_GetParSetsPageCount_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockChart_GetParSetsPageCount_Call) RunAndReturn(run func() (int, error)) *MockChart_GetParSetsPageCount_Call {
 	_c.Call.Return(run)
 	return _c
 }

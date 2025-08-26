@@ -102,3 +102,24 @@ func (p *ChartPostgres) DeleteChart(id int) error {
 
 	return err
 }
+
+func (p *ChartPostgres) GetAllParSets(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error) {
+	var parSets []gameServer.ParameterSet
+	query := fmt.Sprintf("SELECT id, gain_coef, time_const, noise_coef, false_warning_prob, missing_danger_prob, created_at FROM %s OFFSET %v LIMIT 9", parameterSetsTable, (input.CurrentPage-1)*9)
+
+	err := p.db.Select(&parSets, query)
+
+	return parSets, err
+}
+
+func (p *ChartPostgres) GetParSetsCount() (int, error) {
+	var parSetsCount int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", parameterSetsTable)
+
+	row := p.db.QueryRow(query)
+	if err := row.Scan(&parSetsCount); err != nil {
+		return 0, err
+	}
+
+	return parSetsCount, nil
+}

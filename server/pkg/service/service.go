@@ -31,6 +31,8 @@ type Chart interface {
 	GetChartsCount(input gameServer.GetChartsCountInput) (int, error)
 	GetAllCharts(input gameServer.GetAllChartsInput) ([]gameServer.Chart, error)
 	DeleteChart(id int) error
+	GetAllParSets(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error)
+	GetParSetsPageCount() (int, error)
 }
 
 type Point interface {

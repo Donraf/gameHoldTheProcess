@@ -53,6 +53,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			chart.POST("/", h.createChart)
 			chart.GET("/:id", h.getOneChart)
 			chart.DELETE("/:id", h.checkAdminRole, h.deleteChart)
+			chart.POST("/parSets", h.checkResearcherRole, h.getAllParSets)
+			chart.GET("/parSetsPageCount", h.checkResearcherRole, h.getParSetsPageCount)
 		}
 
 		point := api.Group("/point", h.checkUserAuth)
