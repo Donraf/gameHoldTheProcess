@@ -5,6 +5,7 @@ export const HOME_ROUTE = "/";
 
 export const ADMIN_USER_ROUTE = ADMIN_ROUTE + "/user";
 export const ADMIN_GRAPH_ROUTE = ADMIN_ROUTE + "/graph";
+export const ADMIN_PARSET_ROUTE = ADMIN_ROUTE + "/parSet";
 
 export const USER_PROFILE_ROUTE = "/profile";
 

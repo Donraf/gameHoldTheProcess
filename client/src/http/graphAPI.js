@@ -85,3 +85,26 @@ export const deleteGraph = async (id) => {
     throw e;
   }
 };
+
+export const getParSets = async (currentPage = 1) => {
+  try {
+    const { data } = await $authHost.post("api/chart/parSets", {
+      current_page: currentPage,
+    });
+    if (data.data === null || data.data.length === 0) {
+      return [];
+    }
+    return data.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const getParSetsPageCount = async () => {
+  try {
+    const pageCount = await $authHost.get("api/chart/parSetsPageCount");
+    return pageCount.data.pageCount;
+  } catch (e) {
+    throw e;
+  }
+};

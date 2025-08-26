@@ -1,5 +1,6 @@
 import {
   ADMIN_GRAPH_ROUTE,
+  ADMIN_PARSET_ROUTE,
   ADMIN_ROUTE,
   ADMIN_USER_ROUTE,
   HOME_ROUTE,
@@ -15,6 +16,7 @@ import AdminUser from "./pages/AdminUser";
 import UserProfile from "./pages/UserProfile";
 import AdminGraph from "./pages/AdminGraph";
 import ResearcherRoom from "./pages/ResearcherRoom";
+import AdminParset from "./pages/AdminParSet";
 
 export const authRoutes = [
   {
@@ -28,6 +30,10 @@ export const authRoutes = [
   {
     path: ADMIN_GRAPH_ROUTE,
     Component: <AdminGraph />,
+  },
+  {
+    path: ADMIN_PARSET_ROUTE,
+    Component: <AdminParset />,
   },
   {
     path: USER_PROFILE_ROUTE,
