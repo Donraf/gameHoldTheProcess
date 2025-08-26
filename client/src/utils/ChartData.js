@@ -15,8 +15,8 @@ export class ChartData {
     maxPointsToShow = 30, // Сколько точек показывать на графике
     criticalValue = 0.9, // Критическое значение процесса
     checkDangerNum = 1, // На сколько шагов вперед смотреть, чтобы выявлять опасность
-    falseWarningProb = 0.05, // Вероятность ложной тревоги от системы ИИ
-    missingDangerProb = 0.1, // Вероятность пропуска опасности системой ИИ
+    falseWarningProb = 0, // Вероятность ложной тревоги от системы ИИ
+    missingDangerProb = 0, // Вероятность пропуска опасности системой ИИ
     parSet = null,
     score = 0
   ) {
@@ -76,7 +76,11 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
+              return getGradientColor(
+                COLORS.graphGradientMiddle,
+                COLORS.graphGradientHigh,
+                Math.min(1, (val - 0.5) / 0.4)
+              );
             }
           },
           fill: true,
@@ -121,7 +125,11 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
+              return getGradientColor(
+                COLORS.graphGradientMiddle,
+                COLORS.graphGradientHigh,
+                Math.min(1, (val - 0.5) / 0.4)
+              );
             }
           },
           fill: true,
@@ -155,8 +163,7 @@ export class ChartData {
     let gain_coef = this.parSet.gain_coef;
     let time_const = this.parSet.time_const;
     let noise_coef = this.parSet.noise_coef;
-    let newVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const)) +
-      (Math.random() * 2 - 1) * noise_coef;
+    let newVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const)) + (Math.random() * 2 - 1) * noise_coef;
     if (newVal < 0) newVal = 0;
     return new Point(this.curIndex, newVal, this.score);
   }
@@ -328,7 +335,11 @@ export class ChartData {
             if (val <= 0.5) {
               return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
             } else {
-              return getGradientColor(COLORS.graphGradientMiddle, COLORS.graphGradientHigh, Math.min(1, (val - 0.5) / 0.4));
+              return getGradientColor(
+                COLORS.graphGradientMiddle,
+                COLORS.graphGradientHigh,
+                Math.min(1, (val - 0.5) / 0.4)
+              );
             }
           },
           fill: true,
@@ -353,6 +364,8 @@ export class ChartData {
 
   setParSet(parSet) {
     this.parSet = parSet;
+    this.missingDangerProb = parSet.missing_danger_prob;
+    this.falseWarningProb = parSet.false_warning_prob;
     this.restart();
   }
 
@@ -368,10 +381,10 @@ export class ChartData {
     let gain_coef = this.parSet.gain_coef;
     let time_const = this.parSet.time_const;
     let noise_coef = this.parSet.noise_coef;
-    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const))
-    let crashProb = (knownPart + noise_coef - this.criticalValue) / (2 * noise_coef) * 100;
+    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
+    let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
     if (crashProb < 0) crashProb = 0;
-    return crashProb
+    return crashProb;
   }
 }
 
