@@ -26,11 +26,13 @@ CREATE TABLE User_Groups
 
 CREATE TABLE Parameter_Sets
 (
-    id          serial    PRIMARY KEY,
-    gain_coef   float     NOT NULL,
-    time_const  float     NOT NULL,
-    noise_coef  float     NOT NULL,
-    created_at  timestamp NOT NULL
+    id                  serial    PRIMARY KEY,
+    gain_coef           float     NOT NULL,
+    time_const          float     NOT NULL,
+    noise_coef          float     NOT NULL,
+    false_warning_prob  float     NOT NULL,
+    missing_danger_prob float     NOT NULL,
+    created_at          timestamp NOT NULL
 );
 
 CREATE TABLE User_Parameter_Sets
@@ -66,9 +68,9 @@ CREATE TABLE Points
     chart_id               int REFERENCES Charts (id) ON DELETE CASCADE NOT NULL
 );
 
-INSERT INTO Parameter_Sets (id, gain_coef, time_const, noise_coef, created_at)
+INSERT INTO Parameter_Sets (id, gain_coef, time_const, noise_coef, false_warning_prob, missing_danger_prob, created_at)
     VALUES 
-    (1, 0.92, 20, 0.03, '2025-08-12 18:50:37.359879');
+    (1, 0.92, 20, 0.03, 0.05, 0.1, '2025-08-12 18:50:37.359879');
 
 INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
     VALUES 

@@ -813,16 +813,18 @@ func TestHandler_getParSet(t *testing.T) {
 			mockBehavior: func(r *service.MockUser, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().GetParSet(idInt).Return(gameServer.ParameterSet{
-					Id:        1,
-					GainCoef:  1.1,
-					TimeConst: 1.1,
-					NoiseCoef: 1.1,
-					CreatedAt: "2023-10-01T00:00:00Z",
+					Id:                1,
+					GainCoef:          1.1,
+					TimeConst:         1.1,
+					NoiseCoef:         1.1,
+					FalseWarningProb:  0.1,
+					MissingDangerProb: 0.1,
+					CreatedAt:         "2023-10-01T00:00:00Z",
 				},
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"gain_coef":1.1,"time_const":1.1,"noise_coef":1.1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"gain_coef":1.1,"time_const":1.1,"noise_coef":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"created_at":"2023-10-01T00:00:00Z"}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",

@@ -4,5 +4,5 @@ db:
     username: "postgres"
     host: "localhost"
     port: "5433"
-    dbname: "postgres"
+    dbname: "game_hold_the_process_db"
     sslmode: "disable"
