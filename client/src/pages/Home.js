@@ -254,7 +254,7 @@ const Home = observer(() => {
     } else if (chosenHint === "CrashProbability") {
       setHintModalDataFetched(false);
       let crashProb = chart.chartData.getCrashProb();
-      setCrashProb(crashProb);
+      setCrashProb(crashProb.toFixed(1));
       setHintModalDataFetched(true);
     }
   }, [chosenHint]);
