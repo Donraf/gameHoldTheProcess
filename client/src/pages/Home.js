@@ -214,7 +214,7 @@ const Home = observer(() => {
       changeScore(chart.chartData.score - oldScore);
       setIsHintModalOpened(false);
       setIsChartStopped(false);
-      setIsChartPaused(false);
+      setIsChartPaused(true);
       if (!isStopNeeded) {
         playWrongChoiceSound();
         enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {
