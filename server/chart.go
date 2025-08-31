@@ -103,7 +103,8 @@ type ParameterSet struct {
 	Id                int     `json:"id" db:"id"`
 	GainCoef          float32 `json:"gain_coef" db:"gain_coef"`
 	TimeConst         float32 `json:"time_const" db:"time_const"`
-	NoiseCoef         float32 `json:"noise_coef" db:"noise_coef"`
+	NoiseMean         float32 `json:"noise_mean" db:"noise_mean"`
+	NoiseStDev        float32 `json:"noise_stdev" db:"noise_stdev"`
 	FalseWarningProb  float32 `json:"false_warning_prob" db:"false_warning_prob"`
 	MissingDangerProb float32 `json:"missing_danger_prob" db:"missing_danger_prob"`
 	CreatedAt         string  `json:"created_at" db:"created_at"`
