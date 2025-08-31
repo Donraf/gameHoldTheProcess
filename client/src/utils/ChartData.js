@@ -162,8 +162,11 @@ export class ChartData {
     }
     let gain_coef = this.parSet.gain_coef;
     let time_const = this.parSet.time_const;
-    let noise_coef = this.parSet.noise_coef;
-    let newVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const)) + (Math.random() * 2 - 1) * noise_coef;
+    let noise_mean = this.parSet.noise_mean;
+    let noise_stdev = this.parSet.stdev;
+    let baseVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
+    let noise = gaussianRandom(noise_mean, noise_stdev);
+    let newVal = baseVal + noise;
     if (newVal < 0) newVal = 0;
     return new Point(this.curIndex, newVal, this.score);
   }
@@ -374,17 +377,19 @@ export class ChartData {
     this._updateScores();
   }
 
+  // TODO for normal distribution
   getCrashProb() {
-    if (this.parSet === null) {
-      return 0;
-    }
-    let gain_coef = this.parSet.gain_coef;
-    let time_const = this.parSet.time_const;
-    let noise_coef = this.parSet.noise_coef;
-    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
-    let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
-    if (crashProb < 0) crashProb = 0;
-    return crashProb;
+    return 0;
+    // if (this.parSet === null) {
+    //   return 0;
+    // }
+    // let gain_coef = this.parSet.gain_coef;
+    // let time_const = this.parSet.time_const;
+    // let noise_coef = this.parSet.noise_coef;
+    // let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
+    // let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
+    // if (crashProb < 0) crashProb = 0;
+    // return crashProb;
   }
 }
 
@@ -454,4 +459,13 @@ function getGradientColor(start_color, end_color, percent) {
   if (diff_blue.length === 1) diff_blue = "0" + diff_blue;
 
   return "#" + diff_red + diff_green + diff_blue + "40";
+}
+
+// Standard Normal variate using Box-Muller transform.
+function gaussianRandom(mean = 0, stdev = 0.03) {
+  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+  const v = Math.random();
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean;
 }
