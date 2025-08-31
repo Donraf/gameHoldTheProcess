@@ -1,15 +1,22 @@
 import { COLORS } from "./constants";
 
 export class ChartData {
-  bonusStep = 0;
-  bonusRejectIncorrectAdvice = 800;
-  bonusAcceptCorrectAdvice = 200;
-  bonusCorrectStopNoAdvice = 800;
-  penaltyRejectCorrectAdvice = 800;
-  penaltyAcceptIncorrectAdvice = 800;
-  penaltyIncorrectStopNoAdvice = 800;
-  penaltyExplosionNoAdvice = 600;
-  penaltyPause = 50;
+  // Бонусы
+  bonusRejectIncorrectAdviceNoCheck = 3000; // Бонус за отклонение ложной тревоги от ИИ (без проверки)
+  bonusRejectIncorrectAdviceWithCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ (после проверки)
+  bonusAcceptCorrectAdviceNoCheck = 50; // Бонус за принятие правильного совета ИИ (без проверки)
+  bonusAcceptCorrectAdviceWithCheck = 30; // Бонус за принятие правильного совета ИИ (после проверки)
+  bonusCorrectStopNoAdviceNoCheck = 3000; // Бонус за правильный останов без совета ИИ (без проверки)
+  bonusCorrectStopNoAdviceWithCheck = 2000; // Бонус за правильный останов без совета ИИ (после проверки)
+  // Штрафы
+  penaltyRejectCorrectAdviceNoCheck = 3000; // Штраф взрыва при отклонении правильного совета ИИ (без проверки)
+  penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ (после проверки)
+  penaltyAcceptIncorrectAdviceNoCheck = 500; // Штраф остановки при ложной тревоге от ИИ (без проверки)
+  penaltyAcceptIncorrectAdviceWithCheck = 1000; // Штраф остановки при ложной тревоге от ИИ (после проверки)
+  penaltyIncorrectStopNoAdviceNoCheck = 500; // Штраф за неправильный останов без совета ИИ (без проверки)
+  penaltyIncorrectStopNoAdviceWithCheck = 1000; // Штраф за неправильный останов без совета ИИ (после проверки)
+  penaltyExplosionNoAdvice = 1000; // Штраф взрыва без совета совета ИИ (пропуск цели оператором)
+  penaltyPause = 50; // Штраф за паузу
 
   constructor(
     maxPointsToShow = 30, // Сколько точек показывать на графике
@@ -40,11 +47,14 @@ export class ChartData {
   generateNextPoint() {
     if (this.wasFakeAlert) {
       this.wasFakeAlert = false;
-      this.score += this.bonusRejectIncorrectAdvice;
+      if (this.points[this.points.length - this.checkDangerNum - 1].is_check) {
+        this.score += this.bonusRejectIncorrectAdviceWithCheck;
+      } else {
+        this.score += this.bonusRejectIncorrectAdviceNoCheck;
+      }
     }
     this.points.push(this.generatePoint());
     this.curIndex += 1;
-    this.score += this.bonusStep;
     let pointsToShow;
     if (this.points.length > this.maxPointsInSet) {
       pointsToShow = this.points.slice(-this.maxPointsInSet, -this.checkDangerNum);
@@ -278,23 +288,32 @@ export class ChartData {
   }
 
   changeEndGameScore() {
-    if (this.wasExplosion && this.wasRealAlert) {
-      this.score -= this.penaltyRejectCorrectAdvice;
+    const hintUsed = this.points[this.points.length - this.checkDangerNum - 1].is_check;
+
+    if (this.wasExplosion && this.wasRealAlert && hintUsed) {
+      this.score -= this.penaltyRejectCorrectAdviceWithCheck;
+    } else if (this.wasExplosion && this.wasRealAlert && !hintUsed) {
+      this.score -= this.penaltyRejectCorrectAdviceNoCheck;
     } else if (this.wasExplosion && !this.wasRealAlert) {
       this.score -= this.penaltyExplosionNoAdvice;
-    } else if (this.wasManualStop && this.isRealDanger()) {
-      if (this.wasRealAlert) {
-        this.score += this.bonusAcceptCorrectAdvice;
-      } else {
-        this.score += this.bonusCorrectStopNoAdvice;
-      }
-    } else if (this.wasManualStop && !this.isRealDanger()) {
-      if (this.wasFakeAlert) {
-        this.score -= this.penaltyAcceptIncorrectAdvice;
-      } else {
-        this.score -= this.penaltyIncorrectStopNoAdvice;
-      }
+    } else if (this.wasManualStop && this.isRealDanger() && this.wasRealAlert && hintUsed) {
+      this.score += this.bonusAcceptCorrectAdviceWithCheck;
+    } else if (this.wasManualStop && this.isRealDanger() && this.wasRealAlert && !hintUsed) {
+      this.score += this.bonusAcceptCorrectAdviceNoCheck;
+    } else if (this.wasManualStop && this.isRealDanger() && !this.wasRealAlert && hintUsed) {
+      this.score += this.bonusCorrectStopNoAdviceWithCheck;
+    } else if (this.wasManualStop && this.isRealDanger() && !this.wasRealAlert && !hintUsed) {
+      this.score += this.bonusCorrectStopNoAdviceNoCheck;
+    } else if (this.wasManualStop && !this.isRealDanger() && this.wasFakeAlert && hintUsed) {
+      this.score -= this.penaltyAcceptIncorrectAdviceWithCheck;
+    } else if (this.wasManualStop && !this.isRealDanger() && this.wasFakeAlert && !hintUsed) {
+      this.score -= this.penaltyAcceptIncorrectAdviceNoCheck;
+    } else if (this.wasManualStop && !this.isRealDanger() && !this.wasFakeAlert && hintUsed) {
+      this.score -= this.penaltyIncorrectStopNoAdviceWithCheck;
+    } else if (this.wasManualStop && !this.isRealDanger() && !this.wasFakeAlert && !hintUsed) {
+      this.score -= this.penaltyIncorrectStopNoAdviceNoCheck;
     }
+
     this._updateScores();
   }
 

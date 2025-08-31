@@ -502,11 +502,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CurrentSession");
-                chart.chartData.chartHintUsed(200);
-                changeScore(-200);
+                chart.chartData.chartHintUsed(10);
+                changeScore(-10);
               }}
             >
-              Показать всю текущую сессию (200 очков)
+              Показать всю текущую сессию (10 очков)
             </Button>
             <Button
               sx={{
@@ -516,11 +516,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("AllSessions");
-                chart.chartData.chartHintUsed(600);
-                changeScore(-600);
+                chart.chartData.chartHintUsed(20);
+                changeScore(-20);
               }}
             >
-              Показать все свои предыдущие сессии (600 очков)
+              Показать все свои предыдущие сессии (20 очков)
             </Button>
             <Button
               sx={{
@@ -530,11 +530,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(600);
-                changeScore(-600);
+                chart.chartData.chartHintUsed(10000);
+                changeScore(-10000);
               }}
             >
-              Рассчитать вероятность взрыва (600 очков)
+              Рассчитать вероятность взрыва (10000 очков)
             </Button>
           </>
         );
