@@ -63,103 +63,8 @@ export class ChartData {
       pointsToShow = this.points.slice(0, end);
     }
 
-    this.data = {
-      labels: pointsToShow.map((point) => {
-        return point.x;
-      }),
-      datasets: [
-        {
-          type: "line",
-          label: "Значение процесса",
-          borderColor: function (context) {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) {
-              // This case happens on initial chart load
-              return;
-            }
-            return getGradient(ctx, chartArea);
-          },
-          borderWidth: 4,
-          backgroundColor: function (ctx) {
-            const val = ctx.dataset.data[ctx.dataset.data.length - 1];
-            if (val <= 0.5) {
-              return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
-            } else {
-              return getGradientColor(
-                COLORS.graphGradientMiddle,
-                COLORS.graphGradientHigh,
-                Math.min(1, (val - 0.5) / 0.4)
-              );
-            }
-          },
-          fill: true,
-          data: pointsToShow.map((point) => {
-            return point.y;
-          }),
-        },
-        {
-          type: "line",
-          label: "Критическое значение процесса",
-          pointStyle: false,
-          borderColor: COLORS.graphCriticalValue,
-          borderWidth: 4,
-          fill: false,
-          data: pointsToShow.map(() => {
-            return this.criticalValue;
-          }),
-        },
-      ],
-    };
-
-    this.fullData = {
-      labels: this.points.slice(0, -this.checkDangerNum).map((point) => {
-        return point.x;
-      }),
-      datasets: [
-        {
-          type: "line",
-          label: "Значение процесса",
-          borderColor: function (context) {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) {
-              // This case happens on initial chart load
-              return;
-            }
-            return getGradient(ctx, chartArea);
-          },
-          borderWidth: 4,
-          backgroundColor: function (ctx) {
-            const val = ctx.dataset.data[ctx.dataset.data.length - 1];
-            if (val <= 0.5) {
-              return getGradientColor(COLORS.graphGradientLow, COLORS.graphGradientMiddle, val / 0.5);
-            } else {
-              return getGradientColor(
-                COLORS.graphGradientMiddle,
-                COLORS.graphGradientHigh,
-                Math.min(1, (val - 0.5) / 0.4)
-              );
-            }
-          },
-          fill: true,
-          data: this.points.slice(0, -this.checkDangerNum).map((point) => {
-            return point.y;
-          }),
-        },
-        {
-          type: "line",
-          label: "Критическое значение процесса",
-          pointStyle: false,
-          borderColor: COLORS.graphCriticalValue,
-          borderWidth: 4,
-          fill: false,
-          data: this.points.slice(0, -this.checkDangerNum).map(() => {
-            return this.criticalValue;
-          }),
-        },
-      ],
-    };
+    this.data = this.formData(pointsToShow);
+    this.fullData = this.formData(this.points.slice(0, -this.checkDangerNum));
   }
 
   /*
@@ -334,8 +239,39 @@ export class ChartData {
       newPoints.push(newPoint);
     }
 
-    this.data = {
-      labels: newPoints.map((point) => {
+    this.data = this.formData(newPoints);
+  }
+
+  setParSet(parSet) {
+    this.parSet = parSet;
+    this.missingDangerProb = parSet.missing_danger_prob;
+    this.falseWarningProb = parSet.false_warning_prob;
+    this.restart();
+  }
+
+  setScore(score) {
+    this.score = score;
+    this._updateScores();
+  }
+
+  // TODO for normal distribution
+  getCrashProb() {
+    return 0;
+    // if (this.parSet === null) {
+    //   return 0;
+    // }
+    // let gain_coef = this.parSet.gain_coef;
+    // let time_const = this.parSet.time_const;
+    // let noise_coef = this.parSet.noise_coef;
+    // let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
+    // let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
+    // if (crashProb < 0) crashProb = 0;
+    // return crashProb;
+  }
+
+  formData(dataPoints) {
+    return {
+      labels: dataPoints.map((point) => {
         return point.x;
       }),
       datasets: [
@@ -365,7 +301,7 @@ export class ChartData {
             }
           },
           fill: true,
-          data: newPoints.map((point) => {
+          data: dataPoints.map((point) => {
             return point.y;
           }),
         },
@@ -376,39 +312,12 @@ export class ChartData {
           borderColor: COLORS.graphCriticalValue,
           borderWidth: 4,
           fill: false,
-          data: newPoints.map(() => {
+          data: dataPoints.map(() => {
             return this.criticalValue;
           }),
         },
       ],
     };
-  }
-
-  setParSet(parSet) {
-    this.parSet = parSet;
-    this.missingDangerProb = parSet.missing_danger_prob;
-    this.falseWarningProb = parSet.false_warning_prob;
-    this.restart();
-  }
-
-  setScore(score) {
-    this.score = score;
-    this._updateScores();
-  }
-
-  // TODO for normal distribution
-  getCrashProb() {
-    return 0;
-    // if (this.parSet === null) {
-    //   return 0;
-    // }
-    // let gain_coef = this.parSet.gain_coef;
-    // let time_const = this.parSet.time_const;
-    // let noise_coef = this.parSet.noise_coef;
-    // let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
-    // let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
-    // if (crashProb < 0) crashProb = 0;
-    // return crashProb;
   }
 }
 

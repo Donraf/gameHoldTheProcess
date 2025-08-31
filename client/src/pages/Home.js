@@ -323,7 +323,13 @@ const Home = observer(() => {
             >
               Вся текущая сессия
             </Typography>
-            <Chart ref={fullChartRef} options={options} data={chart.chartData.fullData} />
+            <Chart
+              ref={fullChartRef}
+              options={options}
+              data={chart.chartData.formData(
+                chart.chartData.points.slice(chart.chartData.maxPointsToShow, -chart.chartData.checkDangerNum)
+              )}
+            />
             <Button
               sx={{
                 color: "#FFFFFF",
@@ -649,7 +655,7 @@ const Home = observer(() => {
           open={isHintModalOpened}
           onClose={handleCloseHintModal}
         >
-          <ModalContent  sx={{ width: 800 }}>{renderHintModal(chosenHint)}</ModalContent>
+          <ModalContent sx={{ width: 800 }}>{renderHintModal(chosenHint)}</ModalContent>
         </Modal>
         <Container sx={{ width: "95%" }}>
           <Chart ref={chartRef} options={options} data={chart.chartData.data} />
@@ -808,7 +814,7 @@ const Home = observer(() => {
             zIndex: 5500,
             top: "50%",
             left: "50%",
-            transform: "translate(-50%, -50%)", 
+            transform: "translate(-50%, -50%)",
             display: "flex",
             padding: "0.75rem",
             borderRadius: "12px",
