@@ -45,7 +45,6 @@ const ResearcherUser = () => {
   const filterData = async (updatePage) => {
     let filteredDataFromQuery;
     filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId);
-    console.log(filteredDataFromQuery);
     //   setPageCount(newPageCount);
     //   if (updatePage) setPage(1);
     setFilteredData(filteredDataFromQuery);
