@@ -58,6 +58,37 @@ func (i *GetAllParSetsInput) Validate() error {
 	return nil
 }
 
+type CreateParSetInput struct {
+	GainCoef          float32 `json:"gain_coef" db:"gain_coef"`
+	TimeConst         float32 `json:"time_const" db:"time_const"`
+	NoiseMean         float32 `json:"noise_mean" db:"noise_mean"`
+	NoiseStdev        float32 `json:"noise_stdev" db:"noise_stdev"`
+	FalseWarningProb  float32 `json:"false_warning_prob" db:"false_warning_prob"`
+	MissingDangerProb float32 `json:"missing_danger_prob" db:"missing_danger_prob"`
+}
+
+func (i *CreateParSetInput) Validate() error {
+	if i.GainCoef < 0 {
+		return errors.New("gain coefficient is less than zero")
+	}
+	if i.TimeConst < 0 {
+		return errors.New("time constant is less than zero")
+	}
+	if i.NoiseMean < 0 {
+		return errors.New("noise mean is less than zero")
+	}
+	if i.NoiseStdev < 0 {
+		return errors.New("noise standard deviation is less than zero")
+	}
+	if i.FalseWarningProb < 0 {
+		return errors.New("false warning probability is less than zero")
+	}
+	if i.MissingDangerProb < 0 {
+		return errors.New("missing danger probability is less than zero")
+	}
+	return nil
+}
+
 type Point struct {
 	Id                  int     `json:"id" db:"id"`
 	X                   float32 `json:"x" db:"x"`

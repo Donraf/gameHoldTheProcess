@@ -123,3 +123,16 @@ func (p *ChartPostgres) GetParSetsCount() (int, error) {
 
 	return parSetsCount, nil
 }
+
+func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, error) {
+	var id int
+	query := fmt.Sprintf("INSERT INTO %s (gain_coef, time_const, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id", parameterSetsTable)
+
+	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	row := p.db.QueryRow(query, input.GainCoef, input.TimeConst, input.NoiseMean, input.NoiseStdev, input.FalseWarningProb, input.MissingDangerProb, timeNow)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}

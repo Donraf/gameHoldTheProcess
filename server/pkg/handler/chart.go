@@ -184,3 +184,27 @@ func (h *Handler) getParSetsPageCount(c *gin.Context) {
 		PageCount: pageCount,
 	})
 }
+
+func (h *Handler) createParSet(c *gin.Context) {
+	var input gameServer.CreateParSetInput
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := h.services.Chart.CreateParSet(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]any{
+		"id": id,
+	})
+}

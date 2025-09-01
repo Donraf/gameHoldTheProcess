@@ -66,3 +66,7 @@ func (s *ChartService) GetParSetsPageCount() (int, error) {
 	pageCount := int(math.Ceil(float64(parSetsCount) / defaultPageLimit))
 	return pageCount, nil
 }
+
+func (s *ChartService) CreateParSet(input gameServer.CreateParSetInput) (int, error) {
+	return s.repo.CreateParSet(input)
+}
