@@ -20,6 +20,7 @@ type User interface {
 	CreateGroup(input gameServer.CreateGroupInput) (int, error)
 	GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error)
 	GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error)
+	GetPlayersPointsWithEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.Point, error)
 }
 
 type Chart interface {

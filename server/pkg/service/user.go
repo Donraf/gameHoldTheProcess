@@ -16,6 +16,14 @@ import (
 const (
 	tokenTTL         = 6 * time.Hour
 	defaultPageLimit = 9
+	// Виды событий в игре
+	eventCrash             = "Взрыв"
+	eventUsefulAiSignal    = "Верный совет ИИ"
+	eventDeceptiveAiSignal = "Ложный совет ИИ"
+	eventStop              = "Ручная остановка"
+	eventPause             = "Пауза"
+	eventCheck             = "Использована подсказка"
+	eventRejectAdvice      = "Отклонение совета ИИ"
 )
 
 type TokenClaims struct {
@@ -169,4 +177,49 @@ func (u *UserService) GetPlayersPageCount(input gameServer.GetPlayersPageCountIn
 
 	pageCount := int(math.Ceil(float64(playersCount) / defaultPageLimit))
 	return pageCount, nil
+}
+
+func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.PlayerEvent, error) {
+	points, err := u.repo.GetPlayersPointsWithEvents(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var events []gameServer.PlayerEvent
+
+	for ind, point := range points {
+		playerEvent := gameServer.PlayerEvent{Y: float64(point.Y)}
+		if point.IsUsefulAiSignal {
+			playerEvent.Name = append(playerEvent.Name, eventUsefulAiSignal)
+		}
+		if point.IsDeceptiveAiSignal {
+			playerEvent.Name = append(playerEvent.Name, eventDeceptiveAiSignal)
+		}
+		if point.IsUsefulAiSignal &&
+			ind+1 < len(points) &&
+			points[ind+1].ChartId == point.ChartId &&
+			points[ind+1].IsCrash {
+			playerEvent.Name = append(playerEvent.Name, eventRejectAdvice)
+		}
+		if point.IsDeceptiveAiSignal &&
+			ind+1 < len(points) &&
+			points[ind+1].ChartId == point.ChartId {
+			playerEvent.Name = append(playerEvent.Name, eventRejectAdvice)
+		}
+		if point.IsPause {
+			playerEvent.Name = append(playerEvent.Name, eventPause)
+		}
+		if point.IsCheck {
+			playerEvent.Name = append(playerEvent.Name, eventCheck)
+		}
+		if point.IsStop {
+			playerEvent.Name = append(playerEvent.Name, eventStop)
+		}
+		if point.IsCrash {
+			playerEvent.Name = append(playerEvent.Name, eventCrash)
+		}
+		events = append(events, playerEvent)
+	}
+
+	return events, nil
 }

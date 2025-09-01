@@ -354,3 +354,30 @@ func (h *Handler) getPlayersPageCount(c *gin.Context) {
 		PageCount: pageCount,
 	})
 }
+
+type getPlayersEventsResponse struct {
+	Data []gameServer.PlayerEvent `json:"data"`
+}
+
+func (h *Handler) getPlayersEvents(c *gin.Context) {
+	var input gameServer.GetPlayersEventsInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	events, err := h.services.User.GetPlayersEvents(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getPlayersEventsResponse{
+		Data: events,
+	})
+}

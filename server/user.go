@@ -26,10 +26,16 @@ type Group struct {
 }
 
 type PlayerStat struct {
+	Id          int            `json:"id" db:"user_id"`
 	Name        string         `json:"name" db:"name"`
 	Login       string         `json:"login" db:"login"`
 	CurParSetId int            `json:"cur_par_set_id" db:"cur_par_set_id"`
 	ParSets     []ParameterSet `json:"par_sets"`
+}
+
+type PlayerEvent struct {
+	Name []string `json:"name"`
+	Y    float64  `json:"x" db:"x"`
 }
 
 type RegisterUserInput struct {
@@ -139,4 +145,21 @@ func (i *GetPlayersStatInput) Validate() error {
 type GetPlayersPageCountInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`
+}
+
+type GetPlayersEventsInput struct {
+	UserId    int  `json:"user_id" db:"user_id"`
+	ParSetId  int  `json:"par_set_id" db:"id"`
+	IsGrouped bool `json:"is_grouped"`
+	// CurrentPage int  `json:"current_page"`
+}
+
+func (i *GetPlayersEventsInput) Validate() error {
+	if i.UserId <= 0 {
+		return errors.New("user id is equal or less than zero")
+	}
+	if i.ParSetId <= 0 {
+		return errors.New("parameter set id is equal or less than zero")
+	}
+	return nil
 }

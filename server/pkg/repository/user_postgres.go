@@ -282,14 +282,13 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 			return nil, err
 		}
 		playerStats = append(playerStats, gameServer.PlayerStat{
+			Id:          user.Id,
 			Name:        user.Name,
 			Login:       user.Login,
 			CurParSetId: user.CurParSetId,
 			ParSets:     parSets,
 		})
 	}
-
-	fmt.Println("playerStats: ", playerStats)
 
 	return playerStats, err
 }
@@ -329,4 +328,24 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 	}
 
 	return playersCount, nil
+}
+
+func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.Point, error) {
+	var points []gameServer.Point
+	query := fmt.Sprintf(`
+	SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+	FROM %s
+	WHERE chart_id IN ( 
+		SELECT id
+		FROM %s
+		WHERE user_id = $1
+		  AND parameter_set_id = $2
+	)
+	  AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
+	ORDER BY chart_id, x ASC
+	`, pointsTable, chartsTable)
+
+	err := u.db.Select(&points, query, input.UserId, input.ParSetId)
+
+	return points, err
 }
