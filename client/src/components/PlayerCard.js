@@ -14,8 +14,9 @@ import {
   Filler,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { COLORS } from "../utils/constants";
+import { COLORS, RESEARCHER_USER_ROUTE } from "../utils/constants";
 import AddIcon from "./icons/AddIcon";
+import { useNavigate } from "react-router-dom";
 
 ChartJS.register(
   LineController,
@@ -60,6 +61,7 @@ function createChartData(parSet) {
 }
 
 export default function PlayerCard({ player }) {
+  const navigate = useNavigate();
   const chartRef = useRef < ChartJS > null;
   let chartData = createChartData(player.par_sets.find((set) => set.id === player.cur_par_set_id));
   const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
@@ -126,6 +128,20 @@ export default function PlayerCard({ player }) {
         </Stack>
 
         <Divider component="div" />
+
+        <Button
+          variant="outlined"
+          sx={{
+            color: "#FFFFFF",
+            height: "50%",
+            backgroundColor: COLORS.mainTheme,
+            flexGrow: 1,
+          }}
+          onClick={() => {navigate(RESEARCHER_USER_ROUTE, {state:{player:player}});}}
+          startIcon={<AddIcon />}
+        >
+          Посмотреть статистику
+        </Button>
 
         <Stack paddingTop={2} width={"100%"} direction="row" gap={1}>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold", flexGrow: 9 }} component="div">

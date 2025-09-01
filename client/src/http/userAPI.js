@@ -179,3 +179,19 @@ export const getPlayersPageCount = async (filterTag = null, filterValue = null) 
     throw e;
   }
 };
+
+export const getPlayersEvents = async (userId, parSetId, isGrouped = false) => {
+  try {
+    const { data } = await $authHost.post("api/user/playersEvents", {
+      user_id: userId,
+      par_set_id: parSetId,
+      is_grouped: isGrouped,
+    });
+    if (data.data === null || data.data.length === 0) {
+      return [];
+    }
+    return data.data;
+  } catch (e) {
+    throw e;
+  }
+};

@@ -10,6 +10,7 @@ export const ADMIN_PARSET_ROUTE = ADMIN_ROUTE + "/parSet";
 export const USER_PROFILE_ROUTE = "/profile";
 
 export const RESEARCHER_ROOM_ROUTE = "/researcher";
+export const RESEARCHER_USER_ROUTE = RESEARCHER_ROOM_ROUTE + "/user";
 
 // User roles
 export const USER_ROLE_USER = "User";
