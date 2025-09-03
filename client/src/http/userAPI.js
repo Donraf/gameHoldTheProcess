@@ -180,13 +180,13 @@ export const getPlayersPageCount = async (filterTag = null, filterValue = null) 
   }
 };
 
-export const getPlayersEvents = async (userId, parSetId, page, isGrouped = false) => {
+export const getPlayersEvents = async (userId, parSetId, page, groupedBy) => {
   try {
     const { data } = await $authHost.post("api/user/playersEvents", {
       user_id: userId,
       par_set_id: parSetId,
       current_page: page,
-      is_grouped: isGrouped,
+      grouped_by: groupedBy,
     });
     if (data.data === null || data.data.length === 0) {
       return [];
@@ -197,11 +197,12 @@ export const getPlayersEvents = async (userId, parSetId, page, isGrouped = false
   }
 };
 
-export const getPlayersEventsPageCount = async (userId, parSetId) => {
+export const getPlayersEventsPageCount = async (userId, parSetId, groupedBy) => {
   try {
     const pageCount = await $authHost.post("api/user/playersEventsPageCount", {
       user_id: userId,
       par_set_id: parSetId,
+      grouped_by: groupedBy,
     });
     return pageCount.data.pageCount;
   } catch (e) {

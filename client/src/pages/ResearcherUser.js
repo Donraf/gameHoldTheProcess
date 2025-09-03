@@ -27,6 +27,15 @@ const ResearcherUser = () => {
   const [filteredData, setFilteredData] = useState(null);
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
+  const [selectedGroup, setSelectedGroup] = React.useState("Все события");
+
+  const eventTypeMap = new Map([
+    ["Все события",""],
+    ["Ручная остановка","stop"],
+    ["Пауза","pause"],
+    ["Использована подсказка","check"],
+    ["Отклонение совета ИИ","reject_advice"],
+  ])
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -40,12 +49,12 @@ const ResearcherUser = () => {
     filterData(true).then(() => {
       setIsDataFetched(true);
     });
-  }, [selectedParSetId]);
+  }, [selectedParSetId, selectedGroup]);
 
   const filterData = async (updatePage) => {
     let filteredDataFromQuery;
-    filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId, page);
-    let newPageCount = await getPlayersEventsPageCount(location.state.player.id, selectedParSetId);
+    filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId, page, eventTypeMap.get(selectedGroup));
+    let newPageCount = await getPlayersEventsPageCount(location.state.player.id, selectedParSetId, eventTypeMap.get(selectedGroup));
     setPageCount(newPageCount);
     if (updatePage) setPage(1);
     setFilteredData(filteredDataFromQuery);
@@ -73,6 +82,22 @@ const ResearcherUser = () => {
             onChange={(_, newValue) => {
               const newSelectedParSetId = newValue ? newValue.id : 0;
               setSelectedParSetId(newSelectedParSetId);
+            }}
+            disableClearable
+            sx={{
+              flexGrow: 9,
+            }}
+          />
+          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            Вид события:
+          </Typography>
+          <Autocomplete
+            options={Array.from(eventTypeMap.keys())}
+            renderInput={(params) => <TextField {...params} label="Выберите вид события" />}
+            value={selectedGroup}
+            onChange={(_, newValue) => {
+              const newSelectedGroup = newValue ? newValue : "";
+              setSelectedGroup(newSelectedGroup)
             }}
             disableClearable
             sx={{
