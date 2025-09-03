@@ -116,6 +116,8 @@ const Home = observer(() => {
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
   const [crashProb, setCrashProb] = React.useState(0);
 
+  const [updateParSet, setUpdateParSet] = React.useState(true);
+
   const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
 
   const containerRef = React.useRef(null);
@@ -165,6 +167,12 @@ const Home = observer(() => {
     });
   };
 
+  const triggerUpdateParSet = () => {
+    setUpdateParSet((prevState) => {
+      return !prevState;
+    });
+  };
+
   useEffect(() => {
     if (!isChartPaused) {
       const interval = setInterval(() => {
@@ -179,6 +187,7 @@ const Home = observer(() => {
             user.user.user_id,
             chart.chartData.parSet.id
           );
+          triggerUpdateParSet();
           chart.chartData.restart();
           setIsHintModalOpened(false);
           triggerWrongChoiceAnim();
@@ -220,6 +229,7 @@ const Home = observer(() => {
         user.user.user_id,
         chart.chartData.parSet.id
       );
+      triggerUpdateParSet();
       chart.chartData.restart();
       changeScore(chart.chartData.score - oldScore);
       setIsHintModalOpened(false);
@@ -288,7 +298,7 @@ const Home = observer(() => {
         });
       });
     }
-  }, []);
+  }, [updateParSet]);
 
   const moveToNextHintChart = async () => {
     if (curHintChartNum >= countHintCharts) return;
