@@ -180,17 +180,30 @@ export const getPlayersPageCount = async (filterTag = null, filterValue = null) 
   }
 };
 
-export const getPlayersEvents = async (userId, parSetId, isGrouped = false) => {
+export const getPlayersEvents = async (userId, parSetId, page, isGrouped = false) => {
   try {
     const { data } = await $authHost.post("api/user/playersEvents", {
       user_id: userId,
       par_set_id: parSetId,
+      current_page: page,
       is_grouped: isGrouped,
     });
     if (data.data === null || data.data.length === 0) {
       return [];
     }
     return data.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const getPlayersEventsPageCount = async (userId, parSetId) => {
+  try {
+    const pageCount = await $authHost.post("api/user/playersEventsPageCount", {
+      user_id: userId,
+      par_set_id: parSetId,
+    });
+    return pageCount.data.pageCount;
   } catch (e) {
     throw e;
   }

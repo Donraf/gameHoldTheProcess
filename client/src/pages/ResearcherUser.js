@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import { getPlayersEvents } from "../http/userAPI";
+import { getPlayersEvents, getPlayersEventsPageCount } from "../http/userAPI";
 import { useLocation } from "react-router-dom";
 
 const ResearcherUser = () => {
@@ -28,12 +28,12 @@ const ResearcherUser = () => {
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
-  //   useEffect(() => {
-  //     setIsDataFetched(false);
-  //     filterData(false).then(() => {
-  //       setIsDataFetched(true);
-  //     });
-  //   }, [page]);
+  useEffect(() => {
+    setIsDataFetched(false);
+    filterData(false).then(() => {
+      setIsDataFetched(true);
+    });
+  }, [page]);
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -44,9 +44,10 @@ const ResearcherUser = () => {
 
   const filterData = async (updatePage) => {
     let filteredDataFromQuery;
-    filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId);
-    //   setPageCount(newPageCount);
-    //   if (updatePage) setPage(1);
+    filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId, page);
+    let newPageCount = await getPlayersEventsPageCount(location.state.player.id, selectedParSetId);
+    setPageCount(newPageCount);
+    if (updatePage) setPage(1);
     setFilteredData(filteredDataFromQuery);
   };
 
@@ -60,7 +61,7 @@ const ResearcherUser = () => {
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             ФИО игрока: {location.state.player.name}
           </Typography>
-          
+
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Набор параметров:
           </Typography>
