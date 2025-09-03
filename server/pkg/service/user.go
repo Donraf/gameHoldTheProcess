@@ -223,3 +223,7 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 
 	return events, nil
 }
+
+func (u *UserService) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {
+	return u.repo.UpdateUserParSet(id, input)
+}

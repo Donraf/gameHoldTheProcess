@@ -349,3 +349,27 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 
 	return points, err
 }
+
+func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET cur_par_set_id = $1 WHERE user_id=$2", usersTable)
+	_, err = tx.Exec(query, input.ParSetId, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", userParameterSetsTable)
+	_, err = tx.Exec(query, 1000, id, input.ParSetId, timeNow)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}

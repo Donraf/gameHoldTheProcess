@@ -43,6 +43,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/playersStat", h.checkResearcherRole, h.getPlayersStat)
 				userAuth.POST("/playersPageCount", h.checkResearcherRole, h.getPlayersPageCount)
 				userAuth.POST("/playersEvents", h.checkResearcherRole, h.getPlayersEvents)
+				userAuth.PUT("/:id/parSet", h.checkResearcherRole, h.updateUserParSet)
 			}
 		}
 

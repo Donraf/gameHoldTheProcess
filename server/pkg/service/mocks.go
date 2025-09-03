@@ -1050,6 +1050,63 @@ func (_c *MockUser_UpdateUser_Call) RunAndReturn(run func(id int, input gameServ
 	return _c
 }
 
+// UpdateUserParSet provides a mock function for the type MockUser
+func (_mock *MockUser) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {
+	ret := _mock.Called(id, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserParSet")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(int, gameServer.UpdateUserParSetInput) error); ok {
+		r0 = returnFunc(id, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUser_UpdateUserParSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUserParSet'
+type MockUser_UpdateUserParSet_Call struct {
+	*mock.Call
+}
+
+// UpdateUserParSet is a helper method to define mock.On call
+//   - id int
+//   - input gameServer.UpdateUserParSetInput
+func (_e *MockUser_Expecter) UpdateUserParSet(id interface{}, input interface{}) *MockUser_UpdateUserParSet_Call {
+	return &MockUser_UpdateUserParSet_Call{Call: _e.mock.On("UpdateUserParSet", id, input)}
+}
+
+func (_c *MockUser_UpdateUserParSet_Call) Run(run func(id int, input gameServer.UpdateUserParSetInput)) *MockUser_UpdateUserParSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 int
+		if args[0] != nil {
+			arg0 = args[0].(int)
+		}
+		var arg1 gameServer.UpdateUserParSetInput
+		if args[1] != nil {
+			arg1 = args[1].(gameServer.UpdateUserParSetInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUser_UpdateUserParSet_Call) Return(err error) *MockUser_UpdateUserParSet_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUser_UpdateUserParSet_Call) RunAndReturn(run func(id int, input gameServer.UpdateUserParSetInput) error) *MockUser_UpdateUserParSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockChart creates a new instance of MockChart. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockChart(t interface {
