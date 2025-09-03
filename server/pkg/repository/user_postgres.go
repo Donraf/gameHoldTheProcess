@@ -332,19 +332,91 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 
 func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.Point, error) {
 	var points []gameServer.Point
-	query := fmt.Sprintf(`
-	SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
-	FROM %s
-	WHERE chart_id IN ( 
-		SELECT id
-		FROM %s
-		WHERE user_id = $1
-		  AND parameter_set_id = $2
-	)
-	  AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
-	ORDER BY chart_id, x ASC
-	OFFSET %v LIMIT 20
-	`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+	var query string
+
+	switch input.GroupedBy {
+	case "stop":
+		{
+			query = fmt.Sprintf(`
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_stop
+				ORDER BY chart_id, x ASC
+				OFFSET %v LIMIT 20
+			`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+		}
+	case "pause":
+		{
+			query = fmt.Sprintf(`
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_pause
+				ORDER BY chart_id, x ASC
+				OFFSET %v LIMIT 20
+			`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+		}
+	case "check":
+		{
+			query = fmt.Sprintf(`
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_check
+				ORDER BY chart_id, x ASC
+				OFFSET %v LIMIT 20
+			`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+		}
+	case "reject_advice":
+		{
+			query = fmt.Sprintf(`
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND (is_useful_ai_signal OR is_deceptive_ai_signal)
+				AND NOT is_stop
+				ORDER BY chart_id, x ASC
+				OFFSET %v LIMIT 20
+			`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+		}
+	default:
+		{
+			query = fmt.Sprintf(`
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
+				ORDER BY chart_id, x ASC
+				OFFSET %v LIMIT 20
+			`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
+		}
+	}
 
 	err := u.db.Select(&points, query, input.UserId, input.ParSetId)
 
@@ -353,17 +425,81 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 
 func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error) {
 	var eventsCount int
-	query := fmt.Sprintf(`
-	SELECT COUNT(*)
-	FROM %s
-	WHERE chart_id IN ( 
-		SELECT id
-		FROM %s
-		WHERE user_id = $1
-		  AND parameter_set_id = $2
-	)
-	  AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
-	`, pointsTable, chartsTable)
+	var query string
+
+	switch input.GroupedBy {
+	case "stop":
+		{
+			query = fmt.Sprintf(`
+				SELECT COUNT(*)
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_stop
+			`, pointsTable, chartsTable)
+		}
+	case "pause":
+		{
+			query = fmt.Sprintf(`
+				SELECT COUNT(*)
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_pause
+			`, pointsTable, chartsTable)
+		}
+	case "check":
+		{
+			query = fmt.Sprintf(`
+				SELECT COUNT(*)
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND is_check
+			`, pointsTable, chartsTable)
+		}
+	case "reject_advice":
+		{
+			query = fmt.Sprintf(`
+				SELECT COUNT(*)
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND (is_useful_ai_signal OR is_deceptive_ai_signal)
+				AND NOT is_stop
+			`, pointsTable, chartsTable)
+		}
+	default:
+		{
+			query = fmt.Sprintf(`
+				SELECT COUNT(*)
+				FROM %s
+				WHERE chart_id IN ( 
+					SELECT id
+					FROM %s
+					WHERE user_id = $1
+					AND parameter_set_id = $2
+				)
+				AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
+			`, pointsTable, chartsTable)
+		}
+	}
 
 	row := u.db.QueryRow(query, input.UserId, input.ParSetId)
 	if err := row.Scan(&eventsCount); err != nil {

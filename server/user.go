@@ -159,10 +159,10 @@ type GetPlayersPageCountInput struct {
 }
 
 type GetPlayersEventsInput struct {
-	UserId      int  `json:"user_id" db:"user_id"`
-	ParSetId    int  `json:"par_set_id" db:"id"`
-	IsGrouped   bool `json:"is_grouped"`
-	CurrentPage int  `json:"current_page"`
+	UserId      int    `json:"user_id" db:"user_id"`
+	ParSetId    int    `json:"par_set_id" db:"id"`
+	GroupedBy   string `json:"grouped_by"`
+	CurrentPage int    `json:"current_page"`
 }
 
 func (i *GetPlayersEventsInput) Validate() error {
@@ -176,6 +176,7 @@ func (i *GetPlayersEventsInput) Validate() error {
 }
 
 type GetPlayersEventsPageCountInput struct {
-	UserId   int `json:"user_id" db:"user_id"`
-	ParSetId int `json:"par_set_id" db:"id"`
+	UserId    int    `json:"user_id" db:"user_id"`
+	ParSetId  int    `json:"par_set_id" db:"id"`
+	GroupedBy string `json:"grouped_by"`
 }

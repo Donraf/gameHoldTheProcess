@@ -188,7 +188,7 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 
 	var events []gameServer.PlayerEvent
 
-	for ind, point := range points {
+	for _, point := range points {
 		playerEvent := gameServer.PlayerEvent{Y: float64(point.Y)}
 		if point.IsUsefulAiSignal {
 			playerEvent.Name = append(playerEvent.Name, eventUsefulAiSignal)
@@ -196,15 +196,10 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 		if point.IsDeceptiveAiSignal {
 			playerEvent.Name = append(playerEvent.Name, eventDeceptiveAiSignal)
 		}
-		if point.IsUsefulAiSignal &&
-			ind+1 < len(points) &&
-			points[ind+1].ChartId == point.ChartId &&
-			points[ind+1].IsCrash {
+		if point.IsUsefulAiSignal && !point.IsStop {
 			playerEvent.Name = append(playerEvent.Name, eventRejectAdvice)
 		}
-		if point.IsDeceptiveAiSignal &&
-			ind+1 < len(points) &&
-			points[ind+1].ChartId == point.ChartId {
+		if point.IsDeceptiveAiSignal && !point.IsStop {
 			playerEvent.Name = append(playerEvent.Name, eventRejectAdvice)
 		}
 		if point.IsPause {
