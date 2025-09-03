@@ -90,8 +90,8 @@ const ResearcherUser = () => {
                 {isDataFetched ? (
                   filteredData.map((event) => (
                     <TableRow key={event.x} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell component="th" scope="row">
-                        {event.x}
+                      <TableCell width={60} component="th" scope="row">
+                        {event.x.toFixed(2)}
                       </TableCell>
                       <TableCell>{event.name.join(" | ")}</TableCell>
                     </TableRow>

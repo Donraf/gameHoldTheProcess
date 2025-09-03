@@ -1,6 +1,24 @@
-import { Autocomplete, Box, Button, Card, Divider, Stack, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Card,
+  Divider,
+  Modal,
+  Pagination,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { ChartData } from "../utils/ChartData";
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   LineController,
@@ -17,6 +35,15 @@ import { Chart } from "react-chartjs-2";
 import { COLORS, RESEARCHER_USER_ROUTE } from "../utils/constants";
 import AddIcon from "./icons/AddIcon";
 import { useNavigate } from "react-router-dom";
+import { ModalContent } from "./ModalContent";
+import { getParSets, getParSetsPageCount } from "../http/graphAPI";
+import dateFormat from "dateformat";
+import { updateUser, updateUserParSet } from "../http/userAPI";
+import { enqueueSnackbar, useSnackbar } from "notistack";
+import ChangeIcon from "./icons/ChangeIcon";
+import StatisticsIcon from "./icons/StatisticsIcon";
+import RadioCheckedIcon from "./icons/RadioCheckedIcon";
+import RadioUncheckedIcon from "./icons/RadioUncheckedIcon";
 
 ChartJS.register(
   LineController,
@@ -54,7 +81,7 @@ export const options = {
 function createChartData(parSet) {
   let chartData = new ChartData(0);
   chartData.setParSet(parSet);
-  while (!chartData.isCrashed()) {
+  while (!chartData.isCrashed() && chartData.points.length <= 200) {
     chartData.generateNextPoint();
   }
   return chartData.fullData;
@@ -62,10 +89,75 @@ function createChartData(parSet) {
 
 export default function PlayerCard({ player }) {
   const navigate = useNavigate();
+  const [isDataFetched, setIsDataFetched] = useState(false);
+  const [filteredData, setFilteredData] = useState(null);
+  const [page, setPage] = React.useState(1);
+  const [pageCount, setPageCount] = React.useState(1);
+
   const chartRef = useRef < ChartJS > null;
-  let chartData = createChartData(player.par_sets.find((set) => set.id === player.cur_par_set_id));
   const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
-  const [filterInput, setFilterInput] = React.useState(player.cur_par_set_id);
+
+  let chartData = isDataFetched ? createChartData(filteredData.find((set) => set.id === selectedParSetId)) : null;
+
+  const [isChangeParSetModalOpened, setIsChangeParSetModalOpened] = React.useState(false);
+  const handleOpenChangeParSetModal = () => setIsChangeParSetModalOpened(true);
+  const handleCloseChangeParSetModal = () => setIsChangeParSetModalOpened(false);
+
+  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
+  const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    snackErrTexts.map((text) =>
+      enqueueSnackbar(text, {
+        variant: "error",
+        autoHideDuration: 3000,
+        preventDuplicate: true,
+      })
+    );
+  }, [snackErrTexts]);
+
+  useEffect(() => {
+    setIsDataFetched(false);
+    getParSetsUI().then(() => {
+      setIsDataFetched(true);
+    });
+  }, [page]);
+
+  const getParSetsUI = async () => {
+    const filteredDataFromQuery = await getParSets();
+    const newPageCount = await getParSetsPageCount();
+    setPageCount(newPageCount);
+    setFilteredData(filteredDataFromQuery);
+  };
+
+  const updateUserUi = () => {
+    let snackErrors = [];
+    if (selectedParSetId === player.cur_par_set_id) {
+      snackErrors.push("Игрок уже играет с этим набором параметров");
+    }
+    if (snackErrors.length !== 0) {
+      setSnackErrTexts(snackErrors);
+      return;
+    }
+
+    updateUserParSet(player.id, selectedParSetId).then(
+      (_) => {
+        enqueueSnackbar("Набор параметров обновлен", {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        player.cur_par_set_id = selectedParSetId;
+      },
+      (_) => {
+        enqueueSnackbar("Ошибка при обновлении набора параметров", {
+          variant: "error",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+      }
+    );
+  };
 
   return (
     <Card sx={{ padding: "12px" }}>
@@ -74,44 +166,33 @@ export default function PlayerCard({ player }) {
           {player ? player.name : ""}
         </Typography>
 
-        <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
+        <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
           Логин: {player ? player.login : ""}
         </Typography>
 
         <Divider component="div" />
-        <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
-          <Stack width={"80%"} direction="column">
-            <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-              Текущий набор параметров (№{player ? player.cur_par_set_id : ""}):
+
+        <Stack width={"80%"} direction="column">
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Текущий набор параметров:
             </Typography>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Коэффициент помех:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === player.cur_par_set_id).noise_coef : ""}
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Коэффициент усиления:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === player.cur_par_set_id).gain_coef : ""}
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Константа времени:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === player.cur_par_set_id).time_const : ""}
-              </Typography>
-            </Stack>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              №{player ? player.cur_par_set_id : ""}
+            </Typography>
           </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Количество сыгранных игр в сессии:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              ???
+            </Typography>
+          </Stack>
+        </Stack>
+
+        <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Button
             variant="outlined"
             sx={{
@@ -120,146 +201,124 @@ export default function PlayerCard({ player }) {
               backgroundColor: COLORS.mainTheme,
               flexGrow: 1,
             }}
-            onClick={() => {}}
-            startIcon={<AddIcon />}
+            onClick={() => {
+              navigate(RESEARCHER_USER_ROUTE, { state: { player: player } });
+            }}
+            startIcon={<StatisticsIcon />}
+          >
+            Посмотреть статистику
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{
+              color: "#FFFFFF",
+              height: "50%",
+              backgroundColor: COLORS.mainTheme,
+              flexGrow: 1,
+            }}
+            onClick={() => {
+              handleOpenChangeParSetModal();
+            }}
+            startIcon={<ChangeIcon />}
           >
             Изменить набор параметров
           </Button>
         </Stack>
-
-        <Divider component="div" />
-
-        <Button
-          variant="outlined"
-          sx={{
-            color: "#FFFFFF",
-            height: "50%",
-            backgroundColor: COLORS.mainTheme,
-            flexGrow: 1,
-          }}
-          onClick={() => {navigate(RESEARCHER_USER_ROUTE, {state:{player:player}});}}
-          startIcon={<AddIcon />}
-        >
-          Посмотреть статистику
-        </Button>
-
-        <Stack paddingTop={2} width={"100%"} direction="row" gap={1}>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold", flexGrow: 9 }} component="div">
-            Статистика игрока
-          </Typography>
-          <Autocomplete
-            options={player.par_sets}
-            getOptionLabel={(parSet) => parSet.id.toString()}
-            renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
-            value={player.par_sets.find((parSet) => parSet.id === selectedParSetId) || null}
-            onChange={(_, newValue) => {
-              const newSelectedParSetId = newValue ? newValue.id : 0;
-              setSelectedParSetId(newSelectedParSetId);
-              setFilterInput(newSelectedParSetId);
-            }}
-            disableClearable
-            sx={{
-              flexGrow: 9,
-            }}
-          />
-        </Stack>
-        {<Chart ref={chartRef} options={options} data={chartData} />}
-        <Stack width={"100%"} direction="row">
-          <Stack width={"100%"} direction="column">
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Коэффициент помех:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === selectedParSetId).noise_coef : ""}
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Коэффициент усиления:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === selectedParSetId).gain_coef : ""}
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Константа времени:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                {player ? player.par_sets.find((set) => set.id === selectedParSetId).time_const : ""}
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Вероятность ложной тревоги:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.05
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Вероятность пропуска цели:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.1
-              </Typography>
-            </Stack>
-          </Stack>
-
-          <Stack width={"100%"} direction="column">
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Сыграно игр:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                50
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Останавливает после сигнала ИИ:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.85
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Продолжает после сигнала ИИ:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.8
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Останавливает без сигнала ИИ:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.86
-              </Typography>
-            </Stack>
-
-            <Stack width={"100%"} direction="row" spacing={0.5}>
-              <Typography sx={{ color: "#8390A3", fontSize: 14, fontWeight: "medium" }} component="div">
-                Ставит на паузу:
-              </Typography>
-              <Typography sx={{ color: "#232E4A", fontSize: 14, fontWeight: "bold" }} component="div">
-                0.83
-              </Typography>
-            </Stack>
-          </Stack>
-        </Stack>
       </Stack>
+
+      <Modal
+        sx={{
+          position: "fixed",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        open={isChangeParSetModalOpened}
+        onClose={handleCloseChangeParSetModal}
+      >
+        <ModalContent sx={{ width: 800 }}>
+          <Typography variant="h4" noWrap component="div">
+            Выберите новый набор параметров
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell />
+                  <TableCell>ID</TableCell>
+                  <TableCell>Коэф. усиления</TableCell>
+                  <TableCell>Константа времени</TableCell>
+                  <TableCell>Мат. ожидание помехи</TableCell>
+                  <TableCell>Стандартное отклонение помехи</TableCell>
+                  <TableCell>Вероятность ложной тревоги</TableCell>
+                  <TableCell>Вероятность пропуска цели</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isDataFetched ? (
+                  filteredData.map((parSet) => (
+                    <TableRow
+                      key={parSet.id}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      onClick={() => {
+                        setSelectedParSetId(parSet.id);
+                      }}
+                    >
+                      <TableCell>
+                        {(() => {
+                          if (parSet.id === player.cur_par_set_id) {
+                            return <>Текущий</>;
+                          } else if (parSet.id === selectedParSetId) {
+                            return <RadioCheckedIcon />;
+                          } else {
+                            return <RadioUncheckedIcon />;
+                          }
+                        })()}
+                      </TableCell>
+                      <TableCell component="th" scope="row">
+                        {parSet.id}
+                      </TableCell>
+                      <TableCell>{parSet.gain_coef}</TableCell>
+                      <TableCell>{parSet.time_const}</TableCell>
+                      <TableCell>{parSet.noise_mean}</TableCell>
+                      <TableCell>{parSet.noise_stdev}</TableCell>
+                      <TableCell>{parSet.false_warning_prob}</TableCell>
+                      <TableCell>{parSet.missing_danger_prob}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <></>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {isDataFetched ? (
+            <Pagination
+              sx={{ pt: "16px" }}
+              count={pageCount}
+              page={page}
+              onChange={(event, value) => {
+                setPage(value);
+              }}
+              variant="outlined"
+              shape="rounded"
+            />
+          ) : (
+            <></>
+          )}
+          {isDataFetched ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
+          <Button
+            sx={{ width: "fit-content", height: "40px" }}
+            variant="contained"
+            onClick={() => {
+              updateUserUi();
+            }}
+          >
+            Обновить набор параметров
+          </Button>
+        </ModalContent>
+      </Modal>
     </Card>
   );
 }

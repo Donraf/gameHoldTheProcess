@@ -188,7 +188,8 @@ const AdminParset = () => {
                   <TableCell>ID</TableCell>
                   <TableCell>Коэффициент усиления</TableCell>
                   <TableCell>Константа времени</TableCell>
-                  <TableCell>Коэффициент помех</TableCell>
+                  <TableCell>Математическое ожидание помехи</TableCell>
+                  <TableCell>Стандартное отклонение помехи</TableCell>
                   <TableCell>Вероятность ложной тревоги</TableCell>
                   <TableCell>Вероятность пропуска цели</TableCell>
                   <TableCell>Время добавления</TableCell>
@@ -210,7 +211,8 @@ const AdminParset = () => {
                       </TableCell>
                       <TableCell>{parSet.gain_coef}</TableCell>
                       <TableCell>{parSet.time_const}</TableCell>
-                      <TableCell>{parSet.noise_coef}</TableCell>
+                      <TableCell>{parSet.noise_mean}</TableCell>
+                      <TableCell>{parSet.noise_stdev}</TableCell>
                       <TableCell>{parSet.false_warning_prob}</TableCell>
                       <TableCell>{parSet.missing_danger_prob}</TableCell>
                       <TableCell>{dateFormat(parSet.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>

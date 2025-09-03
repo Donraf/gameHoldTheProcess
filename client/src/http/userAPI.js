@@ -195,3 +195,14 @@ export const getPlayersEvents = async (userId, parSetId, isGrouped = false) => {
     throw e;
   }
 };
+
+export const updateUserParSet = async (userId, parSetId) => {
+  try {
+    const { data } = await $authHost.put(`api/user/${userId}/parSet`, {
+      par_set_id: parSetId,
+    });
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
