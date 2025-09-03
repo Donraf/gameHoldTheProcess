@@ -72,7 +72,7 @@ export class ChartData {
    * Переходная функция звена первого порядка + шум.
    * */
   generatePoint() {
-    if (this.parSet === null) {
+    if (this.curIndex === 0 || this.parSet === null) {
       return new Point(this.curIndex, 0, this.score);
     }
     let gain_coef = this.parSet.gain_coef;
