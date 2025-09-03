@@ -116,6 +116,8 @@ const Home = observer(() => {
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
   const [crashProb, setCrashProb] = React.useState(0);
 
+  const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
+
   const containerRef = React.useRef(null);
 
   const speedOptions = [0.5, 1, 1.5, 2];
@@ -157,6 +159,12 @@ const Home = observer(() => {
     }
   };
 
+  const triggerWrongChoiceAnim = () => {
+    setWrongChoiceAnim((prevState) => {
+      return !prevState;
+    });
+  };
+
   useEffect(() => {
     if (!isChartPaused) {
       const interval = setInterval(() => {
@@ -173,6 +181,7 @@ const Home = observer(() => {
           );
           chart.chartData.restart();
           setIsHintModalOpened(false);
+          triggerWrongChoiceAnim();
           playWrongChoiceSound();
           enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {
             variant: "error",
@@ -190,6 +199,7 @@ const Home = observer(() => {
           if (chart.chartData.score > oldScore) {
             playRightChoiceSound();
           } else if (chart.chartData.score < oldScore) {
+            triggerWrongChoiceAnim();
             playWrongChoiceSound();
           }
         }
@@ -216,6 +226,7 @@ const Home = observer(() => {
       setIsChartStopped(false);
       setIsChartPaused(true);
       if (!isStopNeeded) {
+        triggerWrongChoiceAnim();
         playWrongChoiceSound();
         enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {
           variant: "error",
@@ -658,7 +669,13 @@ const Home = observer(() => {
           <ModalContent sx={{ width: 800 }}>{renderHintModal(chosenHint)}</ModalContent>
         </Modal>
         <Container sx={{ width: "95%" }}>
-          <Chart ref={chartRef} options={options} data={chart.chartData.data} />
+          <Chart
+            onAnimationEnd={triggerWrongChoiceAnim}
+            className={wrongChoiceAnim ? "crash" : ""}
+            ref={chartRef}
+            options={options}
+            data={chart.chartData.data}
+          />
           {user.isAuth ? (
             <>
               {isChartPaused && chart.chartData.data.labels.length === 0 ? (

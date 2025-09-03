@@ -45,3 +45,14 @@
     outline-color: rgba(237, 8, 0, 0);
   }
 }
+
+.crash {
+  animation: glowing 1500ms;
+}
+
+@keyframes glowing {
+  50% {
+    background-color: #ff000055;
+    box-shadow: 0 0 120px #ff0000;
+  }
+}
