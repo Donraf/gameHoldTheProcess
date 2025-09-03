@@ -409,3 +409,25 @@ func (h *Handler) updateUserParSet(c *gin.Context) {
 		Status: "ok",
 	})
 }
+
+type getPlayersEventsPageCountResponse struct {
+	PageCount int `json:"pageCount"`
+}
+
+func (h *Handler) getPlayersEventsPageCount(c *gin.Context) {
+	var input gameServer.GetPlayersEventsPageCountInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	pageCount, err := h.services.User.GetPlayersEventsPageCount(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getPlayersEventsPageCountResponse{
+		PageCount: pageCount,
+	})
+}

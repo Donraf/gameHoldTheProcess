@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	tokenTTL         = 6 * time.Hour
-	defaultPageLimit = 9
+	tokenTTL              = 6 * time.Hour
+	defaultPageLimit      = 9
+	playerEventsPageLimit = 20
 	// Виды событий в игре
 	eventCrash             = "Взрыв"
 	eventUsefulAiSignal    = "Верный совет ИИ"
@@ -222,6 +223,16 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 	}
 
 	return events, nil
+}
+
+func (u *UserService) GetPlayersEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error) {
+	eventsCount, err := u.repo.GetPlayersPointsWithEventsPageCount(input)
+	if err != nil {
+		return 0, nil
+	}
+
+	pageCount := int(math.Ceil(float64(eventsCount) / playerEventsPageLimit))
+	return pageCount, nil
 }
 
 func (u *UserService) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {

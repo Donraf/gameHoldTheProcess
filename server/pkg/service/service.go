@@ -23,6 +23,7 @@ type User interface {
 	GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error)
 	GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error)
 	GetPlayersEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.PlayerEvent, error)
+	GetPlayersEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error)
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
 }
 

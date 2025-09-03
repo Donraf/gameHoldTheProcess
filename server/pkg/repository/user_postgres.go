@@ -343,11 +343,34 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	)
 	  AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
 	ORDER BY chart_id, x ASC
-	`, pointsTable, chartsTable)
+	OFFSET %v LIMIT 20
+	`, pointsTable, chartsTable, (input.CurrentPage-1)*20)
 
 	err := u.db.Select(&points, query, input.UserId, input.ParSetId)
 
 	return points, err
+}
+
+func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error) {
+	var eventsCount int
+	query := fmt.Sprintf(`
+	SELECT COUNT(*)
+	FROM %s
+	WHERE chart_id IN ( 
+		SELECT id
+		FROM %s
+		WHERE user_id = $1
+		  AND parameter_set_id = $2
+	)
+	  AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
+	`, pointsTable, chartsTable)
+
+	row := u.db.QueryRow(query, input.UserId, input.ParSetId)
+	if err := row.Scan(&eventsCount); err != nil {
+		return 0, err
+	}
+
+	return eventsCount, nil
 }
 
 func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {
