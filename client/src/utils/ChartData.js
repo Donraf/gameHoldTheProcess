@@ -78,7 +78,7 @@ export class ChartData {
     let gain_coef = this.parSet.gain_coef;
     let time_const = this.parSet.time_const;
     let noise_mean = this.parSet.noise_mean;
-    let noise_stdev = this.parSet.stdev;
+    let noise_stdev = this.parSet.noise_stdev;
     let baseVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
     let noise = gaussianRandom(noise_mean, noise_stdev);
     let newVal = baseVal + noise;
@@ -254,19 +254,18 @@ export class ChartData {
     this._updateScores();
   }
 
-  // TODO for normal distribution
   getCrashProb() {
-    return 0;
-    // if (this.parSet === null) {
-    //   return 0;
-    // }
-    // let gain_coef = this.parSet.gain_coef;
-    // let time_const = this.parSet.time_const;
-    // let noise_coef = this.parSet.noise_coef;
-    // let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
-    // let crashProb = ((knownPart + noise_coef - this.criticalValue) / (2 * noise_coef)) * 100;
-    // if (crashProb < 0) crashProb = 0;
-    // return crashProb;
+    if (this.parSet === null) {
+      return 0;
+    }
+    var cdf = require("@stdlib/stats-base-dists-normal-cdf");
+    let gain_coef = this.parSet.gain_coef;
+    let time_const = this.parSet.time_const;
+    let noise_mean = this.parSet.noise_mean;
+    let noise_stdev = this.parSet.noise_stdev;
+    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
+    let crashProb = (1 - cdf(this.criticalValue - knownPart, noise_mean, noise_stdev)) * 100;
+    return crashProb;
   }
 
   formData(dataPoints) {
