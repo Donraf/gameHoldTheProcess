@@ -287,6 +287,7 @@ const Home = observer(() => {
         chart.chartData.setParSet(parSet);
         return parSet;
       }
+      let oldScore = chart.chartData.score;
       updateParSet().then((parSet) => {
         async function updateScore() {
           const score = await getScore(user.user.user_id, parSet.id);
@@ -294,7 +295,9 @@ const Home = observer(() => {
           return score;
         }
         updateScore().then((score) => {
-          changeScore(score);
+          if (score !== oldScore) {
+            changeScore(score - oldScore);
+          }
         });
       });
     }
