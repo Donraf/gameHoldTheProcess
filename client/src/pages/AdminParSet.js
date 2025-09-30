@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import dateFormat from "dateformat";
 import {
   Box,
@@ -22,6 +22,41 @@ import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import { useSnackbar } from "notistack";
 import { createParSet, getParSets, getParSetsPageCount } from "../http/graphAPI";
+import { ChartData } from "../utils/ChartData";
+import {
+  Chart as ChartJS,
+  LineController,
+  LinearScale,
+  CategoryScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Legend,
+  Tooltip,
+  Filler,
+} from "chart.js";
+import { Chart } from "react-chartjs-2";
+
+const options = {
+  animations: {
+    x: {
+      duration: 1000,
+    },
+    y: {
+      duration: 0,
+    },
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      min: 0,
+      max: 1,
+    },
+  },
+  plugins: {
+    legend: false,
+  },
+};
 
 const AdminParset = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
@@ -36,6 +71,10 @@ const AdminParset = () => {
   const [falseWarningProb, setFalseWarningProb] = React.useState(-1);
   const [missingDangerProb, setMissingDangerProb] = React.useState(-1);
 
+  const [parSetShowTrigger, setParSetShowTrigger] = useState(false);
+  const chartRef = useRef < ChartJS > null;
+  const [chartData, setChartData] = useState(null);
+
   const [updateTrigger, setUpdateTrigger] = useState(false);
 
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
@@ -47,6 +86,16 @@ const AdminParset = () => {
       setIsDataFetched(true);
     });
   }, [page, updateTrigger]);
+
+  const triggerUpdateParSet = () => {
+    setParSetShowTrigger((prevState) => {
+      return !prevState;
+    });
+  };
+
+  useEffect(() => {
+    createChartData();
+  }, [parSetShowTrigger]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -115,6 +164,27 @@ const AdminParset = () => {
     setFilteredData(filteredDataFromQuery);
   };
 
+  function createChartData() {
+    if (gainCoef < 0 || timeConst < 0 || noiseMean < 0 || noiseStdev < 0) {
+      setChartData(null);
+      return;
+    }
+    let parSet = {
+      gain_coef: gainCoef,
+      time_const: timeConst,
+      noise_mean: noiseMean,
+      noise_stdev: noiseStdev,
+      false_warning_prob: 0,
+      missing_danger_prob: 0
+    }
+    let newChartData = new ChartData(0);
+    newChartData.setParSet(parSet);
+    while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
+      newChartData.generateNextPoint();
+    }
+    setChartData(newChartData.fullData);
+  }
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -176,6 +246,12 @@ const AdminParset = () => {
           <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {addParSet()}}>
             Добавить набор параметров
           </Button>
+
+          <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {triggerUpdateParSet()}}>
+            Посмотреть возможный ход процесса
+          </Button>
+
+          {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
 
           <Typography variant="h4" noWrap component="div">
             Изменение набора параметров

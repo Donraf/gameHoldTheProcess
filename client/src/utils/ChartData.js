@@ -81,7 +81,7 @@ export class ChartData {
     let noise_stdev = this.parSet.noise_stdev;
     let baseVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
     let noise = gaussianRandom(noise_mean, noise_stdev);
-    let newVal = baseVal + noise;
+    let newVal = parseFloat(baseVal) + parseFloat(noise);
     if (newVal < 0) newVal = 0;
     return new Point(this.curIndex, newVal, this.score);
   }
