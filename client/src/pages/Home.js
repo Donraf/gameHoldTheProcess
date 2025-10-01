@@ -115,6 +115,7 @@ const Home = observer(() => {
   const [curLocalHintChartNum, setCurLocalHintChartNum] = React.useState(1);
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
   const [crashProb, setCrashProb] = React.useState(0);
+  const [endGameCause, setEndGameCause] = React.useState("");
 
   const [updateParSet, setUpdateParSet] = React.useState(true);
 
@@ -303,6 +304,49 @@ const Home = observer(() => {
     }
   }, [updateParSet]);
 
+  useEffect(() => {
+    if (hintCharts.length <= 0) {
+      return
+    }
+    let newCause = ""
+    for (let i = 0; i < hintCharts[curLocalHintChartNum].points.length; i++) {
+      if (hintCharts[curLocalHintChartNum].points[i].is_stop) {
+        if (i-1 < 0) {
+          newCause = "Остановка без предупреждения от ИИ (неправильная)"
+          break
+        }
+        if (hintCharts[curLocalHintChartNum].points[i-1].is_useful_ai_signal) {
+          newCause = "Остановка после правильного предупреждения от ИИ"
+        } else if (hintCharts[curLocalHintChartNum].points[i-1].is_deceptive_ai_signal) {
+          newCause = "Остановка после неправильного предупреждения от ИИ"
+        } else {
+          if (i + 1 >= hintCharts[curLocalHintChartNum].points.length) {
+            break
+          }
+          if (hintCharts[curLocalHintChartNum].points[i+1].y >= chart.chartData.criticalValue) {
+            newCause = "Остановка без предупреждения от ИИ (правильная)"
+          } else {
+            newCause = "Остановка без предупреждения от ИИ (неправильная)"
+          }
+        }
+        break
+      }
+      if (hintCharts[curLocalHintChartNum].points[i].is_crash) {
+        if (i-1 < 0) {
+          newCause = "Взрыв без предупреждения от ИИ"
+          break
+        }
+        if (hintCharts[curLocalHintChartNum].points[i-1].is_useful_ai_signal) {
+          newCause = "Взрыв после отклонения правильного предупреждения от ИИ"
+        } else {
+          newCause = "Взрыв без предупреждения от ИИ"
+        }
+        break
+      }
+    }
+    setEndGameCause(newCause)
+  }, [curLocalHintChartNum]);
+
   const moveToNextHintChart = async () => {
     if (curHintChartNum >= countHintCharts) return;
     setCurHintChartNum(curHintChartNum + 1);
@@ -390,6 +434,13 @@ const Home = observer(() => {
                   }}
                 >
                   Игровая сессия {transformToUiDateDayTime(hintCharts[curLocalHintChartNum].createdAt)}
+                </Typography>
+                <Typography
+                  sx={{
+                    userSelect: "none",
+                  }}
+                >
+                  Причина завершения: {endGameCause}
                 </Typography>
                 <Chart ref={fullChartRef} options={options} data={chartData.data} />
               </>
