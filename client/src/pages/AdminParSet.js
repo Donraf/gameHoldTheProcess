@@ -3,6 +3,7 @@ import dateFormat from "dateformat";
 import {
   Box,
   Button,
+  Container,
   CssBaseline,
   Pagination,
   Paper,
@@ -64,8 +65,8 @@ const AdminParset = () => {
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
-  const [gainCoef, setGainCoef] = React.useState(-1);
-  const [timeConst, setTimeConst] = React.useState(-1);
+  const [a, setA] = React.useState(-1);
+  const [b, setB] = React.useState(-1);
   const [noiseMean, setNoiseMean] = React.useState(-1);
   const [noiseStdev, setNoiseStdev] = React.useState(-1);
   const [falseWarningProb, setFalseWarningProb] = React.useState(-1);
@@ -109,10 +110,10 @@ const AdminParset = () => {
 
     const addParSet = () => {
       let snackErrors = [];
-      if (gainCoef === -1) {
+      if (a === -1) {
         snackErrors.push("Введите коэффициент усиления");
       }
-      if (timeConst === -1) {
+      if (b === -1) {
         snackErrors.push("Введите константу времени");
       }
       if (noiseMean === -1) {
@@ -132,15 +133,15 @@ const AdminParset = () => {
         return;
       }
   
-      createParSet(gainCoef, timeConst, noiseMean, noiseStdev, falseWarningProb, missingDangerProb).then(
+      createParSet(a, b, noiseMean, noiseStdev, falseWarningProb, missingDangerProb).then(
         (_) => {
           enqueueSnackbar("Пользователь добавлен", {
             variant: "success",
             autoHideDuration: 3000,
             preventDuplicate: true,
           });
-          setGainCoef(-1);
-          setTimeConst(-1);
+          setA(-1);
+          setB(-1);
           setNoiseMean(-1);
           setNoiseStdev(-1);
           setFalseWarningProb(-1);
@@ -165,13 +166,13 @@ const AdminParset = () => {
   };
 
   function createChartData() {
-    if (gainCoef < 0 || timeConst < 0 || noiseMean < 0 || noiseStdev < 0) {
+    if (a < 0 || b < 0 || noiseMean < 0 || noiseStdev < 0) {
       setChartData(null);
       return;
     }
     let parSet = {
-      gain_coef: gainCoef,
-      time_const: timeConst,
+      a: a,
+      b: b,
       noise_mean: noiseMean,
       noise_stdev: noiseStdev,
       false_warning_prob: 0,
@@ -192,57 +193,66 @@ const AdminParset = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
+          <Stack width={"100%"} direction="row" spacing={2}>
+          <Stack width={"100%"} direction="column" spacing={2}>
           <Typography variant="h4" noWrap component="div">
-            Добавление набора параметров
-          </Typography>
-          <TextField
-            onChange={(event) => {setGainCoef(event.target.value);}}
-            value={gainCoef}
-            id="gain-coef-field"
-            label="Введите коэффициент усиления"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {setTimeConst(event.target.value);}}
-            value={timeConst}
-            id="time-const-field"
-            label="Введите константу времени"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {setNoiseMean(event.target.value);}}
-            value={noiseMean}
-            id="noise-mean-field"
-            label="Введите математическое ожидание помехи"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {setNoiseStdev(event.target.value);}}
-            value={noiseStdev}
-            id="noise-stdev-field"
-            label="Введите стандартное отклонение помехи"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {setFalseWarningProb(event.target.value);}}
-            value={falseWarningProb}
-            id="false-warning-prob-field"
-            label="Введите вероятность ложной тревоги"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {setMissingDangerProb(event.target.value);}}
-            value={missingDangerProb}
-            id="missing-danger-prob-field"
-            label="Введите вероятность пропуска цели"
-            required={true}
-            variant="outlined"
-          />
+              Добавление набора параметров
+            </Typography>
+            <TextField
+              onChange={(event) => {setA(event.target.value);}}
+              value={a}
+              id="a-coef-field"
+              label="Введите коэффициент a"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {setB(event.target.value);}}
+              value={b}
+              id="b-coef-field"
+              label="Введите коэффициент b"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {setNoiseMean(event.target.value);}}
+              value={noiseMean}
+              id="noise-mean-field"
+              label="Введите математическое ожидание помехи"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {setNoiseStdev(event.target.value);}}
+              value={noiseStdev}
+              id="noise-stdev-field"
+              label="Введите стандартное отклонение помехи"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {setFalseWarningProb(event.target.value);}}
+              value={falseWarningProb}
+              id="false-warning-prob-field"
+              label="Введите вероятность ложной тревоги"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {setMissingDangerProb(event.target.value);}}
+              value={missingDangerProb}
+              id="missing-danger-prob-field"
+              label="Введите вероятность пропуска цели"
+              required={true}
+              variant="outlined"
+            />
+          </Stack>
+
+          <Container>
+          {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
+          </Container>
+          </Stack>
+
           <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {addParSet()}}>
             Добавить набор параметров
           </Button>
@@ -250,8 +260,6 @@ const AdminParset = () => {
           <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {triggerUpdateParSet()}}>
             Посмотреть возможный ход процесса
           </Button>
-
-          {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
 
           <Typography variant="h4" noWrap component="div">
             Изменение набора параметров
@@ -262,8 +270,8 @@ const AdminParset = () => {
                 <TableRow>
                   <TableCell />
                   <TableCell>ID</TableCell>
-                  <TableCell>Коэффициент усиления</TableCell>
-                  <TableCell>Константа времени</TableCell>
+                  <TableCell>Коэффициент a</TableCell>
+                  <TableCell>Коэффициент b</TableCell>
                   <TableCell>Математическое ожидание помехи</TableCell>
                   <TableCell>Стандартное отклонение помехи</TableCell>
                   <TableCell>Вероятность ложной тревоги</TableCell>
@@ -285,8 +293,8 @@ const AdminParset = () => {
                       <TableCell component="th" scope="row">
                         {parSet.id}
                       </TableCell>
-                      <TableCell>{parSet.gain_coef}</TableCell>
-                      <TableCell>{parSet.time_const}</TableCell>
+                      <TableCell>{parSet.a}</TableCell>
+                      <TableCell>{parSet.b}</TableCell>
                       <TableCell>{parSet.noise_mean}</TableCell>
                       <TableCell>{parSet.noise_stdev}</TableCell>
                       <TableCell>{parSet.false_warning_prob}</TableCell>

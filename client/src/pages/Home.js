@@ -611,11 +611,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(10000);
-                changeScore(-10000);
+                chart.chartData.chartHintUsed(1000);
+                changeScore(-1000);
               }}
             >
-              Рассчитать вероятность взрыва (10000 очков)
+              Рассчитать вероятность взрыва (1000 очков)
             </Button>
           </>
         );

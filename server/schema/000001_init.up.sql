@@ -71,7 +71,7 @@ CREATE TABLE Points
 
 INSERT INTO Parameter_Sets (id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at)
     VALUES 
-    (1, 0.2, 0.5, 0.1, 0.05, 0.02, 0.1, '2025-08-12 18:50:37.359879');
+    (1, 0.2, 0.5, 0.2, 0.05, 0.02, 0.1, '2025-08-12 18:50:37.359879');
 
 INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
     VALUES 

@@ -20,13 +20,14 @@ export class ChartData {
 
   constructor(
     maxPointsToShow = 30, // Сколько точек показывать на графике
-    criticalValue = 0.9, // Критическое значение процесса
+    criticalValue = 1.0, // Критическое значение процесса
     checkDangerNum = 1, // На сколько шагов вперед смотреть, чтобы выявлять опасность
     falseWarningProb = 0, // Вероятность ложной тревоги от системы ИИ
     missingDangerProb = 0, // Вероятность пропуска опасности системой ИИ
     parSet = null,
     score = 0
   ) {
+    this.U = 1.0;
     this.score = score;
     this.curIndex = 0;
     this.maxPointsToShow = maxPointsToShow;
@@ -69,20 +70,18 @@ export class ChartData {
 
   /*
    * Генерация новой точки.
-   * Переходная функция звена первого порядка + шум.
+   * Звено первого порядка + шум.
    * */
   generatePoint() {
     if (this.curIndex === 0 || this.parSet === null) {
       return new Point(this.curIndex, 0, this.score);
     }
-    let gain_coef = this.parSet.gain_coef;
-    let time_const = this.parSet.time_const;
+    let a = this.parSet.a;
+    let b = this.parSet.b;
     let noise_mean = this.parSet.noise_mean;
     let noise_stdev = this.parSet.noise_stdev;
-    let baseVal = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
     let noise = gaussianRandom(noise_mean, noise_stdev);
-    let newVal = parseFloat(baseVal) + parseFloat(noise);
-    if (newVal < 0) newVal = 0;
+    let newVal = a * this.points[this.points.length - this.checkDangerNum].y + b * this.U + parseFloat(noise)
     return new Point(this.curIndex, newVal, this.score);
   }
 
@@ -259,12 +258,12 @@ export class ChartData {
       return 0;
     }
     var cdf = require("@stdlib/stats-base-dists-normal-cdf");
-    let gain_coef = this.parSet.gain_coef;
-    let time_const = this.parSet.time_const;
+    let a = this.parSet.a;
+    let b = this.parSet.b;
     let noise_mean = this.parSet.noise_mean;
     let noise_stdev = this.parSet.noise_stdev;
-    let knownPart = gain_coef * (1 - Math.exp(-this.curIndex / time_const));
-    let crashProb = (1 - cdf(this.criticalValue - knownPart, noise_mean, noise_stdev)) * 100;
+    let knownPart = a * this.points[this.points.length - this.checkDangerNum - 1].y + b * this.U;
+    let crashProb = (1 - cdf(this.criticalValue - knownPart, parseFloat(noise_mean), parseFloat(noise_stdev))) * 100;
     return crashProb;
   }
 
@@ -309,7 +308,7 @@ export class ChartData {
           label: "Критическое значение процесса",
           pointStyle: false,
           borderColor: COLORS.graphCriticalValue,
-          borderWidth: 4,
+          borderWidth: 8,
           fill: false,
           data: dataPoints.map(() => {
             return this.criticalValue;
@@ -389,10 +388,10 @@ function getGradientColor(start_color, end_color, percent) {
 }
 
 // Standard Normal variate using Box-Muller transform.
-function gaussianRandom(mean = 0, stdev = 0.03) {
+function gaussianRandom(mean, stdev) {
   const u = 1 - Math.random(); // Converting [0,1) to (0,1]
   const v = Math.random();
   const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   // Transform to the desired mean and standard deviation:
-  return z * stdev + mean;
+  return z * parseFloat(stdev) + parseFloat(mean);
 }

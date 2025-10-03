@@ -247,8 +247,8 @@ export default function PlayerCard({ player }) {
                 <TableRow>
                   <TableCell />
                   <TableCell>ID</TableCell>
-                  <TableCell>Коэф. усиления</TableCell>
-                  <TableCell>Константа времени</TableCell>
+                  <TableCell>Коэф. a</TableCell>
+                  <TableCell>Коэф. b</TableCell>
                   <TableCell>Мат. ожидание помехи</TableCell>
                   <TableCell>Стандартное отклонение помехи</TableCell>
                   <TableCell>Вероятность ложной тревоги</TableCell>
@@ -279,8 +279,8 @@ export default function PlayerCard({ player }) {
                       <TableCell component="th" scope="row">
                         {parSet.id}
                       </TableCell>
-                      <TableCell>{parSet.gain_coef}</TableCell>
-                      <TableCell>{parSet.time_const}</TableCell>
+                      <TableCell>{parSet.a}</TableCell>
+                      <TableCell>{parSet.b}</TableCell>
                       <TableCell>{parSet.noise_mean}</TableCell>
                       <TableCell>{parSet.noise_stdev}</TableCell>
                       <TableCell>{parSet.false_warning_prob}</TableCell>

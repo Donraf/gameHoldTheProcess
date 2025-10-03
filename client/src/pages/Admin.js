@@ -67,7 +67,7 @@ const Admin = observer(() => {
                   onClick={() => {
                     for (let i = 0; i < 100; i++) {
                       let chartData = new ChartData();
-                      chartData.setParSet({ id: 1, gain_coef: 0.92, time_const: 20, noise_coef: 0.03, false_warning_prob: 0, missing_danger_prob: 0});
+                      chartData.setParSet({ id: 1, a: 0.2, b: 0.5, noise_stdev: 0.05, noise_mean:0.1, false_warning_prob: 0, missing_danger_prob: 0});
                       while (!chartData.isCrashed()) {
                         chartData.generateNextPoint();
                       }

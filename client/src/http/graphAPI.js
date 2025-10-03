@@ -109,11 +109,11 @@ export const getParSetsPageCount = async () => {
   }
 };
 
-export const createParSet = async (gainCoef, timeConst, noiseMean, noiseStdev, falseWarningProb, missingDangerProb) => {
+export const createParSet = async (a, b, noiseMean, noiseStdev, falseWarningProb, missingDangerProb) => {
   try {
     const { data } = await $authHost.post("api/chart/parSet", {
-      gain_coef: parseFloat(gainCoef),
-      time_const: parseFloat(timeConst),
+      a: parseFloat(a),
+      b: parseFloat(b),
       noise_mean: parseFloat(noiseMean),
       noise_stdev: parseFloat(noiseStdev),
       false_warning_prob: parseFloat(falseWarningProb),
