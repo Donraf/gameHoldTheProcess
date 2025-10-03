@@ -197,6 +197,9 @@ const Home = observer(() => {
             variant: "error",
             autoHideDuration: 5000,
             preventDuplicate: true,
+            style: {
+              fontSize: "18pt"
+            },
           });
         }
         if (!isDanger && chart.chartData.isDanger()) {
@@ -243,6 +246,9 @@ const Home = observer(() => {
           variant: "error",
           autoHideDuration: 5000,
           preventDuplicate: true,
+          style: {
+            fontSize: "18pt"
+          },
         });
       } else {
         playRightChoiceSound();
@@ -250,6 +256,9 @@ const Home = observer(() => {
           variant: "success",
           autoHideDuration: 5000,
           preventDuplicate: true,
+          style: {
+            fontSize: "18pt"
+          },
         });
       }
     }
