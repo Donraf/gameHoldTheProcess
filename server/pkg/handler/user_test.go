@@ -814,8 +814,8 @@ func TestHandler_getParSet(t *testing.T) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().GetParSet(idInt).Return(gameServer.ParameterSet{
 					Id:                1,
-					GainCoef:          1.1,
-					TimeConst:         1.1,
+					A:                 1.1,
+					B:                 1.1,
 					NoiseMean:         1.1,
 					NoiseStDev:        1.1,
 					FalseWarningProb:  0.1,
@@ -825,7 +825,7 @@ func TestHandler_getParSet(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"gain_coef":1.1,"time_const":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"a":1.1,"b":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"created_at":"2023-10-01T00:00:00Z"}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",

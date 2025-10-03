@@ -59,8 +59,8 @@ func (i *GetAllParSetsInput) Validate() error {
 }
 
 type CreateParSetInput struct {
-	GainCoef          float32 `json:"gain_coef" db:"gain_coef"`
-	TimeConst         float32 `json:"time_const" db:"time_const"`
+	A                 float32 `json:"a" db:"a"`
+	B                 float32 `json:"b" db:"b"`
 	NoiseMean         float32 `json:"noise_mean" db:"noise_mean"`
 	NoiseStdev        float32 `json:"noise_stdev" db:"noise_stdev"`
 	FalseWarningProb  float32 `json:"false_warning_prob" db:"false_warning_prob"`
@@ -68,11 +68,11 @@ type CreateParSetInput struct {
 }
 
 func (i *CreateParSetInput) Validate() error {
-	if i.GainCoef < 0 {
-		return errors.New("gain coefficient is less than zero")
+	if i.A < 0 {
+		return errors.New("coefficient a is less than zero")
 	}
-	if i.TimeConst < 0 {
-		return errors.New("time constant is less than zero")
+	if i.B < 0 {
+		return errors.New("coefficient b is less than zero")
 	}
 	if i.NoiseMean < 0 {
 		return errors.New("noise mean is less than zero")
@@ -132,8 +132,8 @@ type PointForCSV struct {
 
 type ParameterSet struct {
 	Id                int     `json:"id" db:"id"`
-	GainCoef          float32 `json:"gain_coef" db:"gain_coef"`
-	TimeConst         float32 `json:"time_const" db:"time_const"`
+	A                 float32 `json:"a" db:"a"`
+	B                 float32 `json:"b" db:"b"`
 	NoiseMean         float32 `json:"noise_mean" db:"noise_mean"`
 	NoiseStDev        float32 `json:"noise_stdev" db:"noise_stdev"`
 	FalseWarningProb  float32 `json:"false_warning_prob" db:"false_warning_prob"`
