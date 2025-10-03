@@ -2,6 +2,7 @@ import { COLORS } from "./constants";
 
 export class ChartData {
   // Бонусы
+  bonusStep = 10; // Бонус за шаг
   bonusRejectIncorrectAdviceNoCheck = 3000; // Бонус за отклонение ложной тревоги от ИИ (без проверки)
   bonusRejectIncorrectAdviceWithCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ (после проверки)
   bonusAcceptCorrectAdviceNoCheck = 50; // Бонус за принятие правильного совета ИИ (без проверки)
@@ -55,6 +56,9 @@ export class ChartData {
       }
     }
     this.points.push(this.generatePoint());
+    if (this.curIndex > this.checkDangerNum) {
+      this.score += this.bonusStep;
+    }
     this.curIndex += 1;
     let pointsToShow;
     if (this.points.length > this.maxPointsInSet) {

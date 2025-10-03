@@ -206,9 +206,9 @@ const Home = observer(() => {
         }
         if (chart.chartData.score !== oldScore) {
           changeScore(chart.chartData.score - oldScore);
-          if (chart.chartData.score > oldScore) {
+          if (chart.chartData.score - chart.chartData.bonusStep > oldScore) {
             playRightChoiceSound();
-          } else if (chart.chartData.score < oldScore) {
+          } else if (chart.chartData.score - chart.chartData.bonusStep < oldScore) {
             triggerWrongChoiceAnim();
             playWrongChoiceSound();
           }
@@ -616,6 +616,18 @@ const Home = observer(() => {
               }}
             >
               Рассчитать вероятность взрыва (1000 очков)
+            </Button>
+            <Button
+              sx={{
+                color: "#FFFFFF",
+                backgroundColor: "#9356A0",
+                flexGrow: 1,
+              }}
+              onClick={() => {
+                handleCloseHintModal();
+              }}
+            >
+              Назад
             </Button>
           </>
         );
