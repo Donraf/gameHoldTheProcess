@@ -37,6 +37,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.GET("/auth", h.check)
 				userAuth.GET("/parSet/:id", h.getParSet)
 				userAuth.GET("/score/:userId/:parSetId", h.getScore)
+				userAuth.GET("/userParSet/:userId/:parSetId", h.getUserParSet)
 				userAuth.GET("/:id", h.getOneUser)
 				userAuth.DELETE("/:id", h.checkAdminRole, h.deleteUser)
 				userAuth.PUT("/:id", h.checkAdminRole, h.updateUser)
@@ -45,6 +46,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/playersEvents", h.checkResearcherRole, h.getPlayersEvents)
 				userAuth.POST("/playersEventsPageCount", h.checkResearcherRole, h.getPlayersEventsPageCount)
 				userAuth.PUT("/:id/parSet", h.checkResearcherRole, h.updateUserParSet)
+				userAuth.PUT("/:id/userParSet", h.updateUserUserParSet)
 			}
 		}
 

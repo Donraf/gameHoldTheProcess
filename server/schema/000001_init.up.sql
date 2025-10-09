@@ -38,10 +38,13 @@ CREATE TABLE Parameter_Sets
 
 CREATE TABLE User_Parameter_Sets
 (
-    score            int                                NOT NULL,
-    created_at       timestamp                          NOT NULL,
-    user_id          int REFERENCES Users (user_id)     NOT NULL,
-    parameter_set_id int REFERENCES Parameter_Sets (id) NOT NULL,
+    score               int                                NOT NULL,
+    created_at          timestamp                          NOT NULL,
+    is_training         boolean                            NOT NULL,
+    training_start_time timestamp,
+    game_start_time     timestamp,
+    user_id             int REFERENCES Users (user_id)     NOT NULL,
+    parameter_set_id    int REFERENCES Parameter_Sets (id) NOT NULL,
     PRIMARY KEY (user_id, parameter_set_id)
 );
 
@@ -71,13 +74,13 @@ CREATE TABLE Points
 
 INSERT INTO Parameter_Sets (id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at)
     VALUES 
-    (1, 0.2, 0.5, 0.2, 0.05, 0.02, 0.1, '2025-08-12 18:50:37.359879');
+    (1, 0.6, 0.2, 0.18, 0.03, 0.02, 0.1, '2025-08-12 18:50:37.359879');
 
 INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
     VALUES 
     ('admin', '3977434d73306272346e626430366432396b4177374d7a473665564771474577d033e22ae348aeb5660fc2140aec35850c4da997', 'Максим', 'ADMIN', 1, '2025-08-12 18:50:37.359879');
 
-INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, created_at)
+INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, is_training, training_start_time, game_start_time, created_at)
     VALUES 
-    (1, 1, 1000, '2025-08-12 18:50:37.359879');
+    (1, 1, 1000, true, null, null, '2025-08-12 18:50:37.359879');
 

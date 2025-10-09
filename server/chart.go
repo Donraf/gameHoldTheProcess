@@ -1,6 +1,9 @@
 package gameServer
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Chart struct {
 	Id             int    `json:"id"`
@@ -142,8 +145,11 @@ type ParameterSet struct {
 }
 
 type UserParameterSet struct {
-	Score          float32 `json:"score"`
-	UserId         int     `json:"-"`
-	ParameterSetId int     `json:"-"`
-	CreatedAt      string  `json:"created_at" binding:"required" db:"created_at"`
+	Score             float32    `json:"score" db:"score"`
+	IsTraining        bool       `json:"is_training" db:"is_training"`
+	TrainingStartTime *time.Time `json:"training_start_time" db:"training_start_time"`
+	GameStartTime     *time.Time `json:"game_start_time" db:"game_start_time"`
+	UserId            int        `json:"-"`
+	ParameterSetId    int        `json:"-"`
+	CreatedAt         string     `json:"created_at" binding:"required" db:"created_at"`
 }

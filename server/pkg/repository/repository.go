@@ -15,6 +15,7 @@ type User interface {
 	GetUsersCount(input gameServer.GetUsersPageCountInput) (int, error)
 	GetParSet(id int) (gameServer.ParameterSet, error)
 	GetScore(userId, parSetId int) (int, error)
+	GetUserParameterSet(userId, parSetId int) (gameServer.UserParameterSet, error)
 	UpdateScore(input gameServer.UpdateScoreInput) error
 	GetAllGroups() ([]gameServer.Group, error)
 	CreateGroup(input gameServer.CreateGroupInput) (int, error)
@@ -23,6 +24,7 @@ type User interface {
 	GetPlayersPointsWithEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.Point, error)
 	GetPlayersPointsWithEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error)
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
+	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
 }
 
 type Chart interface {

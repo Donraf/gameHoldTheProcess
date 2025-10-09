@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Box, Button, Container, CssBaseline, Modal, Stack, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Container, CssBaseline, FormControlLabel, Modal, Stack, Switch, Toolbar, Typography } from "@mui/material";
 import {
   Chart as ChartJS,
   LineController,
@@ -30,13 +30,15 @@ import { createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount } from "..
 import { ModalContent } from "../components/ModalContent";
 import { fetchPointsByChartId } from "../http/pointAPI";
 import { ChartData } from "../utils/ChartData";
-import { transformToUiDateDayTime } from "../utils/transformDate";
-import { getParSet, getScore } from "../http/userAPI";
+import { transformToDbDateDayTime, transformToUiDateDayTime } from "../utils/transformDate";
+import { getParSet, getScore, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
 import PlayButtonIcon from "../components/icons/PlayButtonIcon";
 import StopButtonIcon from "../components/icons/StopButtonIcon";
 import TakeHintButtonIcon from "../components/icons/TakeHintButtonIcon";
 import PauseButtonIcon from "../components/icons/PauseButtonIcon";
+import { getRemTime, getRemTimeRaw, millisToMinutesAndSeconds } from "../utils/getTimeDiff";
+import Timer from "../components/Timer";
 
 ChartJS.register(
   LineController,
@@ -87,6 +89,9 @@ export const options = {
   },
 };
 
+const trainingTimeLimitMs = 15 * 60 * 1000
+const gameTimeLimitMs = 60 * 60 * 1000
+
 const Home = observer(() => {
   const chartRef = useRef < ChartJS > null;
   const fullChartRef = useRef < ChartJS > null;
@@ -96,7 +101,7 @@ const Home = observer(() => {
   const [playRightChoiceSound] = useSound(rightChoiceSound);
   const [playWrongChoiceSound] = useSound(wrongChoiceSound);
 
-  const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(false);
+  const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(true);
   const handleOpenRuleModal = () => setIsRuleModalOpened(true);
   const handleCloseRuleModal = () => setIsRuleModalOpened(false);
 
@@ -116,6 +121,26 @@ const Home = observer(() => {
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
   const [crashProb, setCrashProb] = React.useState(0);
   const [endGameCause, setEndGameCause] = React.useState("");
+
+  const [isTrainingWarnModalOpened, setIsTrainingWarnModalOpened] = React.useState(false);
+  const handleOpenTrainingWarnModal = () => setIsTrainingWarnModalOpened(true);
+  const handleCloseTrainingWarnModal = () => setIsTrainingWarnModalOpened(false);
+
+  const [userParSet, setUserParSet] = React.useState(null);
+
+  const [isTimeUp, setIsTimeUp] = React.useState(
+    userParSet != null &&
+    (
+      (
+        userParSet.is_training &&
+        getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0
+      ) ||
+      (
+        !userParSet.is_training &&
+        getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0
+      )
+    )
+  );
 
   const [updateParSet, setUpdateParSet] = React.useState(true);
 
@@ -183,24 +208,28 @@ const Home = observer(() => {
         if (chart.chartData.isCrashed()) {
           chart.chartData.chartCrashed();
           chart.chartData.changeEndGameScore();
-          createGraph(
-            chart.chartData.points.slice(chart.chartData.maxPointsToShow),
-            user.user.user_id,
-            chart.chartData.parSet.id
-          );
+          if (userParSet != null && !userParSet.is_training) {
+            createGraph(
+              chart.chartData.points.slice(chart.chartData.maxPointsToShow),
+              user.user.user_id,
+              chart.chartData.parSet.id
+            );
+          }
           triggerUpdateParSet();
           chart.chartData.restart();
           setIsHintModalOpened(false);
-          triggerWrongChoiceAnim();
-          playWrongChoiceSound();
-          enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {
-            variant: "error",
-            autoHideDuration: 5000,
-            preventDuplicate: true,
-            style: {
-              fontSize: "18pt"
-            },
-          });
+          if (!isTimeUp) {
+            triggerWrongChoiceAnim();
+            playWrongChoiceSound();
+            enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {
+              variant: "error",
+              autoHideDuration: 5000,
+              preventDuplicate: true,
+              style: {
+                fontSize: "18pt"
+              },
+            });
+          }
         }
         if (!isDanger && chart.chartData.isDanger()) {
           playAlertSound();
@@ -209,11 +238,13 @@ const Home = observer(() => {
         }
         if (chart.chartData.score !== oldScore) {
           changeScore(chart.chartData.score - oldScore);
-          if (chart.chartData.score - chart.chartData.bonusStep > oldScore) {
-            playRightChoiceSound();
-          } else if (chart.chartData.score - chart.chartData.bonusStep < oldScore) {
-            triggerWrongChoiceAnim();
-            playWrongChoiceSound();
+          if (!isTimeUp) {
+            if (chart.chartData.score - chart.chartData.bonusStep > oldScore) {
+              playRightChoiceSound();
+            } else if (chart.chartData.score - chart.chartData.bonusStep < oldScore) {
+              triggerWrongChoiceAnim();
+              playWrongChoiceSound();
+            }
           }
         }
       }, 1000 / curSpeed);
@@ -228,38 +259,42 @@ const Home = observer(() => {
       let oldScore = chart.chartData.score;
       const isStopNeeded = chart.chartData.chartStopped();
       chart.chartData.changeEndGameScore();
-      createGraph(
-        chart.chartData.points.slice(chart.chartData.maxPointsToShow),
-        user.user.user_id,
-        chart.chartData.parSet.id
-      );
+      if (userParSet != null && !userParSet.is_training && !isTimeUp) {
+        createGraph(
+          chart.chartData.points.slice(chart.chartData.maxPointsToShow),
+          user.user.user_id,
+          chart.chartData.parSet.id
+        );
+      }
       triggerUpdateParSet();
       chart.chartData.restart();
       changeScore(chart.chartData.score - oldScore);
       setIsHintModalOpened(false);
       setIsChartStopped(false);
       setIsChartPaused(true);
-      if (!isStopNeeded) {
-        triggerWrongChoiceAnim();
-        playWrongChoiceSound();
-        enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {
-          variant: "error",
-          autoHideDuration: 5000,
-          preventDuplicate: true,
-          style: {
-            fontSize: "18pt"
-          },
-        });
-      } else {
-        playRightChoiceSound();
-        enqueueSnackbar("Остановка процесса была верным решением. Получено вознаграждение!", {
-          variant: "success",
-          autoHideDuration: 5000,
-          preventDuplicate: true,
-          style: {
-            fontSize: "18pt"
-          },
-        });
+      if (!isTimeUp) {
+        if (!isStopNeeded) {
+          triggerWrongChoiceAnim();
+          playWrongChoiceSound();
+          enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {
+            variant: "error",
+            autoHideDuration: 5000,
+            preventDuplicate: true,
+            style: {
+              fontSize: "18pt"
+            },
+          });
+        } else {
+          playRightChoiceSound();
+          enqueueSnackbar("Остановка процесса была верным решением. Получено вознаграждение!", {
+            variant: "success",
+            autoHideDuration: 5000,
+            preventDuplicate: true,
+            style: {
+              fontSize: "18pt"
+            },
+          });
+        }
       }
     }
   }, [isChartStopped]);
@@ -292,22 +327,25 @@ const Home = observer(() => {
 
   useEffect(() => {
     if (user.isAuth) {
-      async function updateParSet() {
+      let oldScore = chart.chartData.score;
+      async function fetchParSet() {
         const parSet = await getParSet(user.user.user_id);
         chart.chartData.setParSet(parSet);
         return parSet;
       }
-      let oldScore = chart.chartData.score;
-      updateParSet().then((parSet) => {
-        async function updateScore() {
-          const score = await getScore(user.user.user_id, parSet.id);
-          chart.chartData.setScore(score);
-          return score;
+      fetchParSet().then((parSet) => {
+        async function fetchParSetInfo() {
+          const newUserParSet = await getUserParSet(user.user.user_id, parSet.id)
+          return newUserParSet
         }
-        updateScore().then((score) => {
-          if (score !== oldScore) {
-            changeScore(score - oldScore);
+        fetchParSetInfo().then((ups) => {
+          if (ups.score !== oldScore) {
+            if (ups !== null && !ups.is_training) {
+              chart.chartData.setScore(ups.score);
+              changeScore(ups.score - oldScore);
+            }
           }
+          setUserParSet(ups);
         });
       });
     }
@@ -386,6 +424,15 @@ const Home = observer(() => {
       return;
     }
     setCurLocalHintChartNum(curLocalHintChartNum + 1);
+  };
+
+  const updateUserParSetUi = (updateInfo) => {
+    updateInfo.par_set_id = chart.chartData.parSet.id;
+    updateUserUserParSet(user.user.user_id, updateInfo).then(
+      () => {
+        triggerUpdateParSet();
+      }
+    );
   };
 
   const renderHintModal = (chosenVariant) => {
@@ -649,6 +696,90 @@ const Home = observer(() => {
       <NavBarDrawer />
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
+        { userParSet != null && userParSet.is_training
+        ? <>
+        <Stack
+        justifyContent="center"
+        alignItems="center"
+        display="flex"
+        direction="row"
+        gap={2}
+        sx={{
+          textAlign:"center",
+          background:"orange",
+          padding:"10px",
+          marginBottom: "10px",
+          borderRadius: "10px"
+        }}
+        >
+        <Typography 
+        sx={{
+          textAlign:"center",
+        }}> Тренировочный режим. Оставшееся время:
+        </Typography>
+        {userParSet.training_start_time != null
+        ? <>
+        <Timer
+        active={userParSet.training_start_time != null }
+        deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
+        onDeadline={() => {
+          setIsTimeUp(true);
+          setIsChartPaused(true);}}
+        />
+        </>
+        : <>{millisToMinutesAndSeconds(trainingTimeLimitMs)}</>
+        }
+        <Button
+              sx={{
+                color: "#FFFFFF",
+                backgroundColor: "#9356A0",
+              }}
+              onClick={handleOpenTrainingWarnModal}
+            >
+              Закончить тренировку
+            </Button>
+        </Stack>
+        </>
+        : <></>
+        }
+        { userParSet != null && !userParSet.is_training
+        ? <>
+        <Stack
+        justifyContent="center"
+        alignItems="center"
+        display="flex"
+        direction="row"
+        gap={2}
+        sx={{
+          textAlign:"center",
+          background:"green",
+          padding:"10px",
+          marginBottom: "10px",
+          borderRadius: "10px"
+        }}
+        >
+        <Typography 
+        sx={{
+          textAlign:"center",
+          color: "#ffffff"
+        }}> Основной режим. Оставшееся время: 
+        </Typography>
+        {userParSet.game_start_time != null
+        ? <>
+        <Timer
+        active={userParSet.game_start_time != null }
+        deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
+        onDeadline={() => {
+          setIsTimeUp(true);
+          setIsChartPaused(true);}}
+          />
+        </>
+        : <>{millisToMinutesAndSeconds(gameTimeLimitMs)}</>
+        }
+        </Stack>
+        </>
+        : <></>
+        }
         <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
           <Box
             sx={{
@@ -758,6 +889,16 @@ const Home = observer(() => {
             <Typography>*: Ложная тревога - это предупреждение от ИИ при условии, что на следующем шаге не будет взрыва. </Typography>
             <Typography>**: Правильное предупреждения - это предупреждение от ИИ при условии, что на следующем шаге произойдет взрыв.</Typography>
             <Typography>***: Правильная остановка - это завершение процесса при условии, что на следующем шаге произойдет взрыв.</Typography>
+            <Button
+              sx={{
+                color: "#FFFFFF",
+                backgroundColor: "#9356A0",
+                flexGrow: 1,
+              }}
+              onClick={handleCloseRuleModal}
+            >
+              Назад
+            </Button>
           </ModalContent>
         </Modal>
         <Modal
@@ -774,6 +915,53 @@ const Home = observer(() => {
         >
           <ModalContent sx={{ width: 800 }}>{renderHintModal(chosenHint)}</ModalContent>
         </Modal>
+        <Modal
+          sx={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 6500,
+          }}
+          open={isTrainingWarnModalOpened}
+          onClose={handleCloseTrainingWarnModal}
+        >
+          <ModalContent sx={{ width: 800 }}>
+            <Typography>
+              Вы уверены, что хотите перейти в обычный режим?
+              После этого действия вернуться к тренировке будет нельзя.
+            </Typography>
+            <Stack direction="row" gap={2}>
+            <Button
+                  sx={{
+                    color: "#FFFFFF",
+                    backgroundColor: COLORS.graphGradientLow,
+                    width: "100%",
+                  }}
+                  onClick={handleCloseTrainingWarnModal}
+                >
+                  Продолжить тренироваться
+                </Button>
+                <Button
+                  sx={{
+                    color: "#FFFFFF",
+                    backgroundColor: "orange",
+                    width: "100%",
+                  }}
+                  onClick={() => {
+                    setIsChartStopped(true);
+                    setIsDanger(false);
+                    handleCloseTrainingWarnModal();
+                    setIsTimeUp(false);
+                    updateUserParSetUi({"is_training": false})
+                  }}
+                >
+                  Закончить тренировку 
+                </Button>
+            </Stack>
+          </ModalContent>
+        </Modal>
         <Container sx={{ width: "95%" }}>
           <Chart
             onAnimationEnd={triggerWrongChoiceAnim}
@@ -784,7 +972,7 @@ const Home = observer(() => {
           />
           {user.isAuth ? (
             <>
-              {isChartPaused && chart.chartData.data.labels.length === 0 ? (
+              {(userParSet == null || (userParSet.is_training && userParSet.training_start_time == null) || (!userParSet.is_training && userParSet.game_start_time == null)) && isChartPaused  ? (
                 <Button
                   sx={{
                     color: "#FFFFFF",
@@ -792,13 +980,24 @@ const Home = observer(() => {
                     width: "100%",
                   }}
                   onClick={() => {
-                    setIsChartPaused(false);
+                    if (userParSet != null) {
+                      
+                      if (userParSet.is_training) {
+                        updateUserParSetUi({training_start_time: transformToDbDateDayTime(Date.now())})
+                      } else if (!userParSet.is_training) {
+                        updateUserParSetUi({game_start_time: transformToDbDateDayTime(Date.now())})
+                      }
+                      setIsChartPaused(false);
+                    }
                   }}
                 >
                   Начать игру!
                 </Button>
               ) : (
-                <Stack display="flex" direction="column" spacing={1}>
+                <>
+                {/* userParSet != null && ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) > 0) || (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) > 0) ) */}
+                { !isTimeUp ? <>
+                  <Stack display="flex" direction="column" spacing={1}>
                   <Stack display="flex" direction="row" spacing={1}>
                     <Box
                       sx={{
@@ -920,6 +1119,24 @@ const Home = observer(() => {
                     <></>
                   )}
                 </Stack>
+                </>
+                : <>
+                {userParSet.is_training
+                ? <>
+                <Typography sx={{ textAlign: "center" }} variant="h2">
+                Время для тренировки истекло. Перейдите в основной режим.
+                </Typography>
+                </>
+                :
+                <>
+                <Typography sx={{ textAlign: "center" }} variant="h2">
+                  Время основной игры истекло. Спасибо за игру!
+                </Typography>
+                </>
+                }
+                </>
+                }
+                </>
               )}
             </>
           ) : (

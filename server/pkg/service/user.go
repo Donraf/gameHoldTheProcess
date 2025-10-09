@@ -154,6 +154,9 @@ func (u *UserService) GetScore(userId, parSetId int) (int, error) {
 	return u.repo.GetScore(userId, parSetId)
 }
 
+func (u *UserService) GetUserParameterSet(userId, parSetId int) (gameServer.UserParameterSet, error) {
+	return u.repo.GetUserParameterSet(userId, parSetId)
+}
 func (u *UserService) UpdateScore(input gameServer.UpdateScoreInput) error {
 	return u.repo.UpdateScore(input)
 }
@@ -232,4 +235,8 @@ func (u *UserService) GetPlayersEventsPageCount(input gameServer.GetPlayersEvent
 
 func (u *UserService) UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error {
 	return u.repo.UpdateUserParSet(id, input)
+}
+
+func (u *UserService) UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error {
+	return u.repo.UpdateUserUserParSet(id, input)
 }

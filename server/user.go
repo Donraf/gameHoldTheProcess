@@ -1,6 +1,9 @@
 package gameServer
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 const (
 	RoleUser       = "User"
@@ -87,6 +90,25 @@ type UpdateUserParSetInput struct {
 func (i *UpdateUserParSetInput) Validate() error {
 	if i.ParSetId <= 0 {
 		return errors.New("current parameter set id is non-positive")
+	}
+	return nil
+}
+
+type UpdateUserUserParSetInput struct {
+	ParSetId          int        `json:"par_set_id"`
+	IsTraining        *bool      `json:"is_training" db:"is_training"`
+	TrainingStartTime *time.Time `json:"training_start_time" db:"training_start_time"`
+	GameStartTime     *time.Time `json:"game_start_time" db:"game_start_time"`
+}
+
+func (i *UpdateUserUserParSetInput) Validate() error {
+	if i.ParSetId <= 0 {
+		return errors.New("current parameter set id is non-positive")
+	}
+	if i.IsTraining == nil &&
+		i.TrainingStartTime == nil &&
+		i.GameStartTime == nil {
+		return errors.New("no values to update")
 	}
 	return nil
 }

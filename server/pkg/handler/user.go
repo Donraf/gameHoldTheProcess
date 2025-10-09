@@ -194,6 +194,34 @@ func (h *Handler) getScore(c *gin.Context) {
 	})
 }
 
+type getUserParSetResponse struct {
+	UserParameterSet gameServer.UserParameterSet `json:"data"`
+}
+
+func (h *Handler) getUserParSet(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil || userId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter userId")
+		return
+	}
+
+	parSetId, err := strconv.Atoi(c.Param("parSetId"))
+	if err != nil || parSetId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter parSetId")
+		return
+	}
+
+	ups, err := h.services.User.GetUserParameterSet(userId, parSetId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getUserParSetResponse{
+		UserParameterSet: ups,
+	})
+}
+
 type getAllUsersResponse struct {
 	Data []gameServer.User `json:"data"`
 }
@@ -401,6 +429,34 @@ func (h *Handler) updateUserParSet(c *gin.Context) {
 	}
 
 	if err := h.services.User.UpdateUserParSet(id, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
+func (h *Handler) updateUserUserParSet(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	var input gameServer.UpdateUserUserParSetInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.User.UpdateUserUserParSet(id, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -83,6 +83,15 @@ export const getScore = async (userId, parSetId) => {
   }
 };
 
+export const getUserParSet = async (userId, parSetId) => {
+  try {
+    const { data } = await $authHost.get(`api/user/userParSet/${userId}/${parSetId}`);
+    return data.data;
+  } catch (e) {
+    throw new Error("Error on getUserParSet\n" + e);
+  }
+};
+
 export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null) => {
   try {
     const { data } = await $authHost.post("api/user/users", {
@@ -215,6 +224,15 @@ export const updateUserParSet = async (userId, parSetId) => {
     const { data } = await $authHost.put(`api/user/${userId}/parSet`, {
       par_set_id: parSetId,
     });
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const updateUserUserParSet = async (id, updateInfo) => {
+  try {
+    const { data } = await $authHost.put(`api/user/${id}/userParSet`, updateInfo);
     return data;
   } catch (e) {
     throw e;

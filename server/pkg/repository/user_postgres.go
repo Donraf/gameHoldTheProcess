@@ -40,8 +40,8 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 		return 0, err
 	}
 
-	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, created_at) VALUES ($1, $2, $3, $4)", userParameterSetsTable)
-	_, err = tx.Exec(query, 1000, userId, parSetId, timeNow)
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)", userParameterSetsTable)
+	_, err = tx.Exec(query, 1000, userId, parSetId, true, nil, nil, timeNow)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -208,6 +208,18 @@ func (u *UserPostgres) GetScore(userId, parSetId int) (int, error) {
 	}
 
 	return score, nil
+}
+
+func (u *UserPostgres) GetUserParameterSet(userId, parSetId int) (gameServer.UserParameterSet, error) {
+	var ups gameServer.UserParameterSet
+	query := fmt.Sprintf("SELECT score, is_training, training_start_time, game_start_time, created_at FROM %s WHERE user_id=$1 AND parameter_set_id=$2", userParameterSetsTable)
+
+	err := u.db.Get(&ups, query, userId, parSetId)
+	if err != nil {
+		return ups, err
+	}
+
+	return ups, nil
 }
 
 func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
@@ -523,12 +535,44 @@ func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSe
 	}
 
 	timeNow := time.Now().UTC().Add(3 * time.Hour)
-	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING", userParameterSetsTable)
-	_, err = tx.Exec(query, 1000, id, input.ParSetId, timeNow)
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+	_, err = tx.Exec(query, 1000, id, input.ParSetId, true, nil, nil, timeNow)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	return tx.Commit()
+}
+
+func (u *UserPostgres) UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error {
+	setValues := make([]string, 0)
+	args := make([]any, 0)
+	argId := 1
+
+	if input.IsTraining != nil {
+		setValues = append(setValues, fmt.Sprintf("is_training=$%d", argId))
+		args = append(args, *input.IsTraining)
+		argId++
+	}
+
+	if input.TrainingStartTime != nil {
+		setValues = append(setValues, fmt.Sprintf("training_start_time=$%d", argId))
+		args = append(args, *input.TrainingStartTime)
+		argId++
+	}
+
+	if input.GameStartTime != nil {
+		setValues = append(setValues, fmt.Sprintf("game_start_time=$%d", argId))
+		args = append(args, *input.GameStartTime)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE user_id=$%d AND parameter_set_id=$%d", userParameterSetsTable, setQuery, argId, argId+1)
+	args = append(args, id, input.ParSetId)
+
+	_, err := u.db.Exec(query, args...)
+	return err
 }
