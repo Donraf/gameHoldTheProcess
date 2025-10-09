@@ -327,6 +327,7 @@ const Home = observer(() => {
 
   useEffect(() => {
     if (user.isAuth) {
+      const oldUps = userParSet;
       let oldScore = chart.chartData.score;
       async function fetchParSet() {
         const parSet = await getParSet(user.user.user_id);
@@ -339,6 +340,11 @@ const Home = observer(() => {
           return newUserParSet
         }
         fetchParSetInfo().then((ups) => {
+          if (oldUps == null ||
+            oldUps.is_training != ups.is_training ||
+            oldUps.training_start_time != ups.training_start_time ||
+            oldUps.game_start_time != ups.game_start_time
+          ) {
           if (ups.score !== oldScore) {
             if (ups !== null && !ups.is_training) {
               chart.chartData.setScore(ups.score);
@@ -346,6 +352,7 @@ const Home = observer(() => {
             }
           }
           setUserParSet(ups);
+          }
         });
       });
     }
