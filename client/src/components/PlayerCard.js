@@ -182,14 +182,14 @@ export default function PlayerCard({ player }) {
             </Typography>
           </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
+          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
               Количество сыгранных игр в сессии:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
               ???
             </Typography>
-          </Stack>
+          </Stack> */}
         </Stack>
 
         <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>

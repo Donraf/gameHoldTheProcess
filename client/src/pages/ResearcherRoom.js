@@ -19,6 +19,7 @@ import { createGroup, getAllGroups, getPlayersPageCount, getPlayersStat } from "
 import { ModalContent } from "../components/ModalContent";
 import { Context } from "..";
 import PlayersGrid from "../components/PlayersGrid";
+import { getParSets } from "../http/graphAPI";
 
 const ResearcherRoom = () => {
   const { user } = useContext(Context);
@@ -30,16 +31,23 @@ const ResearcherRoom = () => {
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroupName, setSelectedGroupName] = useState("");
   const [name, setName] = useState("");
+  const [fetchedParSets, setFetchedParSets] = useState([]);
+  const [selectedParSetId, setSelectedParSetId] = useState(-1);
 
   const [isCreateGroupModalOpened, setIsCreateGroupModalOpened] = React.useState(false);
   const handleOpenCreateGroupModal = () => setIsCreateGroupModalOpened(true);
-  const handleCloseCreateGroupModal = () => setIsCreateGroupModalOpened(false);
+  const handleCloseCreateGroupModal = () => {
+    setIsCreateGroupModalOpened(false);
+    setSelectedParSetId(-1);
+    setName("");
+  };
 
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     fetchGroups();
+    fetchParSets();
   }, []);
 
   useEffect(() => {
@@ -76,7 +84,7 @@ const ResearcherRoom = () => {
       return;
     }
 
-    createGroup(name, user.user.user_id).then(
+    createGroup(name, user.user.user_id, selectedParSetId).then(
       (_) => {
         enqueueSnackbar("Группа добавлена", {
           variant: "success",
@@ -84,6 +92,7 @@ const ResearcherRoom = () => {
           preventDuplicate: true,
         });
         setName("");
+        setSelectedParSetId(-1);
         fetchGroups();
       },
       (_) => {
@@ -99,6 +108,12 @@ const ResearcherRoom = () => {
   const fetchGroups = () => {
     getAllGroups().then((data) => {
       setFetchedGroups(data);
+    });
+  };
+
+  const fetchParSets = () => {
+    getParSets(-1).then((data) => {
+      setFetchedParSets(data);
     });
   };
 
@@ -147,6 +162,16 @@ const ResearcherRoom = () => {
               label="Введите наименование группы"
               required={true}
               variant="outlined"
+            />
+            <Autocomplete
+              options={fetchedParSets}
+              getOptionLabel={(parSet) => "ID: " + parSet.id + " | a: " + parSet.a + " | b: " + parSet.b + " | мат. ож.: " + parSet.noise_mean + " | ср. откл.: " + parSet.noise_stdev + " | вер. лож. трев: " + parSet.false_warning_prob + " | вер. проп.: " + parSet.missing_danger_prob}
+              renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
+              value={fetchedParSets.find((parSet) => parSet.id === selectedParSetId) || null}
+              onChange={(_, newValue) => {
+                const newSelectedParSetId = newValue ? newValue.id : -1;
+                setSelectedParSetId(newSelectedParSetId);
+              }}
             />
             <Button
               sx={{ width: "fit-content", height: "40px" }}

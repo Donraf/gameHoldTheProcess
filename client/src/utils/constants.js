@@ -11,6 +11,7 @@ export const USER_PROFILE_ROUTE = "/profile";
 
 export const RESEARCHER_ROOM_ROUTE = "/researcher";
 export const RESEARCHER_USER_ROUTE = RESEARCHER_ROOM_ROUTE + "/user";
+export const RESEARCHER_GROUP_ROUTE = RESEARCHER_ROOM_ROUTE + "/group";
 
 // User roles
 export const USER_ROLE_USER = "User";

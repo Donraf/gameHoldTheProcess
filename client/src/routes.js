@@ -6,6 +6,7 @@ import {
   HOME_ROUTE,
   LOGIN_ROUTE,
   REGISTRATION_ROUTE,
+  RESEARCHER_GROUP_ROUTE,
   RESEARCHER_ROOM_ROUTE,
   RESEARCHER_USER_ROUTE,
   USER_PROFILE_ROUTE,
@@ -19,6 +20,7 @@ import AdminGraph from "./pages/AdminGraph";
 import ResearcherRoom from "./pages/ResearcherRoom";
 import AdminParset from "./pages/AdminParSet";
 import ResearcherUser from "./pages/ResearcherUser";
+import ResearcherGroup from "./pages/ResearcherGroup";
 
 export const authRoutes = [
   {
@@ -48,6 +50,10 @@ export const authRoutes = [
   {
     path: RESEARCHER_USER_ROUTE,
     Component: <ResearcherUser />,
+  },
+    {
+    path: RESEARCHER_GROUP_ROUTE,
+    Component: <ResearcherGroup />,
   },
 ];
 

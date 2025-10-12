@@ -137,11 +137,12 @@ export const updateUser = async (id, updateInfo) => {
   }
 };
 
-export const createGroup = async (name, userId) => {
+export const createGroup = async (name, userId, parSetId) => {
   try {
     const { data } = await $authHost.post("api/user/group", {
       creator_id: userId,
       name: name,
+      par_set_id: parSetId,
     });
     return data;
   } catch (e) {
@@ -233,6 +234,18 @@ export const updateUserParSet = async (userId, parSetId) => {
 export const updateUserUserParSet = async (id, updateInfo) => {
   try {
     const { data } = await $authHost.put(`api/user/${id}/userParSet`, updateInfo);
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const changeGroupParSet = async (groupId, parSetId) => {
+  try {
+    const { data } = await $authHost.put(`api/user/changeGroupParSet`, {
+      group_id: groupId,
+      par_set_id: parSetId,
+    });
     return data;
   } catch (e) {
     throw e;

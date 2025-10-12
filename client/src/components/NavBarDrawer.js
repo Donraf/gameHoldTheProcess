@@ -15,6 +15,7 @@ import {
   ADMIN_ROUTE,
   HOME_ROUTE,
   LOGIN_ROUTE,
+  RESEARCHER_GROUP_ROUTE,
   RESEARCHER_ROOM_ROUTE,
   USER_PROFILE_ROUTE,
   USER_ROLE_ADMIN,
@@ -63,6 +64,11 @@ export default function NavBarDrawer() {
         route: RESEARCHER_ROOM_ROUTE,
         icon: <AdminNavIcon />,
       },
+      {
+        name: "Работа с группами",
+        route: RESEARCHER_GROUP_ROUTE,
+        icon: <AdminNavIcon />,
+      },
       { name: "Начать игру", route: HOME_ROUTE, icon: <StartGameNavIcon /> },
       {
         name: "Настройки",
@@ -77,6 +83,11 @@ export default function NavBarDrawer() {
       {
         name: "Комната исследователя",
         route: RESEARCHER_ROOM_ROUTE,
+        icon: <AdminNavIcon />,
+      },
+      {
+        name: "Работа с группами",
+        route: RESEARCHER_GROUP_ROUTE,
         icon: <AdminNavIcon />,
       },
       {
