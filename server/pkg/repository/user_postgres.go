@@ -24,17 +24,26 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 	}
 
 	var parSetId int
-	query := fmt.Sprintf("SELECT id FROM %s LIMIT 1", parameterSetsTable)
-	row := tx.QueryRow(query)
-	if err := row.Scan(&parSetId); err != nil {
-		tx.Rollback()
-		return 0, err
+	if input.GroupId != nil {
+		query := fmt.Sprintf("SELECT parameter_set_id FROM %s WHERE id=$1", groupsTable)
+		row := tx.QueryRow(query, input.GroupId)
+		if err := row.Scan(&parSetId); err != nil {
+			tx.Rollback()
+			return 0, err
+		}
+	} else {
+		query := fmt.Sprintf("SELECT id FROM %s LIMIT 1", parameterSetsTable)
+		row := tx.QueryRow(query)
+		if err := row.Scan(&parSetId); err != nil {
+			tx.Rollback()
+			return 0, err
+		}
 	}
 
 	var userId int
 	timeNow := time.Now().UTC().Add(3 * time.Hour)
-	query = fmt.Sprintf("INSERT INTO %s (login, password, name, role, cur_par_set_id, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id", usersTable)
-	row = tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, timeNow)
+	query := fmt.Sprintf("INSERT INTO %s (login, password, name, role, cur_par_set_id, created_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id", usersTable)
+	row := tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, timeNow)
 	if err := row.Scan(&userId); err != nil {
 		tx.Rollback()
 		return 0, err
@@ -233,7 +242,7 @@ func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
 
 func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 	var groups []gameServer.Group
-	query := fmt.Sprintf("SELECT id, name, created_at, creator_id FROM %s", groupsTable)
+	query := fmt.Sprintf("SELECT id, name, created_at, creator_id, parameter_set_id FROM %s", groupsTable)
 
 	err := u.db.Select(&groups, query)
 
@@ -242,10 +251,10 @@ func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 
 func (u *UserPostgres) CreateGroup(input gameServer.CreateGroupInput) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (name, creator_id, created_at) VALUES ($1, $2, $3) RETURNING id", groupsTable)
+	query := fmt.Sprintf("INSERT INTO %s (name, creator_id, parameter_set_id, created_at) VALUES ($1, $2, $3, $4) RETURNING id", groupsTable)
 
 	timeNow := time.Now().UTC().Add(3 * time.Hour)
-	row := u.db.QueryRow(query, input.Name, input.CreatorId, timeNow)
+	row := u.db.QueryRow(query, input.Name, input.CreatorId, input.ParSetId, timeNow)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -271,7 +280,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%%%s%%' AND role='%s' OFFSET %v LIMIT 9`,
+				 WHERE gt.name LIKE '%s' AND role='%s' OFFSET %v LIMIT 9`,
 				groupsTable, userGroupsTable, usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
 		}
 	case "user_name":
@@ -575,4 +584,45 @@ func (u *UserPostgres) UpdateUserUserParSet(id int, input gameServer.UpdateUserU
 
 	_, err := u.db.Exec(query, args...)
 	return err
+}
+
+func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET parameter_set_id=$1 WHERE id=$2", groupsTable)
+	_, err = tx.Exec(query, input.ParSetId, input.GroupId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	userIds := make([]int, 0)
+	query = fmt.Sprintf("SELECT user_id FROM %s WHERE group_id=$1", userGroupsTable)
+	err = tx.Select(&userIds, query, input.GroupId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for _, userId := range userIds {
+		query = fmt.Sprintf("UPDATE %s SET cur_par_set_id=$1 WHERE user_id=$2", usersTable)
+		_, err = tx.Exec(query, input.ParSetId, userId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		timeNow := time.Now().UTC().Add(3 * time.Hour)
+		query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+		_, err = tx.Exec(query, 1000, userId, input.ParSetId, true, nil, nil, timeNow)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

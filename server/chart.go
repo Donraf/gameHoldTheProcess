@@ -55,7 +55,7 @@ type GetAllParSetsInput struct {
 }
 
 func (i *GetAllParSetsInput) Validate() error {
-	if i.CurrentPage <= 0 {
+	if i.CurrentPage <= 0 && i.CurrentPage != -1 {
 		return errors.New("current page is equal or less than zero")
 	}
 	return nil

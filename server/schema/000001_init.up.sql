@@ -9,21 +9,6 @@ CREATE TABLE Users
     created_at     timestamp    NOT NULL
 );
 
-CREATE TABLE Groups
-(
-    id         serial                         PRIMARY KEY,
-    name       varchar(255)                   NOT NULL UNIQUE,
-    created_at timestamp                      NOT NULL,
-    creator_id int REFERENCES Users (user_id) NOT NULL
-);
-
-CREATE TABLE User_Groups
-(
-    user_id  int REFERENCES Users (user_id) NOT NULL,
-    group_id int REFERENCES Groups (id)     NOT NULL,
-    PRIMARY KEY (user_id, group_id)
-);
-
 CREATE TABLE Parameter_Sets
 (
     id                  serial    PRIMARY KEY,
@@ -34,6 +19,22 @@ CREATE TABLE Parameter_Sets
     false_warning_prob  float     NOT NULL,
     missing_danger_prob float     NOT NULL,
     created_at          timestamp NOT NULL
+);
+
+CREATE TABLE Groups
+(
+    id               serial                         PRIMARY KEY,
+    name             varchar(255)                   NOT NULL UNIQUE,
+    created_at       timestamp                      NOT NULL,
+    creator_id       int REFERENCES Users (user_id) NOT NULL,
+    parameter_set_id int REFERENCES Parameter_Sets (id) NOT NULL
+);
+
+CREATE TABLE User_Groups
+(
+    user_id  int REFERENCES Users (user_id) NOT NULL,
+    group_id int REFERENCES Groups (id)     NOT NULL,
+    PRIMARY KEY (user_id, group_id)
 );
 
 CREATE TABLE User_Parameter_Sets

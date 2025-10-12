@@ -26,6 +26,7 @@ type Group struct {
 	Name      string `json:"name" db:"name"`
 	CreatedAt string `json:"created_at" db:"created_at"`
 	CreatorId int    `json:"creator_id" db:"creator_id"`
+	ParSetId  int    `json:"parameter_set_id" db:"parameter_set_id"`
 }
 
 type PlayerStat struct {
@@ -150,11 +151,15 @@ func (i *UpdateScoreInput) Vaildate() error {
 type CreateGroupInput struct {
 	CreatorId int    `json:"creator_id" binding:"required"`
 	Name      string `json:"name" binding:"required"`
+	ParSetId  int    `json:"par_set_id" binding:"required"`
 }
 
 func (i *CreateGroupInput) Validate() error {
 	if i.CreatorId <= 0 {
 		return errors.New("creator id is non-positive")
+	}
+	if i.ParSetId <= 0 {
+		return errors.New("parameter set id is non-positive")
 	}
 	if i.Name == "" {
 		return errors.New("name is empty")
@@ -201,4 +206,19 @@ type GetPlayersEventsPageCountInput struct {
 	UserId    int    `json:"user_id" db:"user_id"`
 	ParSetId  int    `json:"par_set_id" db:"id"`
 	GroupedBy string `json:"grouped_by"`
+}
+
+type ChangeGroupParSetInput struct {
+	GroupId  int `json:"group_id"`
+	ParSetId int `json:"par_set_id"`
+}
+
+func (i *ChangeGroupParSetInput) Validate() error {
+	if i.GroupId <= 0 {
+		return errors.New("group id is non-positive")
+	}
+	if i.ParSetId <= 0 {
+		return errors.New("parameter set id is non-positive")
+	}
+	return nil
 }

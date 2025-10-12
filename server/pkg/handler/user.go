@@ -487,3 +487,25 @@ func (h *Handler) getPlayersEventsPageCount(c *gin.Context) {
 		PageCount: pageCount,
 	})
 }
+
+func (h *Handler) changeGroupParSet(c *gin.Context) {
+	var input gameServer.ChangeGroupParSetInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.User.ChangeGroupParSet(input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}

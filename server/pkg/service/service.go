@@ -27,6 +27,7 @@ type User interface {
 	GetPlayersEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error)
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
 	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
+	ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error
 }
 
 type Chart interface {

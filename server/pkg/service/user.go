@@ -240,3 +240,7 @@ func (u *UserService) UpdateUserParSet(id int, input gameServer.UpdateUserParSet
 func (u *UserService) UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error {
 	return u.repo.UpdateUserUserParSet(id, input)
 }
+
+func (u *UserService) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
+	return u.repo.ChangeGroupParSet(input)
+}

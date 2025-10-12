@@ -41,6 +41,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.GET("/:id", h.getOneUser)
 				userAuth.DELETE("/:id", h.checkAdminRole, h.deleteUser)
 				userAuth.PUT("/:id", h.checkAdminRole, h.updateUser)
+				userAuth.PUT("/changeGroupParSet", h.checkResearcherRole, h.changeGroupParSet)
 				userAuth.POST("/playersStat", h.checkResearcherRole, h.getPlayersStat)
 				userAuth.POST("/playersPageCount", h.checkResearcherRole, h.getPlayersPageCount)
 				userAuth.POST("/playersEvents", h.checkResearcherRole, h.getPlayersEvents)
