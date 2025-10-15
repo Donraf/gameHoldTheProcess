@@ -3,12 +3,12 @@ import { COLORS } from "./constants";
 export class ChartData {
   // Бонусы
   bonusStep = 10; // Бонус за шаг
-  bonusRejectIncorrectAdviceNoCheck = 3000; // Бонус за отклонение ложной тревоги от ИИ (без проверки)
-  bonusRejectIncorrectAdviceWithCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ (после проверки)
-  bonusAcceptCorrectAdviceNoCheck = 50; // Бонус за принятие правильного совета ИИ (без проверки)
-  bonusAcceptCorrectAdviceWithCheck = 30; // Бонус за принятие правильного совета ИИ (после проверки)
-  bonusCorrectStopNoAdviceNoCheck = 3000; // Бонус за правильный останов без совета ИИ (без проверки)
-  bonusCorrectStopNoAdviceWithCheck = 2000; // Бонус за правильный останов без совета ИИ (после проверки)
+  bonusRejectIncorrectAdviceNoCheck = 0; // Бонус за отклонение ложной тревоги от ИИ (без проверки)
+  bonusRejectIncorrectAdviceWithCheck = 0; // Бонус за отклонение ложной тревоги от ИИ (после проверки)
+  bonusAcceptCorrectAdviceNoCheck = 0; // Бонус за принятие правильного совета ИИ (без проверки)
+  bonusAcceptCorrectAdviceWithCheck = 0; // Бонус за принятие правильного совета ИИ (после проверки)
+  bonusCorrectStopNoAdviceNoCheck = 0; // Бонус за правильный останов без совета ИИ (без проверки)
+  bonusCorrectStopNoAdviceWithCheck = 0; // Бонус за правильный останов без совета ИИ (после проверки)
   // Штрафы
   penaltyRejectCorrectAdviceNoCheck = 3000; // Штраф взрыва при отклонении правильного совета ИИ (без проверки)
   penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ (после проверки)

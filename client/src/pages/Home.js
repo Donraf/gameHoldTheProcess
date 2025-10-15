@@ -286,7 +286,7 @@ const Home = observer(() => {
           });
         } else {
           playRightChoiceSound();
-          enqueueSnackbar("Остановка процесса была верным решением. Получено вознаграждение!", {
+          enqueueSnackbar("Остановка процесса была верным решением!", {
             variant: "success",
             autoHideDuration: 5000,
             preventDuplicate: true,
@@ -817,8 +817,8 @@ const Home = observer(() => {
               }}
             >
               {" "}
-              {scoresChanges.scoreChange > 0 ? "+" : ""}
-              {scoresChanges.scoreChange}
+              {scoresChanges.scoreChange > 0 ? "+" + scoresChanges.scoreChange : ""}
+              {scoresChanges.scoreChange < 0 ? scoresChanges.scoreChange : ""}
             </Typography>
           </Box>
           <Button
@@ -878,12 +878,12 @@ const Home = observer(() => {
             </Typography>
             <Typography>Бонусы</Typography>
             <Typography>Каждый пройденный шаг: +10 очков</Typography>
-            <Typography>Отклонение ложной тревоги* от ИИ (без подсказок): +3000 очков</Typography>
+            {/* <Typography>Отклонение ложной тревоги* от ИИ (без подсказок): +3000 очков</Typography>
             <Typography>Отклонение ложной тревоги* от ИИ (с подсказками): +2000 очков</Typography>
             <Typography>Принятие правильного** предупреждения от ИИ (без подсказок): +50 очков</Typography>
             <Typography>Принятие правильного** предупреждения от ИИ (с подсказками): +30 очков</Typography>
             <Typography>Правильная*** остановка без предупреждения от ИИ (без подсказок): +3000 очков</Typography>
-            <Typography>Правильная*** остановка без предупреждения от ИИ (с подсказками): +2000 очков</Typography>
+            <Typography>Правильная*** остановка без предупреждения от ИИ (с подсказками): +2000 очков</Typography> */}
             <Typography>Штрафы</Typography>
             <Typography>Использование паузы: -50 очков</Typography>
             <Typography>Остановка при ложной тревоге* от ИИ (без подсказок): -500 очков</Typography>
@@ -894,8 +894,8 @@ const Home = observer(() => {
             <Typography>Неправильная остановка без предупреждения от ИИ (с подсказками): -1000 очков</Typography>
             <Typography>Взрыв без предупреждения от ИИ: -1000 очков</Typography>
             <Typography>*: Ложная тревога - это предупреждение от ИИ при условии, что на следующем шаге не будет взрыва. </Typography>
-            <Typography>**: Правильное предупреждения - это предупреждение от ИИ при условии, что на следующем шаге произойдет взрыв.</Typography>
-            <Typography>***: Правильная остановка - это завершение процесса при условии, что на следующем шаге произойдет взрыв.</Typography>
+            <Typography>**: Правильное предупреждение - это предупреждение от ИИ при условии, что на следующем шаге произойдет взрыв.</Typography>
+            {/* <Typography>***: Правильная остановка - это завершение процесса при условии, что на следующем шаге произойдет взрыв.</Typography> */}
             <Button
               sx={{
                 color: "#FFFFFF",
