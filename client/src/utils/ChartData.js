@@ -122,13 +122,13 @@ export class ChartData {
       return;
     }
 
-    if (randomVal >= this.falseWarningProb) {
-      return false;
-    } else {
+    if (randomVal < this.falseWarningProb || this.points[this.points.length - this.checkDangerNum].y >= 0.985 * this.criticalValue) {
       this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
       this.wasFakeAlert = true;
       this.points[this.points.length - this.checkDangerNum - 1].is_deceptive_ai_signal = true;
       return true;
+    } else {
+      return false;
     }
   }
 
