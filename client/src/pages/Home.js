@@ -666,7 +666,7 @@ const Home = observer(() => {
             >
               Показать все свои предыдущие сессии (20 очков)
             </Button>
-            <Button
+            {/* <Button
               sx={{
                 color: "#FFFFFF",
                 backgroundColor: COLORS.takeHintButton,
@@ -679,7 +679,7 @@ const Home = observer(() => {
               }}
             >
               Рассчитать вероятность взрыва (1000 очков)
-            </Button>
+            </Button> */}
             <Button
               sx={{
                 color: "#FFFFFF",
