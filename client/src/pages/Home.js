@@ -31,13 +31,13 @@ import { ModalContent } from "../components/ModalContent";
 import { fetchPointsByChartId } from "../http/pointAPI";
 import { ChartData } from "../utils/ChartData";
 import { transformToDbDateDayTime, transformToUiDateDayTime } from "../utils/transformDate";
-import { getParSet, getScore, getUserParSet, updateUserUserParSet } from "../http/userAPI";
+import { getParSet, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
 import PlayButtonIcon from "../components/icons/PlayButtonIcon";
 import StopButtonIcon from "../components/icons/StopButtonIcon";
 import TakeHintButtonIcon from "../components/icons/TakeHintButtonIcon";
 import PauseButtonIcon from "../components/icons/PauseButtonIcon";
-import { getRemTime, getRemTimeRaw, millisToMinutesAndSeconds } from "../utils/getTimeDiff";
+import { getRemTimeRaw, millisToMinutesAndSeconds } from "../utils/getTimeDiff";
 import Timer from "../components/Timer";
 
 ChartJS.register(
@@ -166,6 +166,22 @@ const Home = observer(() => {
         updateFlag: !v.updateFlag,
       };
     });
+  const [totalScore, setTotalScore] = useState(0);
+  const [totalScoreChange, setTotalScoreChange] = useState({
+    scoreChange: 0,
+    updateFlag: false,
+  });
+  const changeTotalScore = (diff) => {
+    setTotalScore((totalScore) => {
+      return totalScore + diff;
+    });
+    setTotalScoreChange((v) => {
+      return {
+        scoreChange: diff,
+        updateFlag: !v.updateFlag,
+      };
+    });
+  }
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -207,16 +223,18 @@ const Home = observer(() => {
         setTime(Date.now());
         if (chart.chartData.isCrashed()) {
           chart.chartData.chartCrashed();
-          chart.chartData.changeEndGameScore();
+          const totalScoreDiff = chart.chartData.computeEndGameScore();
           if (userParSet != null && !userParSet.is_training) {
             createGraph(
               chart.chartData.points.slice(chart.chartData.maxPointsToShow),
               user.user.user_id,
-              chart.chartData.parSet.id
+              chart.chartData.parSet.id,
+              totalScore + totalScoreDiff
             );
           }
           triggerUpdateParSet();
           chart.chartData.restart();
+          changeTotalScore(totalScoreDiff);
           setIsHintModalOpened(false);
           if (!isTimeUp) {
             triggerWrongChoiceAnim();
@@ -256,19 +274,19 @@ const Home = observer(() => {
 
   useEffect(() => {
     if (isChartStopped) {
-      let oldScore = chart.chartData.score;
       const isStopNeeded = chart.chartData.chartStopped();
-      chart.chartData.changeEndGameScore();
+      const totalScoreDiff = chart.chartData.computeEndGameScore();
       if (userParSet != null && !userParSet.is_training && !isTimeUp) {
         createGraph(
           chart.chartData.points.slice(chart.chartData.maxPointsToShow),
           user.user.user_id,
-          chart.chartData.parSet.id
+          chart.chartData.parSet.id,
+          totalScore + totalScoreDiff
         );
       }
       triggerUpdateParSet();
       chart.chartData.restart();
-      changeScore(chart.chartData.score - oldScore);
+      changeTotalScore(totalScoreDiff);
       setIsHintModalOpened(false);
       setIsChartStopped(false);
       setIsChartPaused(true);
@@ -347,8 +365,8 @@ const Home = observer(() => {
           ) {
           if (ups.score !== oldScore) {
             if (ups !== null && !ups.is_training) {
-              chart.chartData.setScore(ups.score);
-              changeScore(ups.score - oldScore);
+              setTotalScore(0)
+              changeTotalScore(ups.score)
             }
           }
           setUserParSet(ups);
@@ -646,11 +664,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CurrentSession");
-                chart.chartData.chartHintUsed(10);
-                changeScore(-10);
+                chart.chartData.chartHintUsed(100);
+                changeScore(-100);
               }}
             >
-              Показать всю текущую сессию (10 очков)
+              Показать весь текущий гейм (100 очков)
             </Button>
             <Button
               sx={{
@@ -660,11 +678,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("AllSessions");
-                chart.chartData.chartHintUsed(20);
-                changeScore(-20);
+                chart.chartData.chartHintUsed(200);
+                changeScore(-200);
               }}
             >
-              Показать все свои предыдущие сессии (20 очков)
+              Показать все свои предыдущие геймы (200 очков)
             </Button>
             {/* <Button
               sx={{
@@ -788,10 +806,10 @@ const Home = observer(() => {
         : <></>
         }
         <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
+          <Stack display="flex" direction="column">
           <Box
             sx={{
-              p: 2,
-              height: 100,
+              height: 50,
               overflow: "hidden",
               display: "flex",
               direction: "row",
@@ -805,7 +823,39 @@ const Home = observer(() => {
                 userSelect: "none",
               }}
             >
-              Очки: {chart.chartData.score}
+              Очки за сет: {totalScore}
+            </Typography>
+            <Typography
+              key={totalScoreChange.updateFlag}
+              className="move-up"
+              variant="h3"
+              color={totalScoreChange.scoreChange < 0 ? "red" : "green"}
+              sx={{
+                userSelect: "none",
+              }}
+            >
+              {" "}
+              {totalScoreChange.scoreChange > 0 ? "+" + totalScoreChange.scoreChange : ""}
+              {totalScoreChange.scoreChange < 0 ? totalScoreChange.scoreChange : ""}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              height: 50,
+              overflow: "hidden",
+              display: "flex",
+              direction: "row",
+              gap: "5px",
+            }}
+            ref={containerRef}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                userSelect: "none",
+              }}
+            >
+              Очки за гейм: {chart.chartData.score-20}
             </Typography>
             <Typography
               key={scoresChanges.updateFlag}
@@ -821,6 +871,7 @@ const Home = observer(() => {
               {scoresChanges.scoreChange < 0 ? scoresChanges.scoreChange : ""}
             </Typography>
           </Box>
+          </Stack>
           <Button
             sx={{
               color: "#9356A0",

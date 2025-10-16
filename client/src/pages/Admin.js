@@ -60,29 +60,6 @@ const Admin = observer(() => {
                   Изменить набор параметров
                 </Button>
               </Grid>
-              <Grid size={4}>
-                <Button
-                  sx={{ width: "100%", height: "64px" }}
-                  variant="contained"
-                  onClick={() => {
-                    for (let i = 0; i < 100; i++) {
-                      let chartData = new ChartData();
-                      chartData.setParSet({ id: 1, a: 0.2, b: 0.5, noise_stdev: 0.05, noise_mean:0.1, false_warning_prob: 0, missing_danger_prob: 0});
-                      while (!chartData.isCrashed()) {
-                        chartData.generateNextPoint();
-                      }
-                      createGraph(
-                        chartData.points.slice(chartData.maxPointsToShow),
-                        user.user.user_id,
-                        chartData.parSet.id
-                      );
-                      console.log("Created graph " + (i + 1));
-                    }
-                  }}
-                >
-                  Добавить новые графики
-                </Button>
-              </Grid>
             </Grid>
           </Box>
 
