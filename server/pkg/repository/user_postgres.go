@@ -50,7 +50,7 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 	}
 
 	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)", userParameterSetsTable)
-	_, err = tx.Exec(query, 1000, userId, parSetId, true, nil, nil, timeNow)
+	_, err = tx.Exec(query, 0, userId, parSetId, true, nil, nil, timeNow)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -545,7 +545,7 @@ func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSe
 
 	timeNow := time.Now().UTC().Add(3 * time.Hour)
 	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
-	_, err = tx.Exec(query, 1000, id, input.ParSetId, true, nil, nil, timeNow)
+	_, err = tx.Exec(query, 0, id, input.ParSetId, true, nil, nil, timeNow)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -617,7 +617,7 @@ func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput
 
 		timeNow := time.Now().UTC().Add(3 * time.Hour)
 		query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
-		_, err = tx.Exec(query, 1000, userId, input.ParSetId, true, nil, nil, timeNow)
+		_, err = tx.Exec(query, 0, userId, input.ParSetId, true, nil, nil, timeNow)
 		if err != nil {
 			tx.Rollback()
 			return err

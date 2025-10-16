@@ -75,7 +75,7 @@ CREATE TABLE Points
 
 INSERT INTO Parameter_Sets (id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at)
     VALUES 
-    (1, 0.6, 0.2, 0.18, 0.03, 0.02, 0.1, '2025-08-12 18:50:37.359879');
+    (1, 0.6, 0.2, 0.18, 0.03, 0.02, 0.01, '2025-08-12 18:50:37.359879');
 
 INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
     VALUES 
@@ -83,5 +83,5 @@ INSERT INTO Users (login, password, name, role, cur_par_set_id, created_at)
 
 INSERT INTO User_Parameter_Sets (user_id, parameter_set_id, score, is_training, training_start_time, game_start_time, created_at)
     VALUES 
-    (1, 1, 1000, true, null, null, '2025-08-12 18:50:37.359879');
+    (1, 1, 0, true, null, null, '2025-08-12 18:50:37.359879');
 
