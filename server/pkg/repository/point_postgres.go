@@ -57,7 +57,7 @@ func (p *PointPostgres) DeletePoint(id int) error {
 func (p *PointPostgres) GetAllPointsForCSV() ([]gameServer.PointForCSV, error) {
 	var points []gameServer.PointForCSV
 	query := fmt.Sprintf(`SELECT pt.id, pt.x, pt.y, pt.score, pt.is_crash, pt.is_useful_ai_signal, pt.is_deceptive_ai_signal,
-	pt.is_stop, pt.is_pause, pt.is_check, pt.chart_id, ct.user_id, ct.parameter_set_id
+	pt.is_stop, pt.is_pause, pt.is_check, pt.chart_id, ct.user_id, ct.parameter_set_id, ct.is_training
 	FROM %s AS pt JOIN %s AS ct ON pt.chart_id=ct.id ORDER BY ct.parameter_set_id, ct.user_id, pt.chart_id, pt.id`, pointsTable, chartsTable)
 	err := p.db.Select(&points, query)
 

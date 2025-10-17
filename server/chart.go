@@ -10,11 +10,13 @@ type Chart struct {
 	ParameterSetId int    `json:"parameter_set_id" binding:"required" db:"parameter_set_id"`
 	UserId         int    `json:"user_id" binding:"required" db:"user_id"`
 	CreatedAt      string `json:"created_at" binding:"required" db:"created_at"`
+	IsTraining     bool   `json:"is_training" db:"is_training"`
 }
 
 type CreateChartInput struct {
-	ParameterSetId int `json:"par_set_id" binding:"required" db:"parameter_set_id"`
-	UserId         int `json:"user_id" binding:"required" db:"user_id"`
+	ParameterSetId int  `json:"par_set_id" binding:"required" db:"parameter_set_id"`
+	UserId         int  `json:"user_id" binding:"required" db:"user_id"`
+	IsTraining     bool `json:"is_training" db:"is_training"`
 }
 
 func (i *CreateChartInput) Validate() error {
@@ -131,6 +133,7 @@ type PointForCSV struct {
 	ChartId             int     `json:"chart_id" db:"chart_id"`
 	UserId              int     `json:"user_id" db:"user_id"`
 	ParameterSetId      int     `json:"parameter_set_id" db:"parameter_set_id"`
+	IsTraining          bool    `json:"is_training" db:"is_training"`
 }
 
 type ParameterSet struct {

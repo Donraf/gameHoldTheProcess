@@ -366,6 +366,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_stop
 				ORDER BY chart_id, x ASC
@@ -382,6 +383,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_pause
 				ORDER BY chart_id, x ASC
@@ -398,6 +400,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_check
 				ORDER BY chart_id, x ASC
@@ -414,6 +417,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND (is_useful_ai_signal OR is_deceptive_ai_signal)
 				AND NOT is_stop
@@ -431,6 +435,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
 				ORDER BY chart_id, x ASC
@@ -459,6 +464,7 @@ func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetP
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_stop
 			`, pointsTable, chartsTable)
@@ -473,6 +479,7 @@ func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetP
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_pause
 			`, pointsTable, chartsTable)
@@ -487,6 +494,7 @@ func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetP
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND is_check
 			`, pointsTable, chartsTable)
@@ -501,6 +509,7 @@ func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetP
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND (is_useful_ai_signal OR is_deceptive_ai_signal)
 				AND NOT is_stop
@@ -516,6 +525,7 @@ func (u *UserPostgres) GetPlayersPointsWithEventsPageCount(input gameServer.GetP
 					FROM %s
 					WHERE user_id = $1
 					AND parameter_set_id = $2
+					AND NOT is_training
 				)
 				AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
 			`, pointsTable, chartsTable)

@@ -54,7 +54,8 @@ CREATE TABLE Charts
     id               serial                                                 PRIMARY KEY,
     created_at       timestamp                                              NOT NULL,
     parameter_set_id int REFERENCES Parameter_Sets (id) ON DELETE NO ACTION NOT NULL,
-    user_id          int REFERENCES Users (user_id) ON DELETE NO ACTION     NOT NULL
+    user_id          int REFERENCES Users (user_id) ON DELETE NO ACTION     NOT NULL,
+    is_training      boolean                                                NOT NULL
 );
 
 CREATE TABLE Points
