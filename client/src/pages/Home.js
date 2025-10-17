@@ -224,12 +224,13 @@ const Home = observer(() => {
         if (chart.chartData.isCrashed()) {
           chart.chartData.chartCrashed();
           const totalScoreDiff = chart.chartData.computeEndGameScore();
-          if (userParSet != null && !userParSet.is_training) {
+          if (userParSet != null) {
             createGraph(
               chart.chartData.points.slice(chart.chartData.maxPointsToShow),
               user.user.user_id,
               chart.chartData.parSet.id,
-              totalScore + totalScoreDiff
+              totalScore + totalScoreDiff,
+              userParSet.is_training
             );
           }
           triggerUpdateParSet();
@@ -276,12 +277,13 @@ const Home = observer(() => {
     if (isChartStopped) {
       const isStopNeeded = chart.chartData.chartStopped();
       const totalScoreDiff = chart.chartData.computeEndGameScore();
-      if (userParSet != null && !userParSet.is_training && !isTimeUp) {
+      if (userParSet != null && !isTimeUp) {
         createGraph(
           chart.chartData.points.slice(chart.chartData.maxPointsToShow),
           user.user.user_id,
           chart.chartData.parSet.id,
-          totalScore + totalScoreDiff
+          totalScore + totalScoreDiff,
+          userParSet.is_training
         );
       }
       triggerUpdateParSet();
