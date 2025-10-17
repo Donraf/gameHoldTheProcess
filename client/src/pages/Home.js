@@ -236,6 +236,7 @@ const Home = observer(() => {
           triggerUpdateParSet();
           chart.chartData.restart();
           changeTotalScore(totalScoreDiff);
+          setIsChartPaused(true);
           setIsHintModalOpened(false);
           if (!isTimeUp) {
             triggerWrongChoiceAnim();
@@ -666,11 +667,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CurrentSession");
-                chart.chartData.chartHintUsed(100);
-                changeScore(-100);
+                chart.chartData.chartHintUsed(50);
+                changeScore(-50);
               }}
             >
-              Показать весь текущий гейм (100 очков)
+              Показать весь текущий гейм (50 очков)
             </Button>
             <Button
               sx={{
