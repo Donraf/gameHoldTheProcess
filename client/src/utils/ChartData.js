@@ -190,7 +190,7 @@ export class ChartData {
 
   _updateEndScores() {
     for (let i = this.points.length - this.checkDangerNum - 1; i < this.points.length; i++) {
-      this.points[i].score = this.score - 2 * this.bonusStep;
+      this.points[i].score = this.score;
     }
   }
 
@@ -203,16 +203,16 @@ export class ChartData {
       this.score = -this.penaltyExplosionNoAdvice;
     } else if (this.wasManualStop && this.isRealDanger() && this.wasRealAlert) {
       // Правильная остановка с предупреждением от ИИ
-      this.score += this.bonusAcceptCorrectAdvice;
+      this.score += this.bonusAcceptCorrectAdvice - 2 * this.bonusStep;
     } else if (this.wasManualStop && this.isRealDanger() && !this.wasRealAlert) {
       // Правильная остановка без предупреждения от ИИ
-      this.score += this.bonusCorrectStopNoAdvice;
+      this.score += this.bonusCorrectStopNoAdvice - 2 * this.bonusStep;
     } else if (this.wasManualStop && !this.isRealDanger() && this.wasFakeAlert) {
       // Неправильная остановка с ложным предупреждением от ИИ
-      this.score -= this.penaltyAcceptIncorrectAdvice;
+      this.score -= this.penaltyAcceptIncorrectAdvice + 2 * this.bonusStep;
     } else if (this.wasManualStop && !this.isRealDanger() && !this.wasFakeAlert) {
       // Неправильная остановка без предупреждения от ИИ
-      this.score -= this.penaltyIncorrectStopNoAdvice;
+      this.score -= this.penaltyIncorrectStopNoAdvice + 2 * this.bonusStep;
     }
 
     this._updateEndScores();
