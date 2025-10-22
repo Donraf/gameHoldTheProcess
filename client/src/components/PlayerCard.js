@@ -129,7 +129,7 @@ export default function PlayerCard({ player }) {
     getStatistics(player.id, selectedParSetId).then((stats) => {
       setStats(stats);
     });
-  }, []);
+  }, [player]);
 
   const getParSetsUI = async () => {
     const filteredDataFromQuery = await getParSets();
