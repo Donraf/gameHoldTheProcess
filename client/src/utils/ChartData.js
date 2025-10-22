@@ -78,7 +78,7 @@ export class ChartData {
     let noise_mean = this.parSet.noise_mean;
     let noise_stdev = this.parSet.noise_stdev;
     let noise = gaussianRandom(noise_mean, noise_stdev);
-    let newVal = a * this.points[this.points.length - this.checkDangerNum].y + b * this.U + parseFloat(noise)
+    let newVal = a * this.points[this.points.length - this.checkDangerNum].y + b * this.U + parseFloat(noise);
     return new Point(this.curIndex, newVal, this.score);
   }
 
@@ -115,7 +115,10 @@ export class ChartData {
       return;
     }
 
-    if (randomVal < this.falseWarningProb || this.points[this.points.length - this.checkDangerNum - 1].y >= 0.985 * this.criticalValue) {
+    if (
+      randomVal < this.falseWarningProb ||
+      this.points[this.points.length - this.checkDangerNum - 1].y >= 0.985 * this.criticalValue
+    ) {
       this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
       this.wasFakeAlert = true;
       this.points[this.points.length - this.checkDangerNum - 1].is_deceptive_ai_signal = true;
@@ -217,7 +220,7 @@ export class ChartData {
 
     this._updateEndScores();
 
-    return this.score
+    return this.score;
   }
 
   restoreFromPoints(points) {
@@ -246,7 +249,6 @@ export class ChartData {
     this.falseWarningProb = parSet.false_warning_prob;
     this.restart();
   }
-
 
   getCrashProb() {
     if (this.parSet === null) {

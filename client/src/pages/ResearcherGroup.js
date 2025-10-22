@@ -6,7 +6,6 @@ import {
   Button,
   CssBaseline,
   Modal,
-  Pagination,
   Paper,
   Stack,
   Table,
@@ -22,7 +21,7 @@ import {
 import NavBarDrawer from "../components/NavBarDrawer";
 import ImageButton from "../components/ImageButton/ImageButton";
 import { useSnackbar } from "notistack";
-import { deleteGraph, getParSets } from "../http/graphAPI";
+import { getParSets } from "../http/graphAPI";
 import { changeGroupParSet, getAllGroups } from "../http/userAPI";
 import ChangeIconBlack from "../components/icons/ChangeIconBlack";
 import { ModalContent } from "../components/ModalContent";
@@ -78,11 +77,14 @@ const ResearcherGroup = () => {
     }
     changeGroupParSet(chosenGroupId, selectedParSetId).then(
       (_) => {
-        enqueueSnackbar("Набор параметров группы " + fetchedGroups?.find((group) => group.id === chosenGroupId)?.name + " обновлен", {
-          variant: "success",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
+        enqueueSnackbar(
+          "Набор параметров группы " + fetchedGroups?.find((group) => group.id === chosenGroupId)?.name + " обновлен",
+          {
+            variant: "success",
+            autoHideDuration: 3000,
+            preventDuplicate: true,
+          }
+        );
         setUpdateTrigger(!updateTrigger);
         handleCloseChangeGroupModal();
       },
@@ -177,7 +179,22 @@ const ResearcherGroup = () => {
             </Typography>
             <Autocomplete
               options={fetchedParSets}
-              getOptionLabel={(parSet) => "ID: " + parSet.id + " | a: " + parSet.a + " | b: " + parSet.b + " | мат. ож.: " + parSet.noise_mean + " | ср. откл.: " + parSet.noise_stdev + " | вер. лож. трев: " + parSet.false_warning_prob + " | вер. проп.: " + parSet.missing_danger_prob}
+              getOptionLabel={(parSet) =>
+                "ID: " +
+                parSet.id +
+                " | a: " +
+                parSet.a +
+                " | b: " +
+                parSet.b +
+                " | мат. ож.: " +
+                parSet.noise_mean +
+                " | ср. откл.: " +
+                parSet.noise_stdev +
+                " | вер. лож. трев: " +
+                parSet.false_warning_prob +
+                " | вер. проп.: " +
+                parSet.missing_danger_prob
+              }
               renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
               value={fetchedParSets.find((parSet) => parSet.id === selectedParSetId) || null}
               onChange={(_, newValue) => {

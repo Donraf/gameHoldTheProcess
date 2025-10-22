@@ -6,7 +6,7 @@ export default function ChangeIcon() {
       width="24px"
       height="24px"
       viewBox="0 0 52 52"
-      enable-background="new 0 0 52 52"
+      enableBackground="new 0 0 52 52"
     >
       <path
         d="M20,37.5c0-0.8-0.7-1.5-1.5-1.5h-15C2.7,36,2,36.7,2,37.5v11C2,49.3,2.7,50,3.5,50h15c0.8,0,1.5-0.7,1.5-1.5

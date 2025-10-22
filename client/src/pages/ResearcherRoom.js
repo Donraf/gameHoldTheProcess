@@ -165,7 +165,22 @@ const ResearcherRoom = () => {
             />
             <Autocomplete
               options={fetchedParSets}
-              getOptionLabel={(parSet) => "ID: " + parSet.id + " | a: " + parSet.a + " | b: " + parSet.b + " | мат. ож.: " + parSet.noise_mean + " | ср. откл.: " + parSet.noise_stdev + " | вер. лож. трев: " + parSet.false_warning_prob + " | вер. проп.: " + parSet.missing_danger_prob}
+              getOptionLabel={(parSet) =>
+                "ID: " +
+                parSet.id +
+                " | a: " +
+                parSet.a +
+                " | b: " +
+                parSet.b +
+                " | мат. ож.: " +
+                parSet.noise_mean +
+                " | ср. откл.: " +
+                parSet.noise_stdev +
+                " | вер. лож. трев: " +
+                parSet.false_warning_prob +
+                " | вер. проп.: " +
+                parSet.missing_danger_prob
+              }
               renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
               value={fetchedParSets.find((parSet) => parSet.id === selectedParSetId) || null}
               onChange={(_, newValue) => {

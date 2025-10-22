@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Box, Button, Container, CssBaseline, FormControlLabel, Modal, Stack, Switch, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Container, CssBaseline, Modal, Stack, Toolbar, Typography } from "@mui/material";
 import {
   Chart as ChartJS,
   LineController,
@@ -89,8 +89,8 @@ export const options = {
   },
 };
 
-const trainingTimeLimitMs = 15 * 60 * 1000
-const gameTimeLimitMs = 60 * 60 * 1000
+const trainingTimeLimitMs = 15 * 60 * 1000;
+const gameTimeLimitMs = 60 * 60 * 1000;
 
 const Home = observer(() => {
   const chartRef = useRef < ChartJS > null;
@@ -130,16 +130,8 @@ const Home = observer(() => {
 
   const [isTimeUp, setIsTimeUp] = React.useState(
     userParSet != null &&
-    (
-      (
-        userParSet.is_training &&
-        getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0
-      ) ||
-      (
-        !userParSet.is_training &&
-        getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0
-      )
-    )
+      ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
+        (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0))
   );
 
   const [updateParSet, setUpdateParSet] = React.useState(true);
@@ -181,7 +173,7 @@ const Home = observer(() => {
         updateFlag: !v.updateFlag,
       };
     });
-  }
+  };
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -246,7 +238,7 @@ const Home = observer(() => {
               autoHideDuration: 5000,
               preventDuplicate: true,
               style: {
-                fontSize: "18pt"
+                fontSize: "18pt",
               },
             });
           }
@@ -302,7 +294,7 @@ const Home = observer(() => {
             autoHideDuration: 5000,
             preventDuplicate: true,
             style: {
-              fontSize: "18pt"
+              fontSize: "18pt",
             },
           });
         } else {
@@ -312,7 +304,7 @@ const Home = observer(() => {
             autoHideDuration: 5000,
             preventDuplicate: true,
             style: {
-              fontSize: "18pt"
+              fontSize: "18pt",
             },
           });
         }
@@ -357,22 +349,23 @@ const Home = observer(() => {
       }
       fetchParSet().then((parSet) => {
         async function fetchParSetInfo() {
-          const newUserParSet = await getUserParSet(user.user.user_id, parSet.id)
-          return newUserParSet
+          const newUserParSet = await getUserParSet(user.user.user_id, parSet.id);
+          return newUserParSet;
         }
         fetchParSetInfo().then((ups) => {
-          if (oldUps == null ||
-            oldUps.is_training != ups.is_training ||
-            oldUps.training_start_time != ups.training_start_time ||
-            oldUps.game_start_time != ups.game_start_time
+          if (
+            oldUps == null ||
+            oldUps.is_training !== ups.is_training ||
+            oldUps.training_start_time !== ups.training_start_time ||
+            oldUps.game_start_time !== ups.game_start_time
           ) {
-          if (ups.score !== oldScore) {
-            if (ups !== null && !ups.is_training) {
-              setTotalScore(0)
-              changeTotalScore(ups.score)
+            if (ups.score !== oldScore) {
+              if (ups !== null && !ups.is_training) {
+                setTotalScore(0);
+                changeTotalScore(ups.score);
+              }
             }
-          }
-          setUserParSet(ups);
+            setUserParSet(ups);
           }
         });
       });
@@ -381,45 +374,45 @@ const Home = observer(() => {
 
   useEffect(() => {
     if (hintCharts.length <= 0) {
-      return
+      return;
     }
-    let newCause = ""
+    let newCause = "";
     for (let i = 0; i < hintCharts[curLocalHintChartNum].points.length; i++) {
       if (hintCharts[curLocalHintChartNum].points[i].is_stop) {
-        if (i-1 < 0) {
-          newCause = "Остановка без предупреждения от ИИ (неправильная)"
-          break
+        if (i - 1 < 0) {
+          newCause = "Остановка без предупреждения от ИИ (неправильная)";
+          break;
         }
-        if (hintCharts[curLocalHintChartNum].points[i-1].is_useful_ai_signal) {
-          newCause = "Остановка после правильного предупреждения от ИИ"
-        } else if (hintCharts[curLocalHintChartNum].points[i-1].is_deceptive_ai_signal) {
-          newCause = "Остановка после неправильного предупреждения от ИИ"
+        if (hintCharts[curLocalHintChartNum].points[i - 1].is_useful_ai_signal) {
+          newCause = "Остановка после правильного предупреждения от ИИ";
+        } else if (hintCharts[curLocalHintChartNum].points[i - 1].is_deceptive_ai_signal) {
+          newCause = "Остановка после неправильного предупреждения от ИИ";
         } else {
           if (i + 1 >= hintCharts[curLocalHintChartNum].points.length) {
-            break
+            break;
           }
-          if (hintCharts[curLocalHintChartNum].points[i+1].y >= chart.chartData.criticalValue) {
-            newCause = "Остановка без предупреждения от ИИ (правильная)"
+          if (hintCharts[curLocalHintChartNum].points[i + 1].y >= chart.chartData.criticalValue) {
+            newCause = "Остановка без предупреждения от ИИ (правильная)";
           } else {
-            newCause = "Остановка без предупреждения от ИИ (неправильная)"
+            newCause = "Остановка без предупреждения от ИИ (неправильная)";
           }
         }
-        break
+        break;
       }
       if (hintCharts[curLocalHintChartNum].points[i].is_crash) {
-        if (i-1 < 0) {
-          newCause = "Взрыв без предупреждения от ИИ"
-          break
+        if (i - 1 < 0) {
+          newCause = "Взрыв без предупреждения от ИИ";
+          break;
         }
-        if (hintCharts[curLocalHintChartNum].points[i-1].is_useful_ai_signal) {
-          newCause = "Взрыв после отклонения правильного предупреждения от ИИ"
+        if (hintCharts[curLocalHintChartNum].points[i - 1].is_useful_ai_signal) {
+          newCause = "Взрыв после отклонения правильного предупреждения от ИИ";
         } else {
-          newCause = "Взрыв без предупреждения от ИИ"
+          newCause = "Взрыв без предупреждения от ИИ";
         }
-        break
+        break;
       }
     }
-    setEndGameCause(newCause)
+    setEndGameCause(newCause);
   }, [curLocalHintChartNum]);
 
   const moveToNextHintChart = async () => {
@@ -456,11 +449,9 @@ const Home = observer(() => {
 
   const updateUserParSetUi = (updateInfo) => {
     updateInfo.par_set_id = chart.chartData.parSet.id;
-    updateUserUserParSet(user.user.user_id, updateInfo).then(
-      () => {
-        triggerUpdateParSet();
-      }
-    );
+    updateUserUserParSet(user.user.user_id, updateInfo).then(() => {
+      triggerUpdateParSet();
+    });
   };
 
   const renderHintModal = (chosenVariant) => {
@@ -724,156 +715,168 @@ const Home = observer(() => {
       <NavBarDrawer />
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
-        { userParSet != null && userParSet.is_training
-        ? <>
-        <Stack
-        justifyContent="center"
-        alignItems="center"
-        display="flex"
-        direction="row"
-        gap={2}
-        sx={{
-          textAlign:"center",
-          background:"orange",
-          padding:"10px",
-          marginBottom: "10px",
-          borderRadius: "10px"
-        }}
-        >
-        <Typography 
-        sx={{
-          textAlign:"center",
-        }}> Тренировочный режим. Оставшееся время:
-        </Typography>
-        {userParSet.training_start_time != null
-        ? <>
-        <Timer
-        active={userParSet.training_start_time != null }
-        deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
-        onDeadline={() => {
-          setIsTimeUp(true);
-          setIsChartPaused(true);}}
-        />
-        </>
-        : <>{millisToMinutesAndSeconds(trainingTimeLimitMs)}</>
-        }
-        <Button
+        {userParSet != null && userParSet.is_training ? (
+          <>
+            <Stack
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              direction="row"
+              gap={2}
               sx={{
-                color: "#FFFFFF",
-                backgroundColor: "#9356A0",
+                textAlign: "center",
+                background: "orange",
+                padding: "10px",
+                marginBottom: "10px",
+                borderRadius: "10px",
               }}
-              onClick={handleOpenTrainingWarnModal}
             >
-              Закончить тренировку
-            </Button>
-        </Stack>
-        </>
-        : <></>
-        }
-        { userParSet != null && !userParSet.is_training
-        ? <>
-        <Stack
-        justifyContent="center"
-        alignItems="center"
-        display="flex"
-        direction="row"
-        gap={2}
-        sx={{
-          textAlign:"center",
-          background:"green",
-          padding:"10px",
-          marginBottom: "10px",
-          borderRadius: "10px"
-        }}
-        >
-        <Typography 
-        sx={{
-          textAlign:"center",
-          color: "#ffffff"
-        }}> Основной режим. Оставшееся время: 
-        </Typography>
-        {userParSet.game_start_time != null
-        ? <>
-        <Timer
-        active={userParSet.game_start_time != null }
-        deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
-        onDeadline={() => {
-          setIsTimeUp(true);
-          setIsChartPaused(true);}}
-          />
-        </>
-        : <>{millisToMinutesAndSeconds(gameTimeLimitMs)}</>
-        }
-        </Stack>
-        </>
-        : <></>
-        }
+              <Typography
+                sx={{
+                  textAlign: "center",
+                }}
+              >
+                {" "}
+                Тренировочный режим. Оставшееся время:
+              </Typography>
+              {userParSet.training_start_time != null ? (
+                <>
+                  <Timer
+                    active={userParSet.training_start_time != null}
+                    deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
+                    onDeadline={() => {
+                      setIsTimeUp(true);
+                      setIsChartPaused(true);
+                    }}
+                  />
+                </>
+              ) : (
+                <>{millisToMinutesAndSeconds(trainingTimeLimitMs)}</>
+              )}
+              <Button
+                sx={{
+                  color: "#FFFFFF",
+                  backgroundColor: "#9356A0",
+                }}
+                onClick={handleOpenTrainingWarnModal}
+              >
+                Закончить тренировку
+              </Button>
+            </Stack>
+          </>
+        ) : (
+          <></>
+        )}
+        {userParSet != null && !userParSet.is_training ? (
+          <>
+            <Stack
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              direction="row"
+              gap={2}
+              sx={{
+                textAlign: "center",
+                background: "green",
+                padding: "10px",
+                marginBottom: "10px",
+                borderRadius: "10px",
+              }}
+            >
+              <Typography
+                sx={{
+                  textAlign: "center",
+                  color: "#ffffff",
+                }}
+              >
+                {" "}
+                Основной режим. Оставшееся время:
+              </Typography>
+              {userParSet.game_start_time != null ? (
+                <>
+                  <Timer
+                    active={userParSet.game_start_time != null}
+                    deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
+                    onDeadline={() => {
+                      setIsTimeUp(true);
+                      setIsChartPaused(true);
+                    }}
+                  />
+                </>
+              ) : (
+                <>{millisToMinutesAndSeconds(gameTimeLimitMs)}</>
+              )}
+            </Stack>
+          </>
+        ) : (
+          <></>
+        )}
         <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
           <Stack display="flex" direction="column">
-          <Box
-            sx={{
-              height: 50,
-              overflow: "hidden",
-              display: "flex",
-              direction: "row",
-              gap: "5px",
-            }}
-            ref={containerRef}
-          >
-            <Typography
-              variant="h3"
+            <Box
               sx={{
-                userSelect: "none",
+                height: 50,
+                overflow: "hidden",
+                display: "flex",
+                direction: "row",
+                gap: "5px",
               }}
+              ref={containerRef}
             >
-              Очки за сет: {totalScore}
-            </Typography>
-            <Typography
-              key={totalScoreChange.updateFlag}
-              className="move-up"
-              variant="h3"
-              color={totalScoreChange.scoreChange < 0 ? "red" : "green"}
+              <Typography
+                variant="h3"
+                sx={{
+                  userSelect: "none",
+                }}
+              >
+                Очки за сет: {totalScore}
+              </Typography>
+              <Typography
+                key={totalScoreChange.updateFlag}
+                className="move-up"
+                variant="h3"
+                color={totalScoreChange.scoreChange < 0 ? "red" : "green"}
+                sx={{
+                  userSelect: "none",
+                }}
+              >
+                {" "}
+                {totalScoreChange.scoreChange > 0 ? "+" + totalScoreChange.scoreChange : ""}
+                {totalScoreChange.scoreChange < 0 ? totalScoreChange.scoreChange : ""}
+              </Typography>
+            </Box>
+            <Box
               sx={{
-                userSelect: "none",
+                height: 50,
+                overflow: "hidden",
+                display: "flex",
+                direction: "row",
+                gap: "5px",
               }}
+              ref={containerRef}
             >
-              {" "}
-              {totalScoreChange.scoreChange > 0 ? "+" + totalScoreChange.scoreChange : ""}
-              {totalScoreChange.scoreChange < 0 ? totalScoreChange.scoreChange : ""}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              height: 50,
-              overflow: "hidden",
-              display: "flex",
-              direction: "row",
-              gap: "5px",
-            }}
-            ref={containerRef}
-          >
-            <Typography
-              variant="h3"
-              sx={{
-                userSelect: "none",
-              }}
-            >
-              Очки за гейм: {chart.chartData.score-20}
-            </Typography>
-            <Typography
-              key={scoresChanges.updateFlag}
-              className="move-up"
-              variant="h3"
-              color={scoresChanges.scoreChange < 0 ? "red" : "green"}
-              sx={{
-                userSelect: "none",
-              }}
-            >
-              {" "}
-              {scoresChanges.scoreChange > 0 ? "+" + scoresChanges.scoreChange : ""}
-              {scoresChanges.scoreChange < 0 ? scoresChanges.scoreChange : ""}
-            </Typography>
-          </Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  userSelect: "none",
+                }}
+              >
+                Очки за гейм: {chart.chartData.score - 20}
+              </Typography>
+              <Typography
+                key={scoresChanges.updateFlag}
+                className="move-up"
+                variant="h3"
+                color={scoresChanges.scoreChange < 0 ? "red" : "green"}
+                sx={{
+                  userSelect: "none",
+                }}
+              >
+                {" "}
+                {scoresChanges.scoreChange > 0 ? "+" + scoresChanges.scoreChange : ""}
+                {scoresChanges.scoreChange < 0 ? scoresChanges.scoreChange : ""}
+              </Typography>
+            </Box>
           </Stack>
           <Button
             sx={{
@@ -899,64 +902,84 @@ const Home = observer(() => {
           open={isRuleModalOpened}
           onClose={handleCloseRuleModal}
         >
-          <ModalContent sx={{ height: "90%", width: 800, overflow:"scroll" }}>
+          <ModalContent sx={{ height: "90%", width: 800, overflow: "scroll" }}>
             <Typography>Описание игры "Удержи процесс!"</Typography>
             <Typography>В чем цель игры?</Typography>
             <Typography>
-              Вы будете наблюдать за процессом, значение которого будет меняться.
-              Ваша цель - как можно дольше не допускать "взрыва процесса", то есть выхода его значения
-              за верхнюю границу (коричневая линия). Чтобы достичь поставленную цель, вам необходимо завершать процесс
-              до взрыва. В этом вам поможет система искусственного интеллекта, которая
-              предупредит вас, если посчитает, что вскоре процесс выйдет за допустимые рамки. Тем не менее изредка
-              система может пропустить опасную ситуацию, а иногда наоборот - предупредит об опасности, когда ее на самом
-              деле нет.
+              Вы будете наблюдать за процессом, значение которого будет меняться. Ваша цель - как можно дольше не
+              допускать "взрыва процесса", то есть выхода его значения за верхнюю границу (коричневая линия). Чтобы
+              достичь поставленную цель, вам необходимо завершать процесс до взрыва. В этом вам поможет система
+              искусственного интеллекта, которая предупредит вас, если посчитает, что вскоре процесс выйдет за
+              допустимые рамки. Тем не менее изредка система может пропустить опасную ситуацию, а иногда наоборот -
+              предупредит об опасности, когда ее на самом деле нет.
             </Typography>
             <Typography>Доступные действия</Typography>
             <Typography>
               Чтобы запустить процесс, нажмите на кнопку "Начать игру!". При помощи кнопок с иконками стрелочек, вы
               можете ускорять и замедлять процесс. Кнопка "Пауза" позволит приостановить игру, чтобы у вас появилось
-              время подумать над тем, стоит ли завершить процесс или нет. Для того, чтобы завершить процесс надо
-              нажать на одноименную кнопку. При возникновении предупреждения от системы ИИ, посередине экрана всплывет окно и
-              процесс автоматически ставится на паузу. В этом случае вы можете запросить подсказку для
-              принятия решения - продолжить процесс или завершить процесс.
+              время подумать над тем, стоит ли завершить процесс или нет. Для того, чтобы завершить процесс надо нажать
+              на одноименную кнопку. При возникновении предупреждения от системы ИИ, посередине экрана всплывет окно и
+              процесс автоматически ставится на паузу. В этом случае вы можете запросить подсказку для принятия решения
+              - продолжить процесс или завершить процесс.
             </Typography>
-            <Typography>Как проводится игра?</Typography>
-              В процессе игры ваш процесс будет начинаться с нулевого значения
-              и затем будет останавливаться вами или взрываться, выходя за верхнюю границу. В обоих случаях процесс будет перезапущен
-              и его значение будет снова установлено в ноль. Период между началом (установлением в ноль) и остановкой/взрывом процесса называется геймом.
-              Все сыгранные геймы формируют сет. Очки, набранные за сет, являются итоговой оценкой вашей игры.
+            <Typography>Как проводится игра?</Typography>В процессе игры ваш процесс будет начинаться с нулевого
+            значения и затем будет останавливаться вами или взрываться, выходя за верхнюю границу. В обоих случаях
+            процесс будет перезапущен и его значение будет снова установлено в ноль. Период между началом (установлением
+            в ноль) и остановкой/взрывом процесса называется геймом. Все сыгранные геймы формируют сет. Очки, набранные
+            за сет, являются итоговой оценкой вашей игры.
             <Typography>Как набирать очки?</Typography>
-            Каждый гейм оценивается своими собственными очками. По окончании гейма заработанные в нем очки прибавляются к очкам сета.
-            При начале гейма его очки всегда возвращаются к нулю.
-            За каждый пройденный процессом шаг гейму будет добавляться +10 очков. За каждое отклонение неправильного предупреждения от ИИ дается +2000 очков.
-            За использование паузы отнимается -50 очков. За использование подсказок отнимаются очки, равные их стоимости. О подсказках будет написано ниже.
-            Итоговая оценка гейма зависит не только от количества набранных в нем очков, но и от того, закончился он взрывом или остановкой.
+            Каждый гейм оценивается своими собственными очками. По окончании гейма заработанные в нем очки прибавляются
+            к очкам сета. При начале гейма его очки всегда возвращаются к нулю. За каждый пройденный процессом шаг гейму
+            будет добавляться +10 очков. За каждое отклонение неправильного предупреждения от ИИ дается +2000 очков. За
+            использование паузы отнимается -50 очков. За использование подсказок отнимаются очки, равные их стоимости. О
+            подсказках будет написано ниже. Итоговая оценка гейма зависит не только от количества набранных в нем очков,
+            но и от того, закончился он взрывом или остановкой.
             <Typography>Оценка после взрыва процесса</Typography>
             <Typography>
-              Если гейм закончился взрывом, то все очки, которые были набраны в течение этого гейма, аннулируются. Помимо этого, если
-              ИИ предупредил о взрыве, но вы проигнорировали предупреждение, то не только очки за гейм будут аннулированы, но также отнимется
-              -4000 очков за сет. Если предупреждения ИИ не было, то происходит только аннулирование очков гейма, очки за сет никак не изменятся.
+              Если гейм закончился взрывом, то все очки, которые были набраны в течение этого гейма, аннулируются.
+              Помимо этого, если ИИ предупредил о взрыве, но вы проигнорировали предупреждение, то не только очки за
+              гейм будут аннулированы, но также отнимется -4000 очков за сет. Если предупреждения ИИ не было, то
+              происходит только аннулирование очков гейма, очки за сет никак не изменятся.
             </Typography>
             <Typography>Оценка после остановки процесса</Typography>
             <Typography>
-              Если гейм закончился остановкой процесса, то все очки, которые были набраны в течение этого гейма, сохраняются. Помимо этого, будет
-              проведена оценка остановки в зависимости от ее условий. Всего есть четыре разновидности остановок:
+              Если гейм закончился остановкой процесса, то все очки, которые были набраны в течение этого гейма,
+              сохраняются. Помимо этого, будет проведена оценка остановки в зависимости от ее условий. Всего есть четыре
+              разновидности остановок:
             </Typography>
-            <Typography>1) Правильная остановка* с правильным** предупреждением от ИИ - вам дается +500 очков;</Typography>
+            <Typography>
+              1) Правильная остановка* с правильным** предупреждением от ИИ - вам дается +500 очков;
+            </Typography>
             <Typography>2) Правильная остановка* без предупреждения от ИИ - вам дается +4000 очков;</Typography>
-            <Typography>3) Неправильная остановка при ложной тревоге*** от ИИ - у вас отнимается -1000 очков;</Typography>
+            <Typography>
+              3) Неправильная остановка при ложной тревоге*** от ИИ - у вас отнимается -1000 очков;
+            </Typography>
             <Typography>4) Неправильная остановка без предупреждения от ИИ - у вас отнимается -2000 очков.</Typography>
             Итоговая оценка гейма складывается из очков, заработанных за этот гейм, и оценки остановки процесса.
-            <Typography>*: Правильная остановка - это завершение процесса при условии, что на следующем шаге произойдет взрыв.</Typography>
-            <Typography>**: Правильное предупреждение - это предупреждение от ИИ при условии, что на следующем шаге произойдет взрыв.</Typography>
-            <Typography>***: Ложная тревога - это предупреждение от ИИ при условии, что на следующем шаге не будет взрыва. </Typography>
+            <Typography>
+              *: Правильная остановка - это завершение процесса при условии, что на следующем шаге произойдет взрыв.
+            </Typography>
+            <Typography>
+              **: Правильное предупреждение - это предупреждение от ИИ при условии, что на следующем шаге произойдет
+              взрыв.
+            </Typography>
+            <Typography>
+              ***: Ложная тревога - это предупреждение от ИИ при условии, что на следующем шаге не будет взрыва.{" "}
+            </Typography>
             <Typography>Подсказки</Typography>
             <Typography>В игре есть две подсказки:</Typography>
-            <Typography>1) Показать весь текущий гейм. Стоит 50 очков. Показывает все точки графика текущего гейма.
-              Может пригодиться, если необходимо посмотреть на развитие процесса с нулевого значения до текущей точки; </Typography>
-            <Typography>2) Показать все свои предыдущие геймы. Стоит 200 очков. Действует аналогично первой подсказке, но показывает все сыгранные вами геймы.</Typography>
-            <Typography>Вы можете использовать подсказки, когда ставите игру на паузу, или когда приходит предупреждение от ИИ.
-              Стоимость использованных подсказок вычитается из очков текущего гейма.</Typography>
+            <Typography>
+              1) Показать весь текущий гейм. Стоит 50 очков. Показывает все точки графика текущего гейма. Может
+              пригодиться, если необходимо посмотреть на развитие процесса с нулевого значения до текущей точки;{" "}
+            </Typography>
+            <Typography>
+              2) Показать все свои предыдущие геймы. Стоит 200 очков. Действует аналогично первой подсказке, но
+              показывает все сыгранные вами геймы.
+            </Typography>
+            <Typography>
+              Вы можете использовать подсказки, когда ставите игру на паузу, или когда приходит предупреждение от ИИ.
+              Стоимость использованных подсказок вычитается из очков текущего гейма.
+            </Typography>
             <Button
               sx={{
                 color: "#FFFFFF",
@@ -997,36 +1020,35 @@ const Home = observer(() => {
         >
           <ModalContent sx={{ width: 800 }}>
             <Typography>
-              Вы уверены, что хотите перейти в обычный режим?
-              После этого действия вернуться к тренировке будет нельзя.
+              Вы уверены, что хотите перейти в обычный режим? После этого действия вернуться к тренировке будет нельзя.
             </Typography>
             <Stack direction="row" gap={2}>
-            <Button
-                  sx={{
-                    color: "#FFFFFF",
-                    backgroundColor: COLORS.graphGradientLow,
-                    width: "100%",
-                  }}
-                  onClick={handleCloseTrainingWarnModal}
-                >
-                  Продолжить тренироваться
-                </Button>
-                <Button
-                  sx={{
-                    color: "#FFFFFF",
-                    backgroundColor: "orange",
-                    width: "100%",
-                  }}
-                  onClick={() => {
-                    setIsChartStopped(true);
-                    setIsDanger(false);
-                    handleCloseTrainingWarnModal();
-                    setIsTimeUp(false);
-                    updateUserParSetUi({"is_training": false})
-                  }}
-                >
-                  Закончить тренировку 
-                </Button>
+              <Button
+                sx={{
+                  color: "#FFFFFF",
+                  backgroundColor: COLORS.graphGradientLow,
+                  width: "100%",
+                }}
+                onClick={handleCloseTrainingWarnModal}
+              >
+                Продолжить тренироваться
+              </Button>
+              <Button
+                sx={{
+                  color: "#FFFFFF",
+                  backgroundColor: "orange",
+                  width: "100%",
+                }}
+                onClick={() => {
+                  setIsChartStopped(true);
+                  setIsDanger(false);
+                  handleCloseTrainingWarnModal();
+                  setIsTimeUp(false);
+                  updateUserParSetUi({ is_training: false });
+                }}
+              >
+                Закончить тренировку
+              </Button>
             </Stack>
           </ModalContent>
         </Modal>
@@ -1040,7 +1062,10 @@ const Home = observer(() => {
           />
           {user.isAuth ? (
             <>
-              {(userParSet == null || (userParSet.is_training && userParSet.training_start_time == null) || (!userParSet.is_training && userParSet.game_start_time == null)) && isChartPaused  ? (
+              {(userParSet == null ||
+                (userParSet.is_training && userParSet.training_start_time == null) ||
+                (!userParSet.is_training && userParSet.game_start_time == null)) &&
+              isChartPaused ? (
                 <Button
                   sx={{
                     color: "#FFFFFF",
@@ -1049,11 +1074,10 @@ const Home = observer(() => {
                   }}
                   onClick={() => {
                     if (userParSet != null) {
-                      
                       if (userParSet.is_training) {
-                        updateUserParSetUi({training_start_time: transformToDbDateDayTime(Date.now())})
+                        updateUserParSetUi({ training_start_time: transformToDbDateDayTime(Date.now()) });
                       } else if (!userParSet.is_training) {
-                        updateUserParSetUi({game_start_time: transformToDbDateDayTime(Date.now())})
+                        updateUserParSetUi({ game_start_time: transformToDbDateDayTime(Date.now()) });
                       }
                       setIsChartPaused(false);
                     }
@@ -1063,147 +1087,149 @@ const Home = observer(() => {
                 </Button>
               ) : (
                 <>
-                {/* userParSet != null && ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) > 0) || (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) > 0) ) */}
-                { !isTimeUp ? <>
-                  <Stack display="flex" direction="column" spacing={1}>
-                  <Stack display="flex" direction="row" spacing={1}>
-                    <Box
-                      sx={{
-                        color: "#FFFFFF",
-                        backgroundColor: "#9356A0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        px: "8px",
-                        py: "12px",
-                        borderRadius: "4px",
-                      }}
-                      onClick={() => {
-                        decreaseSpeed();
-                      }}
-                    >
-                      <DecreaseSpeedIcon />
-                    </Box>
-                    <Box
-                      sx={{
-                        width: "60px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        border: "1px solid #000000",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          userSelect: "none",
-                        }}
-                      >
-                        {"x" + curSpeed.toString()}
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        color: "#FFFFFF",
-                        backgroundColor: "#9356A0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        px: "8px",
-                        py: "12px",
-                        borderRadius: "4px",
-                      }}
-                      onClick={() => {
-                        increaseSpeed();
-                      }}
-                    >
-                      <IncreaseSpeedIcon />
-                    </Box>
-                    {isChartPaused ? (
-                      <Button
-                        sx={{
-                          color: "#FFFFFF",
-                          backgroundColor: COLORS.continueButton,
-                          flexGrow: 1,
-                        }}
-                        disabled={isDanger}
-                        onClick={() => {
-                          setIsChartPaused(false);
-                          setIsDanger(false);
-                        }}
-                        startIcon={<PlayButtonIcon />}
-                      >
-                        Продолжить
-                      </Button>
-                    ) : (
-                      <Button
-                        sx={{
-                          color: "#FFFFFF",
-                          backgroundColor: COLORS.takeHintButton,
-                          flexGrow: 1,
-                        }}
-                        onClick={() => {
-                          setIsChartPaused(true);
-                          chart.chartData.chartPaused();
-                          changeScore(-50);
-                        }}
-                        startIcon={<PauseButtonIcon />}
-                      >
-                        Пауза
-                      </Button>
-                    )}
-                    <Button
-                      sx={{
-                        color: "#FFFFFF",
-                        backgroundColor: COLORS.stopButton,
-                        flexGrow: 1,
-                      }}
-                      disabled={isDanger}
-                      onClick={() => {
-                        setIsChartStopped(true);
-                        setIsDanger(false);
-                      }}
-                      startIcon={<StopButtonIcon />}
-                    >
-                      Завершить процесс
-                    </Button>
-                  </Stack>
-                  {isChartPaused ? (
-                    <Button
-                      sx={{
-                        color: "#FFFFFF",
-                        backgroundColor: COLORS.takeHintButton,
-                        flexGrow: 1,
-                      }}
-                      onClick={() => {
-                        handleOpenHintModal();
-                      }}
-                      startIcon={<TakeHintButtonIcon />}
-                    >
-                      Купить подсказки
-                    </Button>
+                  {/* userParSet != null && ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) > 0) || (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) > 0) ) */}
+                  {!isTimeUp ? (
+                    <>
+                      <Stack display="flex" direction="column" spacing={1}>
+                        <Stack display="flex" direction="row" spacing={1}>
+                          <Box
+                            sx={{
+                              color: "#FFFFFF",
+                              backgroundColor: "#9356A0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              px: "8px",
+                              py: "12px",
+                              borderRadius: "4px",
+                            }}
+                            onClick={() => {
+                              decreaseSpeed();
+                            }}
+                          >
+                            <DecreaseSpeedIcon />
+                          </Box>
+                          <Box
+                            sx={{
+                              width: "60px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              border: "1px solid #000000",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                userSelect: "none",
+                              }}
+                            >
+                              {"x" + curSpeed.toString()}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              color: "#FFFFFF",
+                              backgroundColor: "#9356A0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              px: "8px",
+                              py: "12px",
+                              borderRadius: "4px",
+                            }}
+                            onClick={() => {
+                              increaseSpeed();
+                            }}
+                          >
+                            <IncreaseSpeedIcon />
+                          </Box>
+                          {isChartPaused ? (
+                            <Button
+                              sx={{
+                                color: "#FFFFFF",
+                                backgroundColor: COLORS.continueButton,
+                                flexGrow: 1,
+                              }}
+                              disabled={isDanger}
+                              onClick={() => {
+                                setIsChartPaused(false);
+                                setIsDanger(false);
+                              }}
+                              startIcon={<PlayButtonIcon />}
+                            >
+                              Продолжить
+                            </Button>
+                          ) : (
+                            <Button
+                              sx={{
+                                color: "#FFFFFF",
+                                backgroundColor: COLORS.takeHintButton,
+                                flexGrow: 1,
+                              }}
+                              onClick={() => {
+                                setIsChartPaused(true);
+                                chart.chartData.chartPaused();
+                                changeScore(-50);
+                              }}
+                              startIcon={<PauseButtonIcon />}
+                            >
+                              Пауза
+                            </Button>
+                          )}
+                          <Button
+                            sx={{
+                              color: "#FFFFFF",
+                              backgroundColor: COLORS.stopButton,
+                              flexGrow: 1,
+                            }}
+                            disabled={isDanger}
+                            onClick={() => {
+                              setIsChartStopped(true);
+                              setIsDanger(false);
+                            }}
+                            startIcon={<StopButtonIcon />}
+                          >
+                            Завершить процесс
+                          </Button>
+                        </Stack>
+                        {isChartPaused ? (
+                          <Button
+                            sx={{
+                              color: "#FFFFFF",
+                              backgroundColor: COLORS.takeHintButton,
+                              flexGrow: 1,
+                            }}
+                            onClick={() => {
+                              handleOpenHintModal();
+                            }}
+                            startIcon={<TakeHintButtonIcon />}
+                          >
+                            Купить подсказки
+                          </Button>
+                        ) : (
+                          <></>
+                        )}
+                      </Stack>
+                    </>
                   ) : (
-                    <></>
+                    <>
+                      {userParSet.is_training ? (
+                        <>
+                          <Typography sx={{ textAlign: "center" }} variant="h2">
+                            Время для тренировки истекло. Перейдите в основной режим.
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography sx={{ textAlign: "center" }} variant="h2">
+                            Время основной игры истекло. Спасибо за игру!
+                          </Typography>
+                        </>
+                      )}
+                    </>
                   )}
-                </Stack>
-                </>
-                : <>
-                {userParSet.is_training
-                ? <>
-                <Typography sx={{ textAlign: "center" }} variant="h2">
-                Время для тренировки истекло. Перейдите в основной режим.
-                </Typography>
-                </>
-                :
-                <>
-                <Typography sx={{ textAlign: "center" }} variant="h2">
-                  Время основной игры истекло. Спасибо за игру!
-                </Typography>
-                </>
-                }
-                </>
-                }
                 </>
               )}
             </>

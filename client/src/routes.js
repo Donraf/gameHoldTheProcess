@@ -51,7 +51,7 @@ export const authRoutes = [
     path: RESEARCHER_USER_ROUTE,
     Component: <ResearcherUser />,
   },
-    {
+  {
     path: RESEARCHER_GROUP_ROUTE,
     Component: <ResearcherGroup />,
   },

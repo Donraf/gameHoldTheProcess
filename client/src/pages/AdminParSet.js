@@ -108,55 +108,55 @@ const AdminParset = () => {
     );
   }, [snackErrTexts]);
 
-    const addParSet = () => {
-      let snackErrors = [];
-      if (a === -1) {
-        snackErrors.push("Введите коэффициент усиления");
+  const addParSet = () => {
+    let snackErrors = [];
+    if (a === -1) {
+      snackErrors.push("Введите коэффициент усиления");
+    }
+    if (b === -1) {
+      snackErrors.push("Введите константу времени");
+    }
+    if (noiseMean === -1) {
+      snackErrors.push("Введите математическое ожидание помехи");
+    }
+    if (noiseStdev === -1) {
+      snackErrors.push("Введите стандартное отклонение помехи");
+    }
+    if (falseWarningProb === -1) {
+      snackErrors.push("Введите вероятность ложной тревоги");
+    }
+    if (missingDangerProb === -1) {
+      snackErrors.push("Введите вероятность пропуска цели");
+    }
+    if (snackErrors.length !== 0) {
+      setSnackErrTexts(snackErrors);
+      return;
+    }
+
+    createParSet(a, b, noiseMean, noiseStdev, falseWarningProb, missingDangerProb).then(
+      (_) => {
+        enqueueSnackbar("Пользователь добавлен", {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        setA(-1);
+        setB(-1);
+        setNoiseMean(-1);
+        setNoiseStdev(-1);
+        setFalseWarningProb(-1);
+        setMissingDangerProb(-1);
+        setUpdateTrigger(!updateTrigger);
+      },
+      (_) => {
+        enqueueSnackbar("Ошибка при добавлении пользователя", {
+          variant: "error",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
       }
-      if (b === -1) {
-        snackErrors.push("Введите константу времени");
-      }
-      if (noiseMean === -1) {
-        snackErrors.push("Введите математическое ожидание помехи");
-      }
-      if (noiseStdev === -1) {
-        snackErrors.push("Введите стандартное отклонение помехи");
-      }
-      if (falseWarningProb === -1) {
-        snackErrors.push("Введите вероятность ложной тревоги");
-      }
-      if (missingDangerProb === -1) {
-        snackErrors.push("Введите вероятность пропуска цели");
-      }
-      if (snackErrors.length !== 0) {
-        setSnackErrTexts(snackErrors);
-        return;
-      }
-  
-      createParSet(a, b, noiseMean, noiseStdev, falseWarningProb, missingDangerProb).then(
-        (_) => {
-          enqueueSnackbar("Пользователь добавлен", {
-            variant: "success",
-            autoHideDuration: 3000,
-            preventDuplicate: true,
-          });
-          setA(-1);
-          setB(-1);
-          setNoiseMean(-1);
-          setNoiseStdev(-1);
-          setFalseWarningProb(-1);
-          setMissingDangerProb(-1);
-          setUpdateTrigger(!updateTrigger);
-        },
-        (_) => {
-          enqueueSnackbar("Ошибка при добавлении пользователя", {
-            variant: "error",
-            autoHideDuration: 3000,
-            preventDuplicate: true,
-          });
-        }
-      );
-    };
+    );
+  };
 
   const getParSetsUI = async () => {
     const filteredDataFromQuery = await getParSets();
@@ -176,8 +176,8 @@ const AdminParset = () => {
       noise_mean: noiseMean,
       noise_stdev: noiseStdev,
       false_warning_prob: 0,
-      missing_danger_prob: 0
-    }
+      missing_danger_prob: 0,
+    };
     let newChartData = new ChartData(0);
     newChartData.setParSet(parSet);
     while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
@@ -194,70 +194,94 @@ const AdminParset = () => {
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
           <Stack width={"100%"} direction="row" spacing={2}>
-          <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography variant="h4" noWrap component="div">
-              Добавление набора параметров
-            </Typography>
-            <TextField
-              onChange={(event) => {setA(event.target.value);}}
-              value={a}
-              id="a-coef-field"
-              label="Введите коэффициент a"
-              required={true}
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {setB(event.target.value);}}
-              value={b}
-              id="b-coef-field"
-              label="Введите коэффициент b"
-              required={true}
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {setNoiseMean(event.target.value);}}
-              value={noiseMean}
-              id="noise-mean-field"
-              label="Введите математическое ожидание помехи"
-              required={true}
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {setNoiseStdev(event.target.value);}}
-              value={noiseStdev}
-              id="noise-stdev-field"
-              label="Введите стандартное отклонение помехи"
-              required={true}
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {setFalseWarningProb(event.target.value);}}
-              value={falseWarningProb}
-              id="false-warning-prob-field"
-              label="Введите вероятность ложной тревоги"
-              required={true}
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {setMissingDangerProb(event.target.value);}}
-              value={missingDangerProb}
-              id="missing-danger-prob-field"
-              label="Введите вероятность пропуска цели"
-              required={true}
-              variant="outlined"
-            />
+            <Stack width={"100%"} direction="column" spacing={2}>
+              <Typography variant="h4" noWrap component="div">
+                Добавление набора параметров
+              </Typography>
+              <TextField
+                onChange={(event) => {
+                  setA(event.target.value);
+                }}
+                value={a}
+                id="a-coef-field"
+                label="Введите коэффициент a"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setB(event.target.value);
+                }}
+                value={b}
+                id="b-coef-field"
+                label="Введите коэффициент b"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setNoiseMean(event.target.value);
+                }}
+                value={noiseMean}
+                id="noise-mean-field"
+                label="Введите математическое ожидание помехи"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setNoiseStdev(event.target.value);
+                }}
+                value={noiseStdev}
+                id="noise-stdev-field"
+                label="Введите стандартное отклонение помехи"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setFalseWarningProb(event.target.value);
+                }}
+                value={falseWarningProb}
+                id="false-warning-prob-field"
+                label="Введите вероятность ложной тревоги"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setMissingDangerProb(event.target.value);
+                }}
+                value={missingDangerProb}
+                id="missing-danger-prob-field"
+                label="Введите вероятность пропуска цели"
+                required={true}
+                variant="outlined"
+              />
+            </Stack>
+
+            <Container>
+              {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
+            </Container>
           </Stack>
 
-          <Container>
-          {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
-          </Container>
-          </Stack>
-
-          <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {addParSet()}}>
+          <Button
+            sx={{ width: "fit-content", height: "40px" }}
+            variant="contained"
+            onClick={() => {
+              addParSet();
+            }}
+          >
             Добавить набор параметров
           </Button>
 
-          <Button sx={{ width: "fit-content", height: "40px" }} variant="contained" onClick={() => {triggerUpdateParSet()}}>
+          <Button
+            sx={{ width: "fit-content", height: "40px" }}
+            variant="contained"
+            onClick={() => {
+              triggerUpdateParSet();
+            }}
+          >
             Посмотреть возможный ход процесса
           </Button>
 

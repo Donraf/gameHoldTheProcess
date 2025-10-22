@@ -37,12 +37,12 @@ const ResearcherUser = () => {
   const [selectedGroup, setSelectedGroup] = React.useState("Все события");
 
   const eventTypeMap = new Map([
-    ["Все события",""],
-    ["Ручная остановка","stop"],
-    ["Пауза","pause"],
-    ["Использована подсказка","check"],
-    ["Отклонение совета ИИ","reject_advice"],
-  ])
+    ["Все события", ""],
+    ["Ручная остановка", "stop"],
+    ["Пауза", "pause"],
+    ["Использована подсказка", "check"],
+    ["Отклонение совета ИИ", "reject_advice"],
+  ]);
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -60,8 +60,17 @@ const ResearcherUser = () => {
 
   const filterData = async (updatePage) => {
     let filteredDataFromQuery;
-    filteredDataFromQuery = await getPlayersEvents(location.state.player.id, selectedParSetId, page, eventTypeMap.get(selectedGroup));
-    let newPageCount = await getPlayersEventsPageCount(location.state.player.id, selectedParSetId, eventTypeMap.get(selectedGroup));
+    filteredDataFromQuery = await getPlayersEvents(
+      location.state.player.id,
+      selectedParSetId,
+      page,
+      eventTypeMap.get(selectedGroup)
+    );
+    let newPageCount = await getPlayersEventsPageCount(
+      location.state.player.id,
+      selectedParSetId,
+      eventTypeMap.get(selectedGroup)
+    );
     let stats = await getStatistics(location.state.player.id, selectedParSetId);
     setPageCount(newPageCount);
     if (updatePage) setPage(1);
@@ -103,44 +112,56 @@ const ResearcherUser = () => {
               flexGrow: 9,
             }}
           />
-          { user.isAuth && user.user.role === USER_ROLE_ADMIN
-            ? <Button
-                  variant="outlined"
-                  sx={{
-                    color: "#FFFFFF",
-                    height: "50%",
-                    backgroundColor: COLORS.mainTheme,
-                    flexGrow: 1,
-                  }}
-                  onClick={() => {
-                    computeStats();
-                  }}
-                  startIcon={<StatisticsIcon />}
-                >
-                  Рассчитать статистику
-                </Button>
-                : <></>
-          }
+          {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
+            <Button
+              variant="outlined"
+              sx={{
+                color: "#FFFFFF",
+                height: "50%",
+                backgroundColor: COLORS.mainTheme,
+                flexGrow: 1,
+              }}
+              onClick={() => {
+                computeStats();
+              }}
+              startIcon={<StatisticsIcon />}
+            >
+              Рассчитать статистику
+            </Button>
+          ) : (
+            <></>
+          )}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Статистика по набору параметров №{selectedParSetId}:
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок - {stats?.stops_num != null ? stats?.stops_num : "???"}, взрывов - {stats?.crashes_num != null ? stats?.crashes_num : "???"}.
+            Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок -{" "}
+            {stats?.stops_num != null ? stats?.stops_num : "???"}, взрывов -{" "}
+            {stats?.crashes_num != null ? stats?.crashes_num : "???"}.
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка по сигналу μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+            Остановка по сигналу μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"}{" "}
+            σ={stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка без сигнала μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
+            Остановка без сигнала μ=
+            {stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
+            {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации по сигналу μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
+            Запрос информации по сигналу μ=
+            {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
+            {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации без сигнала μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
+            Запрос информации без сигнала μ=
+            {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
+            {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Продолжение после сигнала μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ={stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
+            Продолжение после сигнала μ=
+            {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
+            {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
@@ -151,7 +172,7 @@ const ResearcherUser = () => {
             value={selectedGroup}
             onChange={(_, newValue) => {
               const newSelectedGroup = newValue ? newValue : "";
-              setSelectedGroup(newSelectedGroup)
+              setSelectedGroup(newSelectedGroup);
             }}
             disableClearable
             sx={{

@@ -2,8 +2,8 @@ export default function StatisticsIcon() {
   return (
     <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <defs></defs>
-      <path class="a" d="M12,2A10,10,0,1,0,22,12H12Z" />
-      <path class="a" d="M15,9h6.54077A10.02174,10.02174,0,0,0,15,2.45923Z" />
+      <path d="M12,2A10,10,0,1,0,22,12H12Z" />
+      <path d="M15,9h6.54077A10.02174,10.02174,0,0,0,15,2.45923Z" />
     </svg>
   );
 }

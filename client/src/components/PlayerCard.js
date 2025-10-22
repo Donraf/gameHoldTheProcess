@@ -1,6 +1,4 @@
 import {
-  Autocomplete,
-  Box,
   Button,
   Card,
   Divider,
@@ -14,7 +12,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import { ChartData } from "../utils/ChartData";
@@ -37,7 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { ModalContent } from "./ModalContent";
 import { getParSets, getParSetsPageCount } from "../http/graphAPI";
 import { updateUserParSet } from "../http/userAPI";
-import { enqueueSnackbar, useSnackbar } from "notistack";
+import { useSnackbar } from "notistack";
 import ChangeIcon from "./icons/ChangeIcon";
 import StatisticsIcon from "./icons/StatisticsIcon";
 import RadioCheckedIcon from "./icons/RadioCheckedIcon";
@@ -222,7 +219,8 @@ export default function PlayerCard({ player }) {
               Остановка по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+              μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
+              {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
 
@@ -231,7 +229,8 @@ export default function PlayerCard({ player }) {
               Остановка без сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
+              μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
+              {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
 
@@ -240,7 +239,8 @@ export default function PlayerCard({ player }) {
               Запрос информации по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
+              μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
+              {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
 
@@ -249,7 +249,8 @@ export default function PlayerCard({ player }) {
               Запрос информации без сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
+              μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
+              {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
 
@@ -258,7 +259,8 @@ export default function PlayerCard({ player }) {
               Продолжение после сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ={stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
+              μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
+              {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
         </Stack>
@@ -297,24 +299,25 @@ export default function PlayerCard({ player }) {
         </Stack>
       </Stack>
 
-      { user.isAuth && user.user.role === USER_ROLE_ADMIN
-      ? <Button
-            variant="outlined"
-            sx={{
-              color: "#FFFFFF",
-              height: "50%",
-              backgroundColor: COLORS.mainTheme,
-              flexGrow: 1,
-            }}
-            onClick={() => {
-              computeStats();
-            }}
-            startIcon={<StatisticsIcon />}
-          >
-            Рассчитать статистику
-          </Button>
-          : <></>
-    }
+      {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
+        <Button
+          variant="outlined"
+          sx={{
+            color: "#FFFFFF",
+            height: "50%",
+            backgroundColor: COLORS.mainTheme,
+            flexGrow: 1,
+          }}
+          onClick={() => {
+            computeStats();
+          }}
+          startIcon={<StatisticsIcon />}
+        >
+          Рассчитать статистику
+        </Button>
+      ) : (
+        <></>
+      )}
 
       <Modal
         sx={{
