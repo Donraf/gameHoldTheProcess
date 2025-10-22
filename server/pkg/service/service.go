@@ -50,16 +50,23 @@ type Point interface {
 	GetCsvOfPoints() (string, error)
 }
 
+type Statistics interface {
+	ComputeStatistics(input gameServer.ComputeStatisticsInput) (gameServer.Statistics, error)
+	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
+}
+
 type Service struct {
 	User
 	Chart
 	Point
+	Statistics
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
-		User:  NewUserService(repo.User),
-		Chart: NewChartService(repo.Chart),
-		Point: NewPointService(repo.Point),
+		User:       NewUserService(repo.User),
+		Chart:      NewChartService(repo.Chart),
+		Point:      NewPointService(repo.Point),
+		Statistics: NewStatisticsService(repo.Statistics),
 	}
 }

@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ChartData } from "../utils/ChartData";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   LineController,
@@ -32,18 +32,18 @@ import {
   Filler,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { COLORS, RESEARCHER_USER_ROUTE } from "../utils/constants";
-import AddIcon from "./icons/AddIcon";
+import { COLORS, RESEARCHER_USER_ROUTE, USER_ROLE_ADMIN } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { ModalContent } from "./ModalContent";
 import { getParSets, getParSetsPageCount } from "../http/graphAPI";
-import dateFormat from "dateformat";
-import { updateUser, updateUserParSet } from "../http/userAPI";
+import { updateUserParSet } from "../http/userAPI";
 import { enqueueSnackbar, useSnackbar } from "notistack";
 import ChangeIcon from "./icons/ChangeIcon";
 import StatisticsIcon from "./icons/StatisticsIcon";
 import RadioCheckedIcon from "./icons/RadioCheckedIcon";
 import RadioUncheckedIcon from "./icons/RadioUncheckedIcon";
+import { computeStatistics, getStatistics } from "../http/statisticsAPI";
+import { Context } from "..";
 
 ChartJS.register(
   LineController,
@@ -89,8 +89,10 @@ function createChartData(parSet) {
 
 export default function PlayerCard({ player }) {
   const navigate = useNavigate();
+  const { user } = useContext(Context);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
+  const [stats, setStats] = useState(null);
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
@@ -122,6 +124,12 @@ export default function PlayerCard({ player }) {
       setIsDataFetched(true);
     });
   }, [page]);
+
+  useEffect(() => {
+    getStatistics(player.id, selectedParSetId).then((stats) => {
+      setStats(stats);
+    });
+  }, []);
 
   const getParSetsUI = async () => {
     const filteredDataFromQuery = await getParSets();
@@ -159,6 +167,12 @@ export default function PlayerCard({ player }) {
     );
   };
 
+  const computeStats = async () => {
+    computeStatistics(player.id, selectedParSetId).then((stats) => {
+      setStats(stats);
+    });
+  };
+
   return (
     <Card sx={{ padding: "12px" }}>
       <Stack width={"100%"} direction="column">
@@ -182,14 +196,71 @@ export default function PlayerCard({ player }) {
             </Typography>
           </Stack>
 
-          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
+          <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
-              Количество сыгранных игр в сессии:
+              Геймов:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              ???
+              {stats?.games_num != null ? stats?.games_num : "???"}
             </Typography>
-          </Stack> */}
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Остановок:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              {stats?.stops_num != null ? stats?.stops_num : "???"}
+            </Typography>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Взрывов:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              {stats?.crashes_num != null ? stats?.crashes_num : "???"}
+            </Typography>
+          </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Остановка по сигналу:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+            </Typography>
+          </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Остановка без сигнала:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ={stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
+            </Typography>
+          </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Запрос информации по сигналу:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
+            </Typography>
+          </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Запрос информации без сигнала:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ={stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
+            </Typography>
+          </Stack>
+
+          <Stack width={"100%"} direction="row" spacing={0.5}>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Продолжение после сигнала:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ={stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
+            </Typography>
+          </Stack>
         </Stack>
 
         <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
@@ -225,6 +296,25 @@ export default function PlayerCard({ player }) {
           </Button>
         </Stack>
       </Stack>
+
+      { user.isAuth && user.user.role === USER_ROLE_ADMIN
+      ? <Button
+            variant="outlined"
+            sx={{
+              color: "#FFFFFF",
+              height: "50%",
+              backgroundColor: COLORS.mainTheme,
+              flexGrow: 1,
+            }}
+            onClick={() => {
+              computeStats();
+            }}
+            startIcon={<StatisticsIcon />}
+          >
+            Рассчитать статистику
+          </Button>
+          : <></>
+    }
 
       <Modal
         sx={{

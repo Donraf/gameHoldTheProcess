@@ -72,6 +72,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			point.GET("/:id", h.getOnePoint)
 			point.DELETE("/:id", h.checkAdminRole, h.deletePoint)
 		}
+
+		statistics := api.Group("/statistics", h.checkUserAuth, h.checkResearcherRole)
+		{
+			statistics.POST("/", h.computeStatistics)
+			statistics.GET("user_id/:userId/par_set_id/:parSetId", h.getStatistics)
+		}
 	}
 
 	return router

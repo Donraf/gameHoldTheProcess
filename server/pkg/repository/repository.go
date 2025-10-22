@@ -47,16 +47,31 @@ type Point interface {
 	GetAllPointsForCSV() ([]gameServer.PointForCSV, error)
 }
 
+type Statistics interface {
+	CountGames(input gameServer.ComputeStatisticsInput) (int, error)
+	CountStops(input gameServer.ComputeStatisticsInput) (int, error)
+	CountCrashes(input gameServer.ComputeStatisticsInput) (int, error)
+	GetYStopsOnSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
+	GetYStopsWithoutSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
+	GetYHintsOnSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
+	GetYHintsWithoutSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
+	GetYContinuesAfterSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
+	UpsertStatistics(input gameServer.ComputeStatisticsInput, s gameServer.Statistics) error
+	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
+}
+
 type Repository struct {
 	User
 	Chart
 	Point
+	Statistics
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:  NewUserPostgres(db),
-		Chart: NewChartPostgres(db),
-		Point: NewPointPostgres(db),
+		User:       NewUserPostgres(db),
+		Chart:      NewChartPostgres(db),
+		Point:      NewPointPostgres(db),
+		Statistics: NewStatisticsPostgres(db),
 	}
 }
