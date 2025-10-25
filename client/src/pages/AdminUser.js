@@ -334,6 +334,7 @@ const AdminUser = () => {
                   <TableCell />
                   <TableCell>Логин</TableCell>
                   <TableCell>Роль</TableCell>
+                  <TableCell>ФИО</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -362,6 +363,9 @@ const AdminUser = () => {
                         {user.login}
                       </TableCell>
                       <TableCell>{roleNameMap.get(user.role)}</TableCell>
+                      <TableCell component="th" scope="row">
+                        {user.name}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
