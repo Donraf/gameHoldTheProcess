@@ -271,7 +271,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE login LIKE '%%%s%%' AND role='%s' OFFSET %v LIMIT 9", usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE login LIKE '%%%s%%' AND role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
 		}
 	case "group_name":
 		{
@@ -280,16 +280,18 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%s' AND role='%s' OFFSET %v LIMIT 9`,
+				 WHERE gt.name LIKE '%s' AND role='%s'
+				 ORDER BY name 
+				 OFFSET %v LIMIT 9`,
 				groupsTable, userGroupsTable, usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE '%%%s%%' AND role='%s' OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE '%%%s%%' AND role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, input.FilterValue, (input.CurrentPage-1)*9)
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE role='%s' OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, (input.CurrentPage-1)*9)
 		}
 	}
 
