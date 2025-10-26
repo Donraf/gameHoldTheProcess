@@ -722,7 +722,7 @@ const Home = observer(() => {
               alignItems="center"
               display="flex"
               direction="row"
-              gap={2}
+              gap={1}
               sx={{
                 textAlign: "center",
                 background: "orange",
@@ -774,7 +774,7 @@ const Home = observer(() => {
               alignItems="center"
               display="flex"
               direction="row"
-              gap={2}
+              gap={1}
               sx={{
                 textAlign: "center",
                 background: "green",
@@ -801,10 +801,13 @@ const Home = observer(() => {
                       setIsTimeUp(true);
                       setIsChartPaused(true);
                     }}
+                    textClr="#ffffff"
                   />
                 </>
               ) : (
-                <>{millisToMinutesAndSeconds(gameTimeLimitMs)}</>
+                <Typography sx={{color: "#ffffff"}}>
+                  {millisToMinutesAndSeconds(gameTimeLimitMs)}
+                </Typography>
               )}
             </Stack>
           </>

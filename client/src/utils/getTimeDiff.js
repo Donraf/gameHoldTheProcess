@@ -30,6 +30,6 @@ export const getRemTimeRaw = (time_start, time_limit) => {
 
 export const millisToMinutesAndSeconds = (millis) => {
   var minutes = Math.floor(millis / 60000);
-  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  var seconds = Math.floor((millis % 60000) / 1000)
   return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
 };

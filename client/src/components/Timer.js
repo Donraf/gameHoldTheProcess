@@ -1,18 +1,17 @@
 import { Typography } from "@mui/material";
 import React from "react";
 import { useState, useEffect } from "react";
+import { millisToMinutesAndSeconds } from "../utils/getTimeDiff";
 
-const Timer = ({ active, deadlineIntervalMs, onDeadline }) => {
-  const [minutes, setMinutes] = useState(0);
-  const [seconds, setSeconds] = useState(0);
+const Timer = ({ active, deadlineIntervalMs, onDeadline, textClr="#000000" }) => {
+  const [curTime, setCurTime] = useState(0);
 
   let deadline = null;
 
   const getTime = () => {
     if (deadline == null) {
       if (!active) {
-        setMinutes(deadlineIntervalMs / 60000);
-        setSeconds(((deadlineIntervalMs % 60000) / 1000).toFixed(0));
+        setCurTime(deadlineIntervalMs);
         return;
       }
       if (active) {
@@ -22,13 +21,11 @@ const Timer = ({ active, deadlineIntervalMs, onDeadline }) => {
     const time = deadline - Date.now();
     if (time < 0) {
       onDeadline();
-      setMinutes(0);
-      setSeconds(0);
+      setCurTime(0);
       return;
     }
 
-    setMinutes(Math.floor(time / 60000));
-    setSeconds(Math.floor((time % 60000) / 1000));
+    setCurTime(time);
   };
 
   useEffect(() => {
@@ -39,8 +36,8 @@ const Timer = ({ active, deadlineIntervalMs, onDeadline }) => {
 
   return (
     <>
-      <Typography>
-        {minutes}:{seconds}
+      <Typography sx={{color: textClr}}>
+        {millisToMinutesAndSeconds(curTime)}
       </Typography>
     </>
   );
