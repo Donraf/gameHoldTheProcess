@@ -77,9 +77,7 @@ export const options = {
   },
   scales: {
     y: {
-      beginAtZero: true,
-      min: 0,
-      max: 1,
+      beginAtZero: false,
     },
   },
   plugins: {
