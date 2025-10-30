@@ -116,8 +116,7 @@ export class ChartData {
     }
 
     if (
-      randomVal < this.falseWarningProb ||
-      this.points[this.points.length - this.checkDangerNum - 1].y >= 0.985 * this.criticalValue
+      randomVal < this.falseWarningProb
     ) {
       this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
       this.wasFakeAlert = true;
