@@ -94,18 +94,23 @@ export class ChartData {
   }
 
   isDanger() {
-    if (!this.shouldSentAlert) return false;
     const randomVal = Math.random();
+    if (!this.shouldSentAlert) return false;
     if (this.isRealDanger()) {
       this.shouldSentAlert = false;
-      if (randomVal >= this.missingDangerProb) {
-        this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
-        this.wasRealAlert = true;
-        this.points[this.points.length - this.checkDangerNum - 1].is_useful_ai_signal = true;
-        return true;
-      } else {
-        return false;
-      }
+      this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
+      this.wasRealAlert = true;
+      this.points[this.points.length - this.checkDangerNum - 1].is_useful_ai_signal = true;
+      return true;
+      // Пропуск цели
+      // if (randomVal >= this.missingDangerProb) {
+      //   this.points[this.points.length - this.checkDangerNum - 1].is_ai_signal = true;
+      //   this.wasRealAlert = true;
+      //   this.points[this.points.length - this.checkDangerNum - 1].is_useful_ai_signal = true;
+      //   return true;
+      // } else {
+      //   return false;
+      // }
     }
 
     if (
