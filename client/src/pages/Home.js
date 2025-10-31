@@ -223,8 +223,6 @@ const Home = observer(() => {
               userParSet.is_training
             );
           }
-          triggerUpdateParSet();
-          chart.chartData.restart();
           changeTotalScore(totalScoreDiff);
           setIsChartPaused(true);
           setIsHintModalOpened(false);
@@ -277,11 +275,9 @@ const Home = observer(() => {
           userParSet.is_training
         );
       }
-      triggerUpdateParSet();
-      chart.chartData.restart();
+      chart.chartData.generateNextPoint();
       changeTotalScore(totalScoreDiff);
       setIsHintModalOpened(false);
-      setIsChartStopped(false);
       setIsChartPaused(true);
       if (!isTimeUp) {
         if (!isStopNeeded) {
@@ -1179,6 +1175,13 @@ const Home = observer(() => {
                               }}
                               disabled={isDanger}
                               onClick={() => {
+                                if (chart.chartData.isCrashed()) {
+                                  chart.chartData.restart();
+                                }
+                                if (isChartStopped) {
+                                  chart.chartData.restart();
+                                  setIsChartStopped(false);
+                                }
                                 setIsChartPaused(false);
                                 setIsDanger(false);
                               }}
