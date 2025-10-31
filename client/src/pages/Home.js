@@ -138,7 +138,7 @@ const Home = observer(() => {
 
   const containerRef = React.useRef(null);
 
-  const speedOptions = [0.5, 1, 1.5, 2, 3, 4];
+  const speedOptions = [0.5, 1, 1.5, 2];
 
   const [time, setTime] = useState(Date.now());
   const [isChartPaused, setIsChartPaused] = useState(true);
