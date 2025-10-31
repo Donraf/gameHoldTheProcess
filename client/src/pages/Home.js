@@ -126,12 +126,8 @@ const Home = observer(() => {
 
   const [userParSet, setUserParSet] = React.useState(null);
 
-  const [isTimeUp, setIsTimeUp] = React.useState(
-    userParSet != null &&
-      ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
-        (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0))
-  );
-
+  const [isTimeUp, setIsTimeUp] = React.useState(false);
+  const [shouldEndTime, setShouldEndTime] = React.useState(false);
   const [updateParSet, setUpdateParSet] = React.useState(true);
 
   const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
@@ -365,6 +361,12 @@ const Home = observer(() => {
       });
     }
   }, [updateParSet]);
+
+  useEffect(() => {
+    setIsTimeUp(userParSet != null &&
+      ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
+        (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0)))
+  }, [userParSet]);
 
   useEffect(() => {
     if (hintCharts.length <= 0) {
@@ -739,8 +741,7 @@ const Home = observer(() => {
                     active={userParSet.training_start_time != null}
                     deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
                     onDeadline={() => {
-                      setIsTimeUp(true);
-                      setIsChartPaused(true);
+                      setShouldEndTime(true);
                     }}
                   />
                 </>
@@ -792,8 +793,7 @@ const Home = observer(() => {
                     active={userParSet.game_start_time != null}
                     deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
                     onDeadline={() => {
-                      setIsTimeUp(true);
-                      setIsChartPaused(true);
+                      setShouldEndTime(true);
                     }}
                     textClr="#ffffff"
                   />
@@ -1064,6 +1064,7 @@ const Home = observer(() => {
                   setIsChartStopped(true);
                   setIsDanger(false);
                   handleCloseTrainingWarnModal();
+                  setShouldEndTime(false);
                   setIsTimeUp(false);
                   updateUserParSetUi({ is_training: false });
                 }}
@@ -1177,12 +1178,22 @@ const Home = observer(() => {
                               onClick={() => {
                                 if (chart.chartData.isCrashed()) {
                                   chart.chartData.restart();
+                                  if (shouldEndTime) {
+                                    setIsTimeUp(true);
+                                  }
                                 }
                                 if (isChartStopped) {
                                   chart.chartData.restart();
                                   setIsChartStopped(false);
+                                  if (shouldEndTime) {
+                                    setIsTimeUp(true);
+                                  }
                                 }
-                                setIsChartPaused(false);
+                                if (shouldEndTime) {
+                                    setIsChartPaused(true);
+                                } else {
+                                  setIsChartPaused(false);
+                                }
                                 setIsDanger(false);
                               }}
                               startIcon={<PlayButtonIcon />}
