@@ -137,29 +137,31 @@ const ResearcherUser = () => {
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок -{" "}
             {stats?.stops_num != null ? stats?.stops_num : "???"}, взрывов -{" "}
-            {stats?.crashes_num != null ? stats?.crashes_num : "???"}.
+            {stats?.crashes_num != null ? stats?.crashes_num : "???"}. Итоговый счёт{" "}
+            {stats?.total_score != null ? stats?.total_score : "???"}.
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка по сигналу μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"}{" "}
-            σ={stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+            Остановка по сигналу n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
+            {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
+            {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          {/* <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Остановка без сигнала μ=
             {stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
-          </Typography>
+          </Typography> */}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации по сигналу μ=
+            Запрос информации по сигналу n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
             {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации без сигнала μ=
+            Запрос информации без сигнала n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
             {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Продолжение после сигнала μ=
+            Продолжение после сигнала n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
@@ -194,7 +196,10 @@ const ResearcherUser = () => {
                       <TableCell width={60} component="th" scope="row">
                         {event.x.toFixed(2)}
                       </TableCell>
-                      <TableCell>{event.name.join(" | ")}</TableCell>
+                      <TableCell>
+                        {event.name.join(" | ") +
+                          (event.check_info ? ' | Текст подсказки: "' + event.check_info + '"' : "")}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (

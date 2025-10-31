@@ -184,9 +184,10 @@ export class ChartData {
     this._updateMidScores();
   }
 
-  chartHintUsed(cost) {
+  chartHintUsed(cost, hintText) {
     this.score -= cost;
     this.points[this.points.length - this.checkDangerNum - 1].is_check = true;
+    this.points[this.points.length - this.checkDangerNum - 1].check_info = hintText;
     this._updateMidScores();
   }
 
@@ -360,6 +361,7 @@ class Point {
     this.is_stop = is_stop;
     this.is_pause = is_pause;
     this.is_check = is_check;
+    this.check_info = null;
   }
 }
 

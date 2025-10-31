@@ -212,6 +212,12 @@ export default function PlayerCard({ player }) {
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
               {stats?.crashes_num != null ? stats?.crashes_num : "???"}
             </Typography>
+            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+              Счёт:
+            </Typography>
+            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              {stats?.total_score != null ? stats?.total_score : "???"}
+            </Typography>
           </Stack>
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
@@ -219,26 +225,29 @@ export default function PlayerCard({ player }) {
               Остановка по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} {" "}
               μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
+          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
               Остановка без сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              n={stats?.stop_without_signal_num != null ? stats?.stop_without_signal_num : "???"} {" "}
               μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
             </Typography>
-          </Stack>
+          </Stack> */}
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
               Запрос информации по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} {" "}
               μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
             </Typography>
@@ -249,6 +258,7 @@ export default function PlayerCard({ player }) {
               Запрос информации без сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} {" "}
               μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
             </Typography>
@@ -259,6 +269,7 @@ export default function PlayerCard({ player }) {
               Продолжение после сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+              n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} {" "}
               μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
             </Typography>
