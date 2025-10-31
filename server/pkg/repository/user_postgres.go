@@ -361,7 +361,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	case "stop":
 		{
 			query = fmt.Sprintf(`
-				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id, check_info
 				FROM %s
 				WHERE chart_id IN ( 
 					SELECT id
@@ -378,7 +378,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	case "pause":
 		{
 			query = fmt.Sprintf(`
-				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id, check_info
 				FROM %s
 				WHERE chart_id IN ( 
 					SELECT id
@@ -395,7 +395,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	case "check":
 		{
 			query = fmt.Sprintf(`
-				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id, check_info
 				FROM %s
 				WHERE chart_id IN ( 
 					SELECT id
@@ -412,7 +412,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	case "reject_advice":
 		{
 			query = fmt.Sprintf(`
-				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id, check_info
 				FROM %s
 				WHERE chart_id IN ( 
 					SELECT id
@@ -430,7 +430,7 @@ func (u *UserPostgres) GetPlayersPointsWithEvents(input gameServer.GetPlayersEve
 	default:
 		{
 			query = fmt.Sprintf(`
-				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id
+				SELECT y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, chart_id, check_info
 				FROM %s
 				WHERE chart_id IN ( 
 					SELECT id

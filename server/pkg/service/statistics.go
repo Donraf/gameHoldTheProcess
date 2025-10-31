@@ -60,6 +60,8 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 	}
 	meanCAS, stdevCAS := lib.MeanAndStdev(continuesAfterSignal)
 
+	totalScore, err := s.repo.GetTotalScore(input)
+
 	stats := gameServer.Statistics{
 		GamesNum:                 gamesCount,
 		StopsNum:                 stopsCount,
@@ -74,6 +76,12 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		StdevHintWithoutSignal:   stdevHWS,
 		MeanContinueAfterSignal:  meanCAS,
 		StdevContinueAfterSignal: stdevCAS,
+		TotalScore:               totalScore,
+		StopOnSignalNum:          len(stopsOnSignal),
+		StopWithoutSignalNum:     len(stopsWithoutSignal),
+		HintOnSignalNum:          len(hintsOnSignal),
+		HintWithoutSignalNum:     len(hintsWithoutSignal),
+		ContinueAfterSignalNum:   len(continuesAfterSignal),
 	}
 
 	err = s.repo.UpsertStatistics(input, stats)

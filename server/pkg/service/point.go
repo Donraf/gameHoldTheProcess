@@ -36,10 +36,10 @@ func (s *PointService) GetCsvOfPoints() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	csv := "parameter_set_id, user_id, chart_id, point_id, x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check\r\n"
+	csv := "parameter_set_id, user_id, chart_id, point_id, x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, check_info\r\n"
 	for _, p := range points {
-		csv += fmt.Sprintf("%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v\r\n", p.ParameterSetId, p.UserId, p.ChartId, p.Id, p.X, p.Y, p.Score,
-			p.IsCrash, p.IsUsefulAiSignal, p.IsDeceptiveAiSignal, p.IsStop, p.IsPause, p.IsCheck)
+		csv += fmt.Sprintf("%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v\r\n", p.ParameterSetId, p.UserId, p.ChartId, p.Id, p.X, p.Y, p.Score,
+			p.IsCrash, p.IsUsefulAiSignal, p.IsDeceptiveAiSignal, p.IsStop, p.IsPause, p.IsCheck, p.CheckInfo)
 	}
 	return csv, nil
 }

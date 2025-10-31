@@ -38,8 +38,9 @@ type PlayerStat struct {
 }
 
 type PlayerEvent struct {
-	Name []string `json:"name"`
-	Y    float64  `json:"x" db:"x"`
+	Name      []string `json:"name"`
+	Y         float64  `json:"x" db:"x"`
+	CheckInfo *string  `json:"check_info"`
 }
 
 type RegisterUserInput struct {

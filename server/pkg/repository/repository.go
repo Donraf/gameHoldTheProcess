@@ -58,6 +58,7 @@ type Statistics interface {
 	GetYContinuesAfterSignal(input gameServer.ComputeStatisticsInput) ([]float64, error)
 	UpsertStatistics(input gameServer.ComputeStatisticsInput, s gameServer.Statistics) error
 	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
+	GetTotalScore(input gameServer.ComputeStatisticsInput) (int, error)
 }
 
 type Repository struct {

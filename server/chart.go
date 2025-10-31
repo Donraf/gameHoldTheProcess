@@ -107,6 +107,7 @@ type Point struct {
 	IsCheck             bool    `json:"is_check" db:"is_check"`
 	ChartId             int     `json:"chart_id" binding:"required" db:"chart_id"`
 	CreatedAt           string  `json:"created_at" db:"created_at"`
+	CheckInfo           *string `json:"check_info" db:"check_info"`
 }
 
 func (p *Point) Validate() error {
@@ -131,6 +132,7 @@ type PointForCSV struct {
 	IsPause             bool    `json:"is_pause" db:"is_pause"`
 	IsCheck             bool    `json:"is_check" db:"is_check"`
 	ChartId             int     `json:"chart_id" db:"chart_id"`
+	CheckInfo           *string `json:"check_info" db:"check_info"`
 	UserId              int     `json:"user_id" db:"user_id"`
 	ParameterSetId      int     `json:"parameter_set_id" db:"parameter_set_id"`
 	IsTraining          bool    `json:"is_training" db:"is_training"`

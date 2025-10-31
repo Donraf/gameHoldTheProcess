@@ -210,6 +210,7 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 		}
 		if point.IsCheck {
 			playerEvent.Name = append(playerEvent.Name, eventCheck)
+			playerEvent.CheckInfo = point.CheckInfo
 		}
 		if point.IsStop {
 			playerEvent.Name = append(playerEvent.Name, eventStop)
