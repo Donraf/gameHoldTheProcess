@@ -1203,7 +1203,7 @@ const Home = observer(() => {
                               Пауза
                             </Button>
                           )}
-                          <Button
+                          {/* <Button
                             sx={{
                               color: "#FFFFFF",
                               backgroundColor: COLORS.stopButton,
@@ -1217,7 +1217,7 @@ const Home = observer(() => {
                             startIcon={<StopButtonIcon />}
                           >
                             Завершить процесс
-                          </Button>
+                          </Button> */}
                         </Stack>
                         {isChartPaused ? (
                           <Button
