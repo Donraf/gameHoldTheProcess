@@ -117,7 +117,7 @@ const Home = observer(() => {
   const [curPageHintChartsNum, setCurPageHintChartsNum] = React.useState(1);
   const [curLocalHintChartNum, setCurLocalHintChartNum] = React.useState(1);
   const [hintModalDataFetched, setHintModalDataFetched] = React.useState(false);
-  const [crashProb, setCrashProb] = React.useState(0);
+  const [crashProb, setCrashProb] = React.useState("");
   const [endGameCause, setEndGameCause] = React.useState("");
 
   const [isTrainingWarnModalOpened, setIsTrainingWarnModalOpened] = React.useState(false);
@@ -330,8 +330,8 @@ const Home = observer(() => {
       });
     } else if (chosenHint === "CrashProbability") {
       setHintModalDataFetched(false);
-      let crashProb = chart.chartData.getCrashProb();
-      setCrashProb(crashProb.toFixed(1));
+      let crashProb = chart.chartData.getCrashProbApprox();
+      setCrashProb(crashProb);
       setHintModalDataFetched(true);
     }
   }, [chosenHint]);
@@ -610,7 +610,7 @@ const Home = observer(() => {
                     userSelect: "none",
                   }}
                 >
-                  Вероятность взрыва {crashProb}%
+                  {crashProb}
                 </Typography>
                 <Button
                   sx={{
@@ -648,7 +648,7 @@ const Home = observer(() => {
             >
               Какую подсказку хотите купить?
             </Typography>
-            <Button
+            {/* <Button
               sx={{
                 color: "#FFFFFF",
                 backgroundColor: COLORS.takeHintButton,
@@ -675,8 +675,8 @@ const Home = observer(() => {
               }}
             >
               Показать все свои предыдущие геймы (200 очков)
-            </Button>
-            {/* <Button
+            </Button> */}
+            <Button
               sx={{
                 color: "#FFFFFF",
                 backgroundColor: COLORS.takeHintButton,
@@ -684,12 +684,12 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(1000);
-                changeScore(-1000);
+                chart.chartData.chartHintUsed(50);
+                changeScore(-50);
               }}
             >
-              Рассчитать вероятность взрыва (1000 очков)
-            </Button> */}
+              Показать рискованность продолжения (50 очков)
+            </Button>
             <Button
               sx={{
                 color: "#FFFFFF",

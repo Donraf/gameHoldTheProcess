@@ -268,6 +268,25 @@ export class ChartData {
     return crashProb;
   }
 
+  LOW_RISK_LEVEL = "Низкий уровень риска"
+  MODERATE_RISK_LEVEL = "Средний уровень риска"
+  HIGH_RISK_LEVEL = "Высокий уровень риска"
+  getCrashProbApprox() {
+    if (this.parSet === null) {
+      return this.LOW_RISK_LEVEL;
+    }
+    let noise_stdev = this.parSet.noise_stdev;
+    let y = this.points[this.points.length - this.checkDangerNum - 1].y
+    let critDiff = this.criticalValue - y
+    if (critDiff >= 2.5 * noise_stdev) {
+      return this.LOW_RISK_LEVEL
+    } else if (critDiff >= 2 * noise_stdev) {
+      return this.MODERATE_RISK_LEVEL
+    } else {
+      return this.HIGH_RISK_LEVEL
+    }
+  }
+
   formData(dataPoints) {
     return {
       labels: dataPoints.map((point) => {
