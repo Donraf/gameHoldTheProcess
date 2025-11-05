@@ -272,7 +272,7 @@ const Home = observer(() => {
           userParSet.is_training
         );
       }
-      chart.chartData.generateNextPoint();
+      chart.chartData.generateNextPoint(false);
       changeTotalScore(totalScoreDiff);
       setIsHintModalOpened(false);
       setIsChartPaused(true);
@@ -683,11 +683,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(50, chart.chartData.getCrashProbApprox());
-                changeScore(-50);
+                chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
+                changeScore(-250);
               }}
             >
-              Показать рискованность продолжения (50 очков)
+              Показать рискованность продолжения (250 очков)
             </Button>
             <Button
               sx={{
@@ -857,7 +857,7 @@ const Home = observer(() => {
                   userSelect: "none",
                 }}
               >
-                Очки за гейм: {chart.chartData.score - 20}
+                Очки за гейм: {chart.chartData.score - chart.chartData.bonusStep * 2}
               </Typography>
               <Typography
                 key={scoresChanges.updateFlag}

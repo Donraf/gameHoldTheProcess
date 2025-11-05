@@ -2,13 +2,16 @@ import { COLORS } from "./constants";
 
 export class ChartData {
   // Бонусы
-  bonusStep = 10; // Бонус за шаг
-  bonusRejectIncorrectAdvice = 2000; // Бонус за отклонение ложной тревоги от ИИ
-  bonusAcceptCorrectAdvice = 500; // Бонус за принятие правильного совета ИИ
-  bonusCorrectStopNoAdvice = 4000; // Бонус за правильный останов без совета ИИ
+  bonusStep = 50; // Бонус за шаг
+  bonusRejectIncorrectAdviceWithCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ с подсказкой
+  bonusRejectIncorrectAdviceNoCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
+  bonusAcceptCorrectAdviceWithCheck = 250; // Бонус за принятие правильного совета ИИ с подсказкой
+  bonusAcceptCorrectAdviceNoCheck = 500; // Бонус за принятие правильного совета ИИ без подсказки
   // Штрафы
-  penaltyRejectCorrectAdvice = 4000; // Штраф взрыва при отклонении правильного совета ИИ
-  penaltyAcceptIncorrectAdvice = 1000; // Штраф остановки при ложной тревоге от ИИ
+  penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
+  penaltyRejectCorrectAdviceNoCheck = 2000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
+  penaltyAcceptIncorrectAdviceWithCheck = 2000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
+  penaltyAcceptIncorrectAdviceNoCheck = 1000; // Штраф остановки при ложной тревоге от ИИ без подсказки
   penaltyIncorrectStopNoAdvice = 2000; // Штраф за неправильный останов без совета ИИ
   penaltyExplosionNoAdvice = 0; // Штраф взрыва без совета совета ИИ (пропуск цели оператором)
   penaltyPause = 50; // Штраф за паузу
@@ -40,9 +43,13 @@ export class ChartData {
     this.restart();
   }
 
-  generateNextPoint() {
-    if (this.wasFakeAlert) {
-      this.score += this.bonusRejectIncorrectAdvice;
+  generateNextPoint(shouldChangeScore = true) {
+    if (this.wasFakeAlert && shouldChangeScore) {
+      if (this.points[this.points.length - this.checkDangerNum - 1].is_check) {
+        this.score += this.bonusRejectIncorrectAdviceWithCheck;
+      } else {
+        this.score += this.bonusRejectIncorrectAdviceNoCheck;
+      }
     }
     this.points.push(this.generatePoint());
     if (this.wasFakeAlert) {
@@ -50,7 +57,7 @@ export class ChartData {
       this.points[this.points.length - this.checkDangerNum - 1].score += this.bonusRejectIncorrectAdvice;
     }
     this.curIndex += 1;
-    if (this.curIndex >= this.checkDangerNum) {
+    if (this.curIndex >= this.checkDangerNum && shouldChangeScore) {
       this.score += this.bonusStep;
     }
     let pointsToShow;
@@ -203,25 +210,38 @@ export class ChartData {
   }
 
   computeEndGameScore() {
+    const hintUsed = this.points[this.points.length - this.checkDangerNum - 1].is_check;
     if (this.wasExplosion && this.wasRealAlert) {
       // Взрыв с предупреждением от ИИ
-      this.score = -this.penaltyRejectCorrectAdvice;
-    } else if (this.wasExplosion && !this.wasRealAlert) {
-      // Взрыв без предупреждения от ИИ
-      this.score = -this.penaltyExplosionNoAdvice;
+      if (this.score > 0) { 
+        this.score = 0 }
+      if (this.points[this.points.length - this.checkDangerNum - 2].is_check) {
+        this.score -= this.penaltyRejectCorrectAdviceWithCheck;
+      } else {
+        this.score -= this.penaltyRejectCorrectAdviceNoCheck;
+      }
+    // } else if (this.wasExplosion && !this.wasRealAlert) {
+    //   // Взрыв без предупреждения от ИИ
+    //   this.score = -this.penaltyExplosionNoAdvice;
     } else if (this.wasManualStop && this.isRealDanger() && this.wasRealAlert) {
       // Правильная остановка с предупреждением от ИИ
-      this.score += this.bonusAcceptCorrectAdvice - 2 * this.bonusStep;
-    } else if (this.wasManualStop && this.isRealDanger() && !this.wasRealAlert) {
-      // Правильная остановка без предупреждения от ИИ
-      this.score += this.bonusCorrectStopNoAdvice - 2 * this.bonusStep;
+      if (hintUsed) {
+        this.score += this.bonusAcceptCorrectAdviceWithCheck - 2 * this.bonusStep;
+      } else {
+        this.score += this.bonusAcceptCorrectAdviceNoCheck - 2 * this.bonusStep;
+      }
     } else if (this.wasManualStop && !this.isRealDanger() && this.wasFakeAlert) {
       // Неправильная остановка с ложным предупреждением от ИИ
-      this.score -= this.penaltyAcceptIncorrectAdvice + 2 * this.bonusStep;
-    } else if (this.wasManualStop && !this.isRealDanger() && !this.wasFakeAlert) {
-      // Неправильная остановка без предупреждения от ИИ
-      this.score -= this.penaltyIncorrectStopNoAdvice + 2 * this.bonusStep;
+      if (hintUsed) {
+        this.score -= this.penaltyAcceptIncorrectAdviceWithCheck + 2 * this.bonusStep;
+      } else {
+        this.score -= this.penaltyAcceptIncorrectAdviceNoCheck + 2 * this.bonusStep;
+      }
     }
+    // } else if (this.wasManualStop && !this.isRealDanger() && !this.wasFakeAlert) {
+    //   // Неправильная остановка без предупреждения от ИИ
+    //   this.score -= this.penaltyIncorrectStopNoAdvice + 2 * this.bonusStep;
+    // }
 
     this._updateEndScores();
 
