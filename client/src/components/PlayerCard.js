@@ -123,9 +123,11 @@ export default function PlayerCard({ player }) {
   }, [page]);
 
   useEffect(() => {
-    getStatistics(player.id, selectedParSetId).then((stats) => {
+    const newSelectedParSetId = player.cur_par_set_id
+    getStatistics(player.id, newSelectedParSetId).then((stats) => {
       setStats(stats);
     });
+    setSelectedParSetId(player.cur_par_set_id)
   }, [player]);
 
   const getParSetsUI = async () => {
