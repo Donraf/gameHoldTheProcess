@@ -1001,7 +1001,8 @@ const Home = observer(() => {
                   width: "100%",
                 }}
                 onClick={() => {
-                  setIsChartStopped(true);
+                  setIsChartPaused(true);
+                  chart.chartData.restart();
                   setIsDanger(false);
                   handleCloseTrainingWarnModal();
                   setShouldEndTime(false);
@@ -1049,7 +1050,6 @@ const Home = observer(() => {
                 </Button>
               ) : (
                 <>
-                  {/* userParSet != null && ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) > 0) || (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) > 0) ) */}
                   {!isTimeUp ? (
                     <>
                       <Stack display="flex" direction="column" spacing={1}>
