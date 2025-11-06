@@ -857,7 +857,7 @@ const Home = observer(() => {
                   userSelect: "none",
                 }}
               >
-                Очки за гейм: {chart.chartData.score - chart.chartData.bonusStep * 2}
+                Очки за гейм: {isChartStopped || chart.chartData.isCrashed() ? chart.chartData.score : chart.chartData.score - chart.chartData.bonusStep * 2}
               </Typography>
               <Typography
                 key={scoresChanges.updateFlag}
