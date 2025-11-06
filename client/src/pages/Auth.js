@@ -12,6 +12,9 @@ import { getAllGroups, login, registration } from "../http/userAPI";
 import { observer } from "mobx-react-lite";
 import { Context } from "../index";
 import { useSnackbar } from "notistack";
+import ImageButton from "../components/ImageButton/ImageButton";
+import OpenedEyeIcon from "../components/icons/OpenedEyeIcon";
+import ClosedEyeIcon from "../components/icons/ClosedEyeIcon";
 
 const Auth = observer(() => {
   const { user } = useContext(Context);
@@ -25,6 +28,8 @@ const Auth = observer(() => {
   const [isOpenedGroupSelect, setIsOpenedGroupSelect] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -103,15 +108,42 @@ const Auth = observer(() => {
               variant="outlined"
             />
           )}
-          <TextField
-            onChange={(event) => {
-              setPassword(event.target.value);
-            }}
-            value={password}
-            id="password-field"
-            label="Введите ваш пароль"
-            variant="outlined"
-          />
+          <Stack display="flex" direction="row" spacing={2}>
+            <TextField
+              sx={{
+                flexGrow: 1,
+              }}
+              type={showPassword ? "text" : "password"}
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+              value={password}
+              id="password-field"
+              label="Введите ваш пароль"
+              variant="outlined"
+            />
+            {showPassword ? (
+              <>
+                <ImageButton
+                  onClick={() => {
+                    setShowPassword(false);
+                  }}
+                >
+                  <OpenedEyeIcon />
+                </ImageButton>
+              </>
+            ) : (
+              <>
+                <ImageButton
+                  onClick={() => {
+                    setShowPassword(true);
+                  }}
+                >
+                  <ClosedEyeIcon />
+                </ImageButton>
+              </>
+            )}
+          </Stack>
           {isLogin ? (
             <></>
           ) : (
