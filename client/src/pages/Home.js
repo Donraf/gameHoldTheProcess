@@ -683,11 +683,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
-                changeScore(-250);
+                chart.chartData.chartHintUsed(500, chart.chartData.getCrashProbApprox());
+                changeScore(-500);
               }}
             >
-              Показать рискованность продолжения (250 очков)
+              Показать рискованность продолжения (500 очков)
             </Button>
             <Button
               sx={{

@@ -4,14 +4,15 @@ export class ChartData {
   // Бонусы
   bonusStep = 50; // Бонус за шаг
   bonusRejectIncorrectAdviceWithCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ с подсказкой
-  bonusRejectIncorrectAdviceNoCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
-  bonusAcceptCorrectAdviceWithCheck = 250; // Бонус за принятие правильного совета ИИ с подсказкой
-  bonusAcceptCorrectAdviceNoCheck = 500; // Бонус за принятие правильного совета ИИ без подсказки
+  bonusRejectIncorrectAdviceNoCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
+  bonusAcceptCorrectAdviceWithCheck = 1000; // Бонус за принятие правильного совета ИИ с подсказкой
+  bonusAcceptCorrectAdviceNoCheck = 1000; // Бонус за принятие правильного совета ИИ без подсказки
   // Штрафы
-  penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
-  penaltyRejectCorrectAdviceNoCheck = 2000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
-  penaltyAcceptIncorrectAdviceWithCheck = 2000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
+  penaltyRejectCorrectAdviceWithCheck = 8000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
+  penaltyRejectCorrectAdviceNoCheck = 8000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
+  penaltyAcceptIncorrectAdviceWithCheck = 1000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
   penaltyAcceptIncorrectAdviceNoCheck = 1000; // Штраф остановки при ложной тревоге от ИИ без подсказки
+  
   penaltyIncorrectStopNoAdvice = 2000; // Штраф за неправильный останов без совета ИИ
   penaltyExplosionNoAdvice = 0; // Штраф взрыва без совета совета ИИ (пропуск цели оператором)
   penaltyPause = 50; // Штраф за паузу
