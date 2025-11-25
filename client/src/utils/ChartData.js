@@ -3,15 +3,15 @@ import { COLORS } from "./constants";
 export class ChartData {
   // Бонусы
   bonusStep = 50; // Бонус за шаг
-  bonusRejectIncorrectAdviceWithCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ с подсказкой
-  bonusRejectIncorrectAdviceNoCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
-  bonusAcceptCorrectAdviceWithCheck = 1000; // Бонус за принятие правильного совета ИИ с подсказкой
-  bonusAcceptCorrectAdviceNoCheck = 1000; // Бонус за принятие правильного совета ИИ без подсказки
+  bonusRejectIncorrectAdviceWithCheck = 3000; // Бонус за отклонение ложной тревоги от ИИ с подсказкой
+  bonusRejectIncorrectAdviceNoCheck = 3000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
+  bonusAcceptCorrectAdviceWithCheck = 0; // Бонус за принятие правильного совета ИИ с подсказкой
+  bonusAcceptCorrectAdviceNoCheck = 0; // Бонус за принятие правильного совета ИИ без подсказки
   // Штрафы
-  penaltyRejectCorrectAdviceWithCheck = 8000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
-  penaltyRejectCorrectAdviceNoCheck = 8000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
-  penaltyAcceptIncorrectAdviceWithCheck = 1000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
-  penaltyAcceptIncorrectAdviceNoCheck = 1000; // Штраф остановки при ложной тревоге от ИИ без подсказки
+  penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
+  penaltyRejectCorrectAdviceNoCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
+  penaltyAcceptIncorrectAdviceWithCheck = 3000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
+  penaltyAcceptIncorrectAdviceNoCheck = 3000; // Штраф остановки при ложной тревоге от ИИ без подсказки
   
   penaltyIncorrectStopNoAdvice = 2000; // Штраф за неправильный останов без совета ИИ
   penaltyExplosionNoAdvice = 0; // Штраф взрыва без совета совета ИИ (пропуск цели оператором)
@@ -298,8 +298,13 @@ export class ChartData {
       return this.LOW_RISK_LEVEL;
     }
     let noise_stdev = this.parSet.noise_stdev;
-    let y = this.points[this.points.length - this.checkDangerNum - 1].y
-    let critDiff = this.criticalValue - y
+    let z = this.points[this.points.length - this.checkDangerNum - 1].y
+    if (this.isRealDanger()) {
+      z = 0.5 * z + 0.5;
+    } else {
+      z = 1.5 * z - 0.5;
+    }
+    let critDiff = this.criticalValue - z
     if (critDiff >= 2.5 * noise_stdev) {
       return this.LOW_RISK_LEVEL
     } else if (critDiff >= 2 * noise_stdev) {
