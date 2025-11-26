@@ -22,6 +22,12 @@ type Statistics struct {
 	ContinueAfterSignalNum   int     `json:"continue_after_signal_num" db:"continue_after_signal_num"`
 	MeanContinueAfterSignal  float64 `json:"mean_continue_after_signal" db:"mean_continue_after_signal"`
 	StdevContinueAfterSignal float64 `json:"stdev_continue_after_signal" db:"stdev_continue_after_signal"`
+	ChoiceStats              string  `json:"choice_stats" db:"choice_stats"`
+}
+
+type ChoiceStats struct {
+	Y          float64
+	ChoiceType []string
 }
 
 type ComputeStatisticsInput struct {

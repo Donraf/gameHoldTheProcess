@@ -59,6 +59,7 @@ type Statistics interface {
 	UpsertStatistics(input gameServer.ComputeStatisticsInput, s gameServer.Statistics) error
 	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
 	GetTotalScore(input gameServer.ComputeStatisticsInput) (int, error)
+	GetAllEvents(input gameServer.ComputeStatisticsInput) ([]gameServer.Point, error)
 }
 
 type Repository struct {
