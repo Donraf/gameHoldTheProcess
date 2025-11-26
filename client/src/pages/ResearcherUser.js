@@ -24,6 +24,7 @@ import { computeStatistics, getStatistics } from "../http/statisticsAPI";
 import { Context } from "..";
 import { COLORS, USER_ROLE_ADMIN } from "../utils/constants";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
+import ResUserCharts from "../components/ResUserCharts";
 
 const ResearcherUser = () => {
   const { user } = useContext(Context);
@@ -165,6 +166,7 @@ const ResearcherUser = () => {
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
+          <ResUserCharts choiceStats={stats?.choice_stats}/>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
           </Typography>
