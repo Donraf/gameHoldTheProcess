@@ -82,7 +82,7 @@ export default function NavBarDrawer() {
     navItems = [
       {
         name: "Комната исследователя",
-        route: RESEARCHER_ROOM_ROUTE,
+        route: RESEARCHER_ROOM_ROUTE + "?group_name=&page=1",
         icon: <AdminNavIcon />,
       },
       {
