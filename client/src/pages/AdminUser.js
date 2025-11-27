@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER } from "../utils/constants";
 import {
+  Autocomplete,
   Box,
   Button,
   CssBaseline,
@@ -31,6 +32,7 @@ import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import EditIcon from "../components/icons/EditIcon";
 import { useSnackbar } from "notistack";
+import { useSearchParams } from "react-router-dom";
 
 const AdminUser = () => {
   const [login, setLogin] = useState("");
@@ -43,14 +45,17 @@ const AdminUser = () => {
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRole, setUpdateRole] = useState(USER_ROLE_USER);
 
-  const [updateTrigger, setUpdateTrigger] = useState(false);
   const [isDataFetched, setIsDataFetched] = useState(false);
-  const [filterInput, setFilterInput] = useState("");
   const [filteredData, setFilteredData] = useState(null);
   const [open, setOpen] = React.useState(false);
   const [currentId, setCurrentId] = React.useState(0);
-  const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  var qGroupName = searchParams.get("group_name");
+  var qPage = searchParams.get("page");
+
+  const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
 
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -74,17 +79,10 @@ const AdminUser = () => {
 
   useEffect(() => {
     setIsDataFetched(false);
-    filterData(false).then(() => {
+    filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [page]);
-
-  useEffect(() => {
-    setIsDataFetched(false);
-    filterData(true).then(() => {
-      setIsDataFetched(true);
-    });
-  }, [updateTrigger]);
+  }, [searchParams]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -102,7 +100,7 @@ const AdminUser = () => {
       snackErrors.push("Введите логин пользователя");
     }
     if (password === "") {
-      snackErrors.push("Введите логин пользователя");
+      snackErrors.push("Введите пароль пользователя");
     }
     if (name === "") {
       snackErrors.push("Введите ФИО пользователя");
@@ -129,7 +127,7 @@ const AdminUser = () => {
         setName("");
         setRole(USER_ROLE_USER);
         setSelectedGroup("");
-        setUpdateTrigger(!updateTrigger);
+        setSearchParams({ group_name: qGroupName, page: qPage });
       },
       (_) => {
         enqueueSnackbar("Ошибка при добавлении пользователя", {
@@ -149,7 +147,7 @@ const AdminUser = () => {
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setUpdateTrigger(!updateTrigger);
+        setSearchParams({ group_name: qGroupName, page: 1 });
       },
       (e) => {
         let additionalText = "";
@@ -189,7 +187,7 @@ const AdminUser = () => {
         });
         setUpdatePassword("");
         setUpdateRole(USER_ROLE_USER);
-        setUpdateTrigger(!updateTrigger);
+        setSearchParams({ group_name: qGroupName, page: qPage });
       },
       (_) => {
         enqueueSnackbar("Ошибка при обновлении пользователя", {
@@ -201,18 +199,17 @@ const AdminUser = () => {
     );
   };
 
-  const filterData = async (updatePage) => {
+  const filterData = async () => {
     let filteredDataFromQuery;
     let newPageCount;
-    if (filterInput) {
-      filteredDataFromQuery = await fetchUsers("login", filterInput, page);
-      newPageCount = await getUsersPageCount("login", filterInput);
+    if (qGroupName) {
+      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, parseInt(qPage));
+      newPageCount = await getUsersPageCount("group_name", qGroupName);
     } else {
-      filteredDataFromQuery = await fetchUsers(null, null, page);
+      filteredDataFromQuery = await fetchUsers(null, null, parseInt(qPage));
       newPageCount = await getUsersPageCount();
     }
     setPageCount(newPageCount);
-    if (updatePage) setPage(1);
     setFilteredData(filteredDataFromQuery);
   };
 
@@ -284,25 +281,19 @@ const AdminUser = () => {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            select
-            value={selectedGroup}
-            onChange={(event) => {
-              const newSelectedGroup = event.target.value;
+          <Autocomplete
+            options={fetchedGroups}
+            getOptionLabel={(group) => group.name}
+            renderInput={(params) => <TextField {...params} label="Выберите группу" />}
+            value={fetchedGroups.find((group) => group.name === selectedGroup.name) || null}
+            onChange={(_, newValue) => {
+              const newSelectedGroup = newValue;
               setSelectedGroup(newSelectedGroup);
             }}
-            id="group-select"
-            variant={"outlined"}
             sx={{
               flexGrow: 9,
             }}
-          >
-            {fetchedGroups.map((item) => (
-              <MenuItem id={"groupItem" + item.id} value={item}>
-                {item.name}
-              </MenuItem>
-            ))}
-          </TextField>
+          />
           <Button
             sx={{ width: "fit-content", height: "40px" }}
             variant="contained"
@@ -316,15 +307,19 @@ const AdminUser = () => {
           <Typography variant="h4" noWrap component="div">
             Изменение пользователя
           </Typography>
-          <TextField
-            onChange={(event) => {
-              setFilterInput(event.target.value);
-              setUpdateTrigger(!updateTrigger);
+          <Autocomplete
+            options={fetchedGroups}
+            getOptionLabel={(group) => group.name}
+            renderInput={(params) => <TextField {...params} label="Выберите группу" />}
+            value={fetchedGroups.find((group) => group.name === selectedGroupName) || null}
+            onChange={(_, newValue) => {
+              const newSelectedGroupName = newValue ? newValue.name : "";
+              setSelectedGroupName(newSelectedGroupName);
+              setSearchParams({ group_name: newSelectedGroupName, page: 1 });
             }}
-            value={filterInput}
-            id="outlined-basic"
-            label="Введите логин пользователя"
-            variant="outlined"
+            sx={{
+              flexGrow: 9,
+            }}
           />
 
           <TableContainer component={Paper}>
@@ -378,9 +373,9 @@ const AdminUser = () => {
             <Pagination
               sx={{ pt: "16px" }}
               count={pageCount}
-              page={page}
+              page={parseInt(qPage)}
               onChange={(event, value) => {
-                setPage(value);
+                setSearchParams({ group_name: qGroupName, page: value });
               }}
               variant="outlined"
               shape="rounded"

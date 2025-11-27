@@ -32,7 +32,7 @@ const Admin = observer(() => {
                   sx={{ width: "100%", height: "64px" }}
                   variant="contained"
                   onClick={() => {
-                    navigate(ADMIN_USER_ROUTE);
+                    navigate(ADMIN_USER_ROUTE + "?group_name=&page=1");
                   }}
                 >
                   Изменить пользователя
