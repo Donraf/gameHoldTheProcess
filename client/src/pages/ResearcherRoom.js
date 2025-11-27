@@ -20,16 +20,20 @@ import { ModalContent } from "../components/ModalContent";
 import { Context } from "..";
 import PlayersGrid from "../components/PlayersGrid";
 import { getParSets } from "../http/graphAPI";
+import { useSearchParams } from "react-router-dom";
 
 const ResearcherRoom = () => {
   const { user } = useContext(Context);
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  var qGroupName = searchParams.get("group_name");
+  var qPage = searchParams.get("page");
+
   const [isDataFetched, setIsDataFetched] = useState(false);
-  const [filterInput, setFilterInput] = useState("");
   const [filteredData, setFilteredData] = useState([]);
-  const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
   const [fetchedGroups, setFetchedGroups] = useState([]);
-  const [selectedGroupName, setSelectedGroupName] = useState("");
+  const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
   const [name, setName] = useState("");
   const [fetchedParSets, setFetchedParSets] = useState([]);
   const [selectedParSetId, setSelectedParSetId] = useState(-1);
@@ -52,17 +56,10 @@ const ResearcherRoom = () => {
 
   useEffect(() => {
     setIsDataFetched(false);
-    filterData(false).then(() => {
+    filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [page]);
-
-  useEffect(() => {
-    setIsDataFetched(false);
-    filterData(true).then(() => {
-      setIsDataFetched(true);
-    });
-  }, [filterInput]);
+  }, [searchParams]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -117,18 +114,17 @@ const ResearcherRoom = () => {
     });
   };
 
-  const filterData = async (updatePage) => {
+  const filterData = async () => {
     let filteredDataFromQuery;
     let newPageCount;
-    if (filterInput) {
-      filteredDataFromQuery = await getPlayersStat("group_name", filterInput, page);
-      newPageCount = await getPlayersPageCount("group_name", filterInput);
+    if (qGroupName) {
+      filteredDataFromQuery = await getPlayersStat("group_name", qGroupName, parseInt(qPage));
+      newPageCount = await getPlayersPageCount("group_name", qGroupName);
     } else {
-      filteredDataFromQuery = await getPlayersStat(null, null, page);
+      filteredDataFromQuery = await getPlayersStat(null, null, parseInt(qPage));
       newPageCount = await getPlayersPageCount();
     }
     setPageCount(newPageCount);
-    if (updatePage) setPage(1);
     setFilteredData(filteredDataFromQuery);
   };
 
@@ -212,7 +208,7 @@ const ResearcherRoom = () => {
               onChange={(_, newValue) => {
                 const newSelectedGroupName = newValue ? newValue.name : "";
                 setSelectedGroupName(newSelectedGroupName);
-                setFilterInput(newSelectedGroupName);
+                setSearchParams({ group_name: newSelectedGroupName, page: 1})
               }}
               sx={{
                 flexGrow: 9,
@@ -238,9 +234,9 @@ const ResearcherRoom = () => {
             <Pagination
               sx={{ pt: "16px" }}
               count={pageCount}
-              page={page}
+              page={parseInt(qPage)}
               onChange={(event, value) => {
-                setPage(value);
+                setSearchParams({ group_name: qGroupName, page: value});
               }}
               variant="outlined"
               shape="rounded"
