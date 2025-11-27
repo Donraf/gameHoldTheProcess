@@ -1,6 +1,5 @@
-import { Box, Card, Stack, Typography } from "@mui/material";
-import { ChartData } from "../utils/ChartData";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { Stack, Typography } from "@mui/material";
+import React, { useRef } from "react";
 import Grid from "@mui/material/Grid2";
 import {
   Chart as ChartJS,

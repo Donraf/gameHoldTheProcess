@@ -71,7 +71,7 @@ export const options = {
     },
   },
   plugins: {
-    legend: false,
+    legend: {},
   },
 };
 
@@ -82,6 +82,33 @@ function createChartData(parSet) {
     chartData.generateNextPoint();
   }
   return chartData.fullData;
+}
+
+function formChoiceChartData(choiceStats) {
+  if (!choiceStats || choiceStats === "{}") return null;
+  var jsCS = JSON.parse(choiceStats);
+  const labels = Object.keys(jsCS[jsCS.length - 1]);
+  const chunk = jsCS[jsCS.length - 1];
+  const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
+  const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
+  const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
+  for (const j in chunk) {
+    if (chunk[j].Hint + chunk[j].Cont + chunk[j].Stop === 0) {
+      hintDS.data.push(NaN);
+      contDS.data.push(NaN);
+      stopDS.data.push(NaN);
+    } else {
+      hintDS.data.push(chunk[j].Hint);
+      contDS.data.push(chunk[j].Cont);
+      stopDS.data.push(chunk[j].Stop);
+    }
+  }
+
+  return {
+    chartTitle: "Все точки принятия решений",
+    labels: labels,
+    datasets: [hintDS, contDS, stopDS],
+  };
 }
 
 export default function PlayerCard({ player }) {
@@ -95,6 +122,8 @@ export default function PlayerCard({ player }) {
 
   const chartRef = useRef < ChartJS > null;
   const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
+
+  const [chunkData, setChunkData] = useState(null);
 
   let chartData = isDataFetched ? createChartData(filteredData.find((set) => set.id === selectedParSetId)) : null;
 
@@ -123,12 +152,17 @@ export default function PlayerCard({ player }) {
   }, [page]);
 
   useEffect(() => {
-    const newSelectedParSetId = player.cur_par_set_id
+    const newSelectedParSetId = player.cur_par_set_id;
     getStatistics(player.id, newSelectedParSetId).then((stats) => {
       setStats(stats);
     });
-    setSelectedParSetId(player.cur_par_set_id)
+    setSelectedParSetId(player.cur_par_set_id);
   }, [player]);
+
+  useEffect(() => {
+    console.log(stats);
+    setChunkData(formChoiceChartData(stats?.choice_stats));
+  }, [stats]);
 
   const getParSetsUI = async () => {
     const filteredDataFromQuery = await getParSets();
@@ -227,30 +261,19 @@ export default function PlayerCard({ player }) {
               Остановка по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} {" "}
-              μ={stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
+              n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
+              {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
-
-          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
-              Остановка без сигнала:
-            </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.stop_without_signal_num != null ? stats?.stop_without_signal_num : "???"} {" "}
-              μ={stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
-              {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
-            </Typography>
-          </Stack> */}
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
               Запрос информации по сигналу:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} {" "}
-              μ={stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
+              n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
+              {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
@@ -260,8 +283,8 @@ export default function PlayerCard({ player }) {
               Запрос информации без сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} {" "}
-              μ={stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
+              n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
+              {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
@@ -271,12 +294,21 @@ export default function PlayerCard({ player }) {
               Продолжение после сигнала:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} {" "}
-              μ={stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
+              n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
+              {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
             </Typography>
           </Stack>
         </Stack>
+
+        {chunkData ? (
+          <Stack>
+            <Typography>{chunkData.chartTitle}</Typography>
+            <Chart ref={chartRef} options={options} data={chunkData} />
+          </Stack>
+        ) : (
+          <></>
+        )}
 
         <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Button
