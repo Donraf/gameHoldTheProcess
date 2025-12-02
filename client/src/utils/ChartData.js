@@ -40,6 +40,7 @@ export class ChartData {
     this.wasRealAlert = false;
     this.wasFakeAlert = false;
     this.parSet = parSet;
+    this.falseAlarmThreshold = 0.75;
     this.restart();
   }
 
@@ -122,7 +123,7 @@ export class ChartData {
 
     if (
       this.points.length <= this.checkDangerNum ||
-      this.points[this.points.length - this.checkDangerNum - 1].y < 0.9 * this.criticalValue
+      this.points[this.points.length - this.checkDangerNum - 1].y < this.falseAlarmThreshold * this.criticalValue
     ) {
       return;
     }
