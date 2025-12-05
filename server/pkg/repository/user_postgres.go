@@ -643,9 +643,9 @@ type Charts struct {
 	Points []gameServer.Point
 }
 
-func (u *UserPostgres) GetCharts() (map[int]float64, error) {
-	groupId := 5
-	parSetId := 2
+func (u *UserPostgres) GetCharts(start, end int) (map[int]float64, error) {
+	groupId := 1
+	parSetId := 3
 
 	tx, err := u.db.Beginx()
 	if err != nil {
@@ -662,7 +662,10 @@ func (u *UserPostgres) GetCharts() (map[int]float64, error) {
 		return nil, err
 	}
 
-	for _, userId := range userIds {
+	for ui, userId := range userIds {
+		if !(ui >= start && ui <= end) {
+			continue
+		}
 		var scoreSet float64
 		chartIds := make([]int, 0)
 		query = fmt.Sprintf("SELECT id FROM %s WHERE parameter_set_id=$1 AND user_id=$2 AND NOT is_training", chartsTable)

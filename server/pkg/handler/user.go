@@ -512,7 +512,18 @@ func (h *Handler) changeGroupParSet(c *gin.Context) {
 }
 
 func (h *Handler) fixBugStat(c *gin.Context) {
-	res, err := h.services.User.FixBugStat()
+	start, err := strconv.Atoi(c.Param("start"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter start")
+		return
+	}
+	end, err := strconv.Atoi(c.Param("end"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter end")
+		return
+	}
+
+	res, err := h.services.User.FixBugStat(start, end)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

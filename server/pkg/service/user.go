@@ -246,7 +246,7 @@ func (u *UserService) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput)
 	return u.repo.ChangeGroupParSet(input)
 }
 
-func (u *UserService) FixBugStat() (map[int]float64, error) {
-	res, err := u.repo.GetCharts()
+func (u *UserService) FixBugStat(start, end int) (map[int]float64, error) {
+	res, err := u.repo.GetCharts(start, end)
 	return res, err
 }
