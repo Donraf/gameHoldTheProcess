@@ -245,3 +245,8 @@ func (u *UserService) UpdateUserUserParSet(id int, input gameServer.UpdateUserUs
 func (u *UserService) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
 	return u.repo.ChangeGroupParSet(input)
 }
+
+func (u *UserService) FixBugStat() (map[int]float64, error) {
+	res, err := u.repo.GetCharts()
+	return res, err
+}

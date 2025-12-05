@@ -638,3 +638,93 @@ func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput
 
 	return tx.Commit()
 }
+
+type Charts struct {
+	Points []gameServer.Point
+}
+
+func (u *UserPostgres) GetCharts() (map[int]float64, error) {
+	groupId := 1
+	parSetId := 3
+
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+
+	results := make(map[int]float64, 0)
+
+	userIds := make([]int, 0)
+	query := fmt.Sprintf("SELECT user_id FROM %s WHERE group_id=$1", userGroupsTable)
+	err = tx.Select(&userIds, query, groupId)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	for _, userId := range userIds {
+		var scoreSet float64
+		chartIds := make([]int, 0)
+		query = fmt.Sprintf("SELECT id FROM %s WHERE parameter_set_id=$1 AND user_id=$2 AND NOT is_training", chartsTable)
+		err = tx.Select(&chartIds, query, parSetId, userId)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		for _, chartId := range chartIds {
+			var scoreGame float64
+			var points []gameServer.Point
+
+			query = fmt.Sprintf(`
+				SELECT is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check
+				FROM %s
+				WHERE chart_id=$1
+				ORDER BY x ASC
+			`, pointsTable)
+
+			err := tx.Select(&points, query, chartId)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+
+			for i, point := range points {
+				if i > 0 {
+					scoreGame += 50
+				}
+				if point.IsPause {
+					scoreGame -= 50
+				}
+				if point.IsCheck {
+					scoreGame -= 500
+				}
+				if point.IsDeceptiveAiSignal && !point.IsStop {
+					scoreGame += 3000
+				}
+				if point.IsDeceptiveAiSignal && point.IsStop {
+					scoreGame -= 3000
+					break
+				}
+				if point.IsUsefulAiSignal && point.IsStop {
+					scoreGame += 0
+					break
+				}
+				if point.IsUsefulAiSignal && !point.IsStop {
+					if scoreGame > 0 {
+						scoreGame = -4000
+					} else {
+						scoreGame -= 4000
+					}
+					break
+				}
+			}
+
+			scoreSet += scoreGame
+		}
+
+		results[userId] = scoreSet
+	}
+
+	return results, nil
+}

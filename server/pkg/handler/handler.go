@@ -28,6 +28,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			user.POST("/registration", h.registration)
 			user.POST("/login", h.login)
 			user.GET("/groups", h.getAllGroups)
+			user.GET("/fixBugStat", h.fixBugStat)
 			userAuth := user.Group("", h.checkUserAuth)
 			{
 				userAuth.POST("/users", h.getAllUsers)
