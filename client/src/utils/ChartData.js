@@ -12,7 +12,7 @@ export class ChartData {
   penaltyRejectCorrectAdviceNoCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
   penaltyAcceptIncorrectAdviceWithCheck = 3000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
   penaltyAcceptIncorrectAdviceNoCheck = 3000; // Штраф остановки при ложной тревоге от ИИ без подсказки
-
+  penaltyPause = 50; // Штраф за паузу
 
   constructor(
     maxPointsToShow = 30, // Сколько точек показывать на графике

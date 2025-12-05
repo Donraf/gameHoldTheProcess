@@ -160,7 +160,6 @@ export default function PlayerCard({ player }) {
   }, [player]);
 
   useEffect(() => {
-    console.log(stats);
     setChunkData(formChoiceChartData(stats?.choice_stats));
   }, [stats]);
 
