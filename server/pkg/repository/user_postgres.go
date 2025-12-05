@@ -644,8 +644,8 @@ type Charts struct {
 }
 
 func (u *UserPostgres) GetCharts(start, end int) (map[int]float64, error) {
-	groupId := 1
-	parSetId := 3
+	groupId := 5
+	parSetId := 2
 
 	tx, err := u.db.Beginx()
 	if err != nil {
