@@ -41,7 +41,7 @@ export class ChartData {
     this.wasRealAlert = false;
     this.wasFakeAlert = false;
     this.parSet = parSet;
-    this.falseAlarmThreshold = 0.75;
+    this.falseAlarmThreshold = 0.9;
     this.restart();
   }
 
