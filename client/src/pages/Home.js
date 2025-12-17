@@ -364,9 +364,11 @@ const Home = observer(() => {
   }, [updateParSet]);
 
   useEffect(() => {
-    setIsTimeUp(userParSet != null &&
-      ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
-        (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0)))
+    setIsTimeUp(
+      userParSet != null &&
+        ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
+          (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0))
+    );
   }, [userParSet]);
 
   useEffect(() => {
@@ -675,7 +677,7 @@ const Home = observer(() => {
             >
               Показать все свои предыдущие геймы (200 очков)
             </Button> */}
-           <Button
+            <Button
               sx={{
                 color: "#FFFFFF",
                 backgroundColor: COLORS.takeHintButton,
@@ -683,11 +685,11 @@ const Home = observer(() => {
               }}
               onClick={() => {
                 setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
-                changeScore(-250);
+                chart.chartData.chartHintUsed(500, chart.chartData.getCrashProbApprox());
+                changeScore(-500);
               }}
             >
-              Показать рискованность продолжения (250 очков)
+              Показать рискованность продолжения (500 очков)
             </Button>
 
             <Button
@@ -858,7 +860,10 @@ const Home = observer(() => {
                   userSelect: "none",
                 }}
               >
-                Очки за гейм: {isChartStopped || chart.chartData.isCrashed() ? chart.chartData.score : chart.chartData.score - chart.chartData.bonusStep * 2}
+                Очки за гейм:{" "}
+                {isChartStopped || chart.chartData.isCrashed()
+                  ? chart.chartData.score
+                  : chart.chartData.score - chart.chartData.bonusStep * 2}
               </Typography>
               <Typography
                 key={scoresChanges.updateFlag}
@@ -899,7 +904,7 @@ const Home = observer(() => {
           open={isRuleModalOpened}
           onClose={handleCloseRuleModal}
         >
-         <ModalContent sx={{ height: "90%", width: 800, overflow: "scroll" }}>
+          <ModalContent sx={{ height: "90%", width: 800, overflow: "scroll" }}>
             <Typography>Описание игры "Удержи процесс!"</Typography>
             <Typography>
               Вы – оператор атомной электростанции. Состояние процесса демонстрирует график, поступающий на монитор.
@@ -920,12 +925,12 @@ const Home = observer(() => {
                 За каждый шаг Вы получаете 50 очков. 
             </Typography>
             <Typography>
-                Дополнительная информация требует затраты ресурсов. За ее запрос снимается 250 очков.
+                Дополнительная информация требует затраты ресурсов. За ее запрос снимается 500 очков.
             </Typography>
             <img src="scoresTable.png"/>
             <Typography>
                 Период игры до завершения процесса или взрыва – это ГЕЙМ. При взрыве он считается ПРОИГРАННЫМ и положительные
-                очки аннулируются. Штраф с подсказкой 4000 очков, без подсказки - 2000 очков. Если взрыва не было, то гейм ПРОЙДЕН УСПЕШНО
+                очки аннулируются. Штраф за взрыв 4000 очков. Если взрыва не было, то гейм ПРОЙДЕН УСПЕШНО
                 и положительные очки сохраняются.
             </Typography>
             <Typography>
@@ -1132,7 +1137,7 @@ const Home = observer(() => {
                                   }
                                 }
                                 if (shouldEndTime) {
-                                    setIsChartPaused(true);
+                                  setIsChartPaused(true);
                                 } else {
                                   setIsChartPaused(false);
                                 }
