@@ -114,7 +114,12 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		Cont float64
 	}
 
-	chunkSize := 20
+	chunkSize := 1
+	if len(choiceStats) <= 60 && len(choiceStats) > 0 {
+		chunkSize = len(choiceStats) / 2
+	} else if len(choiceStats) > 0 {
+		chunkSize = len(choiceStats) / 3
+	}
 	numChunks := len(choiceStats) / chunkSize
 	curChunk := 0
 	chunks := make([]map[string]pointStat, 0)
@@ -202,7 +207,7 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 
 	for _, chunk := range chunks {
 		for y, absStat := range chunk {
-			var sum float64 = float64(absStat.Hint + absStat.Cont + absStat.Stop)
+			var sum float64 = float64(absStat.Cont + absStat.Stop)
 			if sum == 0 {
 				continue
 			}
