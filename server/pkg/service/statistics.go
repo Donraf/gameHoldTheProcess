@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"slices"
 	"strconv"
@@ -79,146 +80,7 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		return gameServer.Statistics{}, err
 	}
 
-	var choiceStats []gameServer.ChoiceStats
-	for _, point := range points {
-		if !(point.IsUsefulAiSignal || point.IsDeceptiveAiSignal) {
-			continue
-		}
-		choiceStat := gameServer.ChoiceStats{Y: math.Round(float64(point.Y * 100))}
-		if point.IsCheck {
-			choiceStat.ChoiceType = append(choiceStat.ChoiceType, choiceHint)
-		}
-		if point.IsStop {
-			choiceStat.ChoiceType = append(choiceStat.ChoiceType, choiceStop)
-		}
-		if !point.IsStop {
-			choiceStat.ChoiceType = append(choiceStat.ChoiceType, choiceContinue)
-		}
-		choiceStats = append(choiceStats, choiceStat)
-	}
-
-	var minY float64 = 100
-	var maxY float64 = 0
-	for _, cs := range choiceStats {
-		if cs.Y < float64(minY) {
-			minY = cs.Y
-		}
-		if cs.Y > float64(maxY) {
-			maxY = cs.Y
-		}
-	}
-
-	type pointStat struct {
-		Hint float64
-		Stop float64
-		Cont float64
-	}
-
-	chunkSize := 1
-	if len(choiceStats) <= 60 && len(choiceStats) > 0 {
-		chunkSize = len(choiceStats) / 2
-	} else if len(choiceStats) > 0 {
-		chunkSize = len(choiceStats) / 3
-	}
-	numChunks := len(choiceStats) / chunkSize
-	curChunk := 0
-	chunks := make([]map[string]pointStat, 0)
-	for curChunk < numChunks {
-		chunk := make(map[string]pointStat, int(maxY-minY)+1)
-
-		for i := minY; i <= maxY; i++ {
-			chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
-		}
-
-		for j := 0; j < chunkSize; j++ {
-			cs := choiceStats[curChunk*numChunks+j]
-			if slices.Contains(cs.ChoiceType, choiceHint) {
-				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-				c.Hint++
-				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-			}
-			if slices.Contains(cs.ChoiceType, choiceContinue) {
-				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-				c.Cont++
-				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-			}
-			if slices.Contains(cs.ChoiceType, choiceStop) {
-				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-				c.Stop++
-				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-			}
-		}
-		chunks = append(chunks, chunk)
-		curChunk++
-	}
-
-	chunk := make(map[string]pointStat, int(maxY-minY)+1)
-	for i := minY; i <= maxY; i++ {
-		chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
-	}
-	for _, cs := range choiceStats {
-		if slices.Contains(cs.ChoiceType, choiceHint) {
-			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-			c.Hint++
-			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-		}
-		if slices.Contains(cs.ChoiceType, choiceContinue) {
-			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-			c.Cont++
-			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-		}
-		if slices.Contains(cs.ChoiceType, choiceStop) {
-			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-			c.Stop++
-			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-		}
-	}
-	chunks = append(chunks, chunk)
-	curChunk++
-
-	// if len(choiceStats)%chunkSize != 0 {
-	// 	chunk := make(map[string]pointStat, int(maxY-minY)+1)
-
-	// 	for i := minY; i <= maxY; i++ {
-	// 		chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
-	// 	}
-
-	// 	for j := 0; j < len(choiceStats)%chunkSize; j++ {
-	// 		cs := choiceStats[curChunk*numChunks+j]
-	// 		if slices.Contains(cs.ChoiceType, choiceHint) {
-	// 			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-	// 			c.Hint++
-	// 			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-	// 		}
-	// 		if slices.Contains(cs.ChoiceType, choiceContinue) {
-	// 			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-	// 			c.Cont++
-	// 			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-	// 		}
-	// 		if slices.Contains(cs.ChoiceType, choiceStop) {
-	// 			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
-	// 			c.Stop++
-	// 			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
-	// 		}
-	// 	}
-	// 	chunks = append(chunks, chunk)
-	// 	curChunk++
-	// }
-
-	for _, chunk := range chunks {
-		for y, absStat := range chunk {
-			var sum float64 = float64(absStat.Cont + absStat.Stop)
-			if sum == 0 {
-				continue
-			}
-			absStat.Hint /= sum
-			absStat.Cont /= sum
-			absStat.Stop /= sum
-			chunk[y] = absStat
-		}
-	}
-
-	jsonChunks, err := json.Marshal(chunks)
+	jsonChoiceStatsAnikin, err := computeChoiceStatsAnikin(points)
 	if err != nil {
 		return gameServer.Statistics{}, err
 	}
@@ -243,7 +105,7 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		HintOnSignalNum:          len(hintsOnSignal),
 		HintWithoutSignalNum:     len(hintsWithoutSignal),
 		ContinueAfterSignalNum:   len(continuesAfterSignal),
-		ChoiceStats:              string(jsonChunks),
+		ChoiceStats:              jsonChoiceStatsAnikin,
 	}
 
 	err = s.repo.UpsertStatistics(input, stats)
@@ -256,4 +118,140 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 
 func (s *StatisticsService) GetStatistics(userId, parSetId int) (gameServer.Statistics, error) {
 	return s.repo.GetStatistics(userId, parSetId)
+}
+
+func computeChoiceStatsAnikin(points []gameServer.Point) (jsonChoiceStats string, err error) {
+	var pointsWithChoices []gameServer.ChoiceStats
+	for _, point := range points {
+		if !(point.IsUsefulAiSignal || point.IsDeceptiveAiSignal) {
+			continue
+		}
+		pointWithChoices := gameServer.ChoiceStats{Y: math.Round(float64(point.Y * 100))}
+		if point.IsCheck {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceHint)
+		}
+		if point.IsStop {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceStop)
+		}
+		if !point.IsStop {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceContinue)
+		}
+		pointsWithChoices = append(pointsWithChoices, pointWithChoices)
+	}
+
+	var minY float64 = 100
+	var maxY float64 = 0
+	for _, cs := range pointsWithChoices {
+		if cs.Y < float64(minY) {
+			minY = cs.Y
+		}
+		if cs.Y > float64(maxY) {
+			maxY = cs.Y
+		}
+	}
+
+	type pointStat struct {
+		HintRel float64
+		StopRel float64
+		ContRel float64
+		HintAbs int
+		StopAbs int
+		ContAbs int
+	}
+
+	chunkSize := 1
+	if len(pointsWithChoices) <= 60 && len(pointsWithChoices) > 0 {
+		chunkSize = len(pointsWithChoices) / 2
+	} else if len(pointsWithChoices) > 0 {
+		chunkSize = len(pointsWithChoices) / 3
+	}
+	numOfChunks := len(pointsWithChoices) / chunkSize
+	curChunkNum := 0
+
+	type chunkWithTitle struct {
+		Title           string
+		ChunkChoiceStat map[string]pointStat
+	}
+
+	chunks := make([]chunkWithTitle, 0)
+
+	// {
+	// 	Title: "",
+	// 	ChunkChoiceStat: make([]map[string]pointStat, 0),
+	// }
+
+	for curChunkNum < numOfChunks {
+		chunk := make(map[string]pointStat, int(maxY-minY)+1)
+
+		for i := minY; i <= maxY; i++ {
+			chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
+		}
+
+		for j := 0; j < chunkSize; j++ {
+			cs := pointsWithChoices[curChunkNum*chunkSize+j]
+			if slices.Contains(cs.ChoiceType, choiceHint) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.HintAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+			if slices.Contains(cs.ChoiceType, choiceContinue) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.ContAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+			if slices.Contains(cs.ChoiceType, choiceStop) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.StopAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+		}
+		title := fmt.Sprintf("Точки принятия решений %v-%v", curChunkNum*chunkSize+1, (curChunkNum+1)*chunkSize)
+		chunks = append(chunks, chunkWithTitle{Title: title, ChunkChoiceStat: chunk})
+		curChunkNum++
+	}
+
+	chunk := make(map[string]pointStat, int(maxY-minY)+1)
+	for i := minY; i <= maxY; i++ {
+		chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
+	}
+	for _, cs := range pointsWithChoices {
+		if slices.Contains(cs.ChoiceType, choiceHint) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.HintAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+		if slices.Contains(cs.ChoiceType, choiceContinue) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.ContAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+		if slices.Contains(cs.ChoiceType, choiceStop) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.StopAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+	}
+	title := fmt.Sprintf("Все точки принятия решений %v-%v", 1, len(pointsWithChoices))
+	chunks = append(chunks, chunkWithTitle{Title: title, ChunkChoiceStat: chunk})
+	curChunkNum++
+
+	for _, chunk := range chunks {
+		for y, absStat := range chunk.ChunkChoiceStat {
+			var sum float64 = float64(absStat.ContAbs + absStat.StopAbs)
+			if sum == 0 {
+				continue
+			}
+			absStat.HintRel = float64(absStat.HintAbs) / sum
+			absStat.ContRel = float64(absStat.ContAbs) / sum
+			absStat.StopRel = float64(absStat.StopAbs) / sum
+			chunk.ChunkChoiceStat[y] = absStat
+		}
+	}
+
+	jsonChunks, err := json.Marshal(chunks)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonChunks), nil
 }
