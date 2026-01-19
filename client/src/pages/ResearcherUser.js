@@ -156,11 +156,11 @@ const ResearcherUser = () => {
             {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          {/* <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Запрос информации без сигнала n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
             {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
-          </Typography>
+          </Typography> */}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Продолжение после сигнала n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=

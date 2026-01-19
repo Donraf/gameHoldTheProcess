@@ -85,22 +85,23 @@ function createChartData(parSet) {
 }
 
 function formChoiceChartData(choiceStats) {
+  try {
   if (!choiceStats || choiceStats === "{}") return null;
   var jsCS = JSON.parse(choiceStats);
-  const labels = Object.keys(jsCS[jsCS.length - 1]);
+  const labels = Object.keys(jsCS[jsCS.length - 1].ChunkChoiceStat);
   const chunk = jsCS[jsCS.length - 1];
   const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
   const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
   const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
-  for (const j in chunk) {
-    if (chunk[j].Hint + chunk[j].Cont + chunk[j].Stop === 0) {
+  for (const j in chunk.ChunkChoiceStat) {
+    if (chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel === 0) {
       hintDS.data.push(NaN);
       contDS.data.push(NaN);
       stopDS.data.push(NaN);
     } else {
-      hintDS.data.push(chunk[j].Hint);
-      contDS.data.push(chunk[j].Cont);
-      stopDS.data.push(chunk[j].Stop);
+      hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
+      contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
+      stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
     }
   }
 
@@ -109,6 +110,14 @@ function formChoiceChartData(choiceStats) {
     labels: labels,
     datasets: [hintDS, contDS, stopDS],
   };
+  } catch {
+  return {
+    chartTitle: "Ошибка",
+    labels: [],
+    datasets: [],
+  };
+  }
+  
 }
 
 export default function PlayerCard({ player }) {
@@ -277,7 +286,7 @@ export default function PlayerCard({ player }) {
             </Typography>
           </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
+          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
               Запрос информации без сигнала:
             </Typography>
@@ -286,7 +295,7 @@ export default function PlayerCard({ player }) {
               {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
             </Typography>
-          </Stack>
+          </Stack> */}
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
