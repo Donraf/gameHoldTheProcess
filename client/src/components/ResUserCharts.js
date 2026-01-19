@@ -58,36 +58,40 @@ export const options = {
 };
 
 function formChartData(choiceStats) {
-  if (!choiceStats || choiceStats === "{}") return null;
-  var chunksData = [];
-  var jsCS = JSON.parse(choiceStats);
-  const labels = Object.keys(jsCS[0].ChunkChoiceStat);
-  for (const i in jsCS) {
-    const chunk = jsCS[i];
-    const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
-    const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
-    const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
-    for (const j in chunk.ChunkChoiceStat) {
-      if (
-        chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel ===
-        0
-      ) {
-        hintDS.data.push(NaN);
-        contDS.data.push(NaN);
-        stopDS.data.push(NaN);
-      } else {
-        hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
-        contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
-        stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
+  try {
+    if (!choiceStats || choiceStats === "{}") return null;
+    var chunksData = [];
+    var jsCS = JSON.parse(choiceStats);
+    const labels = Object.keys(jsCS[0].ChunkChoiceStat);
+    for (const i in jsCS) {
+      const chunk = jsCS[i];
+      const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
+      const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
+      const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
+      for (const j in chunk.ChunkChoiceStat) {
+        if (
+          chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel ===
+          0
+        ) {
+          hintDS.data.push(NaN);
+          contDS.data.push(NaN);
+          stopDS.data.push(NaN);
+        } else {
+          hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
+          contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
+          stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
+        }
       }
+      chunksData.push({
+        chartTitle: chunk.Title,
+        labels: labels,
+        datasets: [hintDS, contDS, stopDS],
+      });
     }
-    chunksData.push({
-      chartTitle: chunk.Title,
-      labels: labels,
-      datasets: [hintDS, contDS, stopDS],
-    });
+    return chunksData; 
+  } catch {
+    return null
   }
-  return chunksData;
 }
 
 function formTableData(choiceStats) {
@@ -136,13 +140,13 @@ export default function ResUserCharts({ choiceStats }) {
                             {rowNum[1].HintAbs + rowNum[1].ContAbs + rowNum[1].StopAbs !== 0 ? (
                               <>
                                 <TableCell>
-                                  {rowNum[1].HintAbs} ({rowNum[1].HintRel * 100}%)
+                                  {rowNum[1].HintAbs} ({(rowNum[1].HintRel * 100).toFixed(1)}%)
                                 </TableCell>
                                 <TableCell>
-                                  {rowNum[1].ContAbs} ({rowNum[1].ContRel * 100}%)
+                                  {rowNum[1].ContAbs} ({(rowNum[1].ContRel * 100).toFixed(1)}%)
                                 </TableCell>
                                 <TableCell>
-                                  {rowNum[1].StopAbs} ({rowNum[1].StopRel * 100}%)
+                                  {rowNum[1].StopAbs} ({(rowNum[1].StopRel * 100).toFixed(1)}%)
                                 </TableCell>
                               </>
                             ) : (
