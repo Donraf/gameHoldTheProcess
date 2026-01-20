@@ -208,21 +208,21 @@ func (p *StatisticsPostgres) UpsertStatistics(input gameServer.ComputeStatistics
 	                     mean_stop_without_signal, stdev_stop_without_signal, mean_hint_on_signal, stdev_hint_on_signal,
 						 mean_hint_without_signal, stdev_hint_without_signal, mean_continue_after_signal, stdev_continue_after_signal,
 						 stop_on_signal_num, stop_without_signal_num, hint_on_signal_num, hint_without_signal_num, continue_after_signal_num,
-						 total_score, choice_stats)
-	                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+						 total_score, choice_stats, choice_stats_venger_table, choice_stats_venger_charts)
+	                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
 						ON CONFLICT (user_id, parameter_set_id) DO UPDATE SET
 						games_num = $3, stops_num = $4, crashes_num = $5, mean_stop_on_signal = $6, stdev_stop_on_signal = $7, mean_stop_without_signal = $8,
 						stdev_stop_without_signal = $9, mean_hint_on_signal = $10, stdev_hint_on_signal = $11, mean_hint_without_signal = $12,
 						stdev_hint_without_signal = $13, mean_continue_after_signal = $14, stdev_continue_after_signal = $15,
 						stop_on_signal_num = $16, stop_without_signal_num = $17, hint_on_signal_num = $18,
-						hint_without_signal_num = $19, continue_after_signal_num = $20, total_score = $21, choice_stats = $22
+						hint_without_signal_num = $19, continue_after_signal_num = $20, total_score = $21, choice_stats = $22, choice_stats_venger_table = $23, choice_stats_venger_charts = $24
 						`, statisticsTable)
 
 	_, err := p.db.Exec(query, input.UserId, input.ParSetId, s.GamesNum, s.StopsNum, s.CrashesNum, s.MeanStopOnSignal, s.StdevStopOnSignal,
 		s.MeanStopWithoutSignal, s.StdevStopWithoutSignal, s.MeanHintOnSignal, s.StdevHintOnSignal,
 		s.MeanHintWithoutSignal, s.StdevHintWithoutSignal, s.MeanContinueAfterSignal, s.StdevContinueAfterSignal,
 		s.StopOnSignalNum, s.StopWithoutSignalNum, s.HintOnSignalNum, s.HintWithoutSignalNum, s.ContinueAfterSignalNum,
-		s.TotalScore, s.ChoiceStats)
+		s.TotalScore, s.ChoiceStats, s.ChoiceStatsVengerTable, s.ChoiceStatsVengerCharts)
 
 	return err
 }
@@ -233,7 +233,7 @@ func (p *StatisticsPostgres) GetStatistics(userId, parSetId int) (gameServer.Sta
 	                     mean_stop_without_signal, stdev_stop_without_signal, mean_hint_on_signal, stdev_hint_on_signal,
 						 mean_hint_without_signal, stdev_hint_without_signal, mean_continue_after_signal, stdev_continue_after_signal,
 						 stop_on_signal_num, stop_without_signal_num, hint_on_signal_num, hint_without_signal_num, continue_after_signal_num,
-						 total_score, choice_stats
+						 total_score, choice_stats, choice_stats_venger_table, choice_stats_venger_charts
 						 FROM %s WHERE user_id=$1 AND parameter_set_id=$2`, statisticsTable)
 
 	err := p.db.Get(&stats, query, userId, parSetId)

@@ -14,9 +14,18 @@ import (
 
 const (
 	// Виды решений
-	choiceHint     = "hint"
-	choiceContinue = "cont"
-	choiceStop     = "stop"
+	choiceHint         = "hint"
+	choiceContinue     = "cont"
+	choiceStop         = "stop"
+	choiceStopLow      = "stopL"
+	choiceStopMed      = "stopM"
+	choiceStopHigh     = "stopH"
+	choiceContinueLow  = "contL"
+	choiceContinueMed  = "contM"
+	choiceContinueHigh = "contH"
+	lowRiskLevel       = "Низкий уровень риска"
+	medRiskLevel       = "Средний уровень риска"
+	hightRiskLevel     = "Высокий уровень риска"
 )
 
 type StatisticsService struct {
@@ -85,6 +94,16 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		return gameServer.Statistics{}, err
 	}
 
+	jsonChoiceStatsVengerTable, err := computeChoiceStatsVengerTable(points)
+	if err != nil {
+		return gameServer.Statistics{}, err
+	}
+
+	jsonChoiceStatsVengerCharts, err := computeChoiceStatsVengerCharts(points)
+	if err != nil {
+		return gameServer.Statistics{}, err
+	}
+
 	stats := gameServer.Statistics{
 		GamesNum:                 gamesCount,
 		StopsNum:                 stopsCount,
@@ -106,6 +125,8 @@ func (s *StatisticsService) ComputeStatistics(input gameServer.ComputeStatistics
 		HintWithoutSignalNum:     len(hintsWithoutSignal),
 		ContinueAfterSignalNum:   len(continuesAfterSignal),
 		ChoiceStats:              jsonChoiceStatsAnikin,
+		ChoiceStatsVengerTable:   jsonChoiceStatsVengerTable,
+		ChoiceStatsVengerCharts:  jsonChoiceStatsVengerCharts,
 	}
 
 	err = s.repo.UpsertStatistics(input, stats)
@@ -175,11 +196,6 @@ func computeChoiceStatsAnikin(points []gameServer.Point) (jsonChoiceStats string
 
 	chunks := make([]chunkWithTitle, 0)
 
-	// {
-	// 	Title: "",
-	// 	ChunkChoiceStat: make([]map[string]pointStat, 0),
-	// }
-
 	for curChunkNum < numOfChunks {
 		chunk := make(map[string]pointStat, int(maxY-minY)+1)
 
@@ -238,6 +254,190 @@ func computeChoiceStatsAnikin(points []gameServer.Point) (jsonChoiceStats string
 	for _, chunk := range chunks {
 		for y, absStat := range chunk.ChunkChoiceStat {
 			var sum float64 = float64(absStat.ContAbs + absStat.StopAbs)
+			if sum == 0 {
+				continue
+			}
+			absStat.HintRel = float64(absStat.HintAbs) / sum
+			absStat.ContRel = float64(absStat.ContAbs) / sum
+			absStat.StopRel = float64(absStat.StopAbs) / sum
+			chunk.ChunkChoiceStat[y] = absStat
+		}
+	}
+
+	jsonChunks, err := json.Marshal(chunks)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonChunks), nil
+}
+
+func computeChoiceStatsVengerTable(points []gameServer.Point) (jsonChoiceStats string, err error) {
+	type ChoiceStatsVenger struct {
+		Y          float64
+		ChoiceType string
+	}
+	var pointsWithChoices []ChoiceStatsVenger
+	for _, point := range points {
+		if !(point.IsUsefulAiSignal || point.IsDeceptiveAiSignal) {
+			continue
+		}
+		pointWithChoices := ChoiceStatsVenger{Y: math.Round(float64(point.Y * 100))}
+		if point.IsCheck {
+			checkInfo := ""
+			if point.CheckInfo != nil {
+				checkInfo = *point.CheckInfo
+			}
+			if point.IsStop {
+				switch checkInfo {
+				case lowRiskLevel:
+					pointWithChoices.ChoiceType = choiceStopLow
+				case medRiskLevel:
+					pointWithChoices.ChoiceType = choiceStopMed
+				case hightRiskLevel:
+					pointWithChoices.ChoiceType = choiceStopHigh
+				default:
+					pointWithChoices.ChoiceType = choiceStop
+				}
+			} else {
+				switch checkInfo {
+				case lowRiskLevel:
+					pointWithChoices.ChoiceType = choiceContinueLow
+				case medRiskLevel:
+					pointWithChoices.ChoiceType = choiceContinueMed
+				case hightRiskLevel:
+					pointWithChoices.ChoiceType = choiceContinueHigh
+				default:
+					pointWithChoices.ChoiceType = choiceContinue
+				}
+			}
+		} else if point.IsStop {
+			pointWithChoices.ChoiceType = choiceStop
+		} else if !point.IsStop {
+			pointWithChoices.ChoiceType = choiceContinue
+		}
+		pointsWithChoices = append(pointsWithChoices, pointWithChoices)
+	}
+
+	json, err := json.Marshal(pointsWithChoices)
+	if err != nil {
+		return "", err
+	}
+
+	return string(json), nil
+}
+
+func computeChoiceStatsVengerCharts(points []gameServer.Point) (jsonChoiceStats string, err error) {
+	var pointsWithChoices []gameServer.ChoiceStats
+	for _, point := range points {
+		if !(point.IsUsefulAiSignal || point.IsDeceptiveAiSignal) {
+			continue
+		}
+		pointWithChoices := gameServer.ChoiceStats{Y: math.Round(float64(point.Y * 100))}
+		if point.IsCheck {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceHint)
+		} else if point.IsStop {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceStop)
+		} else if !point.IsStop {
+			pointWithChoices.ChoiceType = append(pointWithChoices.ChoiceType, choiceContinue)
+		}
+		pointsWithChoices = append(pointsWithChoices, pointWithChoices)
+	}
+
+	var minY float64 = 100
+	var maxY float64 = 0
+	for _, cs := range pointsWithChoices {
+		if cs.Y < float64(minY) {
+			minY = cs.Y
+		}
+		if cs.Y > float64(maxY) {
+			maxY = cs.Y
+		}
+	}
+
+	type pointStat struct {
+		HintRel float64
+		StopRel float64
+		ContRel float64
+		HintAbs int
+		StopAbs int
+		ContAbs int
+	}
+
+	chunkSize := 1
+	if len(pointsWithChoices) <= 60 && len(pointsWithChoices) > 0 {
+		chunkSize = len(pointsWithChoices) / 2
+	} else if len(pointsWithChoices) > 0 {
+		chunkSize = len(pointsWithChoices) / 3
+	}
+	numOfChunks := len(pointsWithChoices) / chunkSize
+	curChunkNum := 0
+
+	type chunkWithTitle struct {
+		Title           string
+		ChunkChoiceStat map[string]pointStat
+	}
+
+	chunks := make([]chunkWithTitle, 0)
+
+	for curChunkNum < numOfChunks {
+		chunk := make(map[string]pointStat, int(maxY-minY)+1)
+
+		for i := minY; i <= maxY; i++ {
+			chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
+		}
+
+		for j := 0; j < chunkSize; j++ {
+			cs := pointsWithChoices[curChunkNum*chunkSize+j]
+			if slices.Contains(cs.ChoiceType, choiceHint) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.HintAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+			if slices.Contains(cs.ChoiceType, choiceContinue) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.ContAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+			if slices.Contains(cs.ChoiceType, choiceStop) {
+				c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+				c.StopAbs++
+				chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+			}
+		}
+		title := fmt.Sprintf("Точки принятия решений %v-%v", curChunkNum*chunkSize+1, (curChunkNum+1)*chunkSize)
+		chunks = append(chunks, chunkWithTitle{Title: title, ChunkChoiceStat: chunk})
+		curChunkNum++
+	}
+
+	chunk := make(map[string]pointStat, int(maxY-minY)+1)
+	for i := minY; i <= maxY; i++ {
+		chunk[strconv.FormatFloat(i, 'f', 0, 64)] = pointStat{}
+	}
+	for _, cs := range pointsWithChoices {
+		if slices.Contains(cs.ChoiceType, choiceHint) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.HintAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+		if slices.Contains(cs.ChoiceType, choiceContinue) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.ContAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+		if slices.Contains(cs.ChoiceType, choiceStop) {
+			c := chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)]
+			c.StopAbs++
+			chunk[strconv.FormatFloat(cs.Y, 'f', 0, 64)] = c
+		}
+	}
+	title := fmt.Sprintf("Все точки принятия решений %v-%v", 1, len(pointsWithChoices))
+	chunks = append(chunks, chunkWithTitle{Title: title, ChunkChoiceStat: chunk})
+	curChunkNum++
+
+	for _, chunk := range chunks {
+		for y, absStat := range chunk.ChunkChoiceStat {
+			var sum float64 = float64(absStat.ContAbs + absStat.StopAbs + absStat.HintAbs)
 			if sum == 0 {
 				continue
 			}

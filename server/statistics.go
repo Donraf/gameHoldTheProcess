@@ -23,6 +23,8 @@ type Statistics struct {
 	MeanContinueAfterSignal  float64 `json:"mean_continue_after_signal" db:"mean_continue_after_signal"`
 	StdevContinueAfterSignal float64 `json:"stdev_continue_after_signal" db:"stdev_continue_after_signal"`
 	ChoiceStats              string  `json:"choice_stats" db:"choice_stats"`
+	ChoiceStatsVengerTable   string  `json:"choice_stats_venger_table" db:"choice_stats_venger_table"`
+	ChoiceStatsVengerCharts  string  `json:"choice_stats_venger_charts" db:"choice_stats_venger_charts"`
 }
 
 type ChoiceStats struct {
