@@ -25,6 +25,8 @@ import { Context } from "..";
 import { COLORS, USER_ROLE_ADMIN } from "../utils/constants";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
 import ResUserCharts from "../components/ResUserCharts";
+import ResUserVengerTable from "../components/ResUserVengerTable";
+import ResUserVengerCharts from "../components/ResUserVengerCharts";
 
 const ResearcherUser = () => {
   const { user } = useContext(Context);
@@ -167,6 +169,11 @@ const ResearcherUser = () => {
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
           <ResUserCharts choiceStats={stats?.choice_stats}/>
+          <Typography sx={{ color: "#232E4A", fontSize: 32, fontWeight: "bold" }} component="div">
+            Статистика по Венгеру:
+          </Typography>
+          <ResUserVengerCharts choiceStats={stats?.choice_stats_venger_charts}/>
+          <ResUserVengerTable choiceStats={stats?.choice_stats_venger_table}/>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
           </Typography>
