@@ -28,8 +28,15 @@ import DangerIcon from "../components/icons/DangerIcon";
 import { useSnackbar } from "notistack";
 import { createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount } from "../http/graphAPI";
 import { ModalContent } from "../components/ModalContent";
-import { fetchPointsByChartId } from "../http/pointAPI";
 import { ChartData } from "../utils/ChartData";
+import {
+  chartOptions,
+  gameTimeLimitMs,
+  speedOptions,
+  trainingTimeLimitMs,
+} from "../features/game/constants";
+import { inferEndGameCause } from "../features/game/services/endGameCause";
+import { chartToHintCharts } from "../features/game/services/hintChartsService";
 import { transformToDbDateDayTime, transformToUiDateDayTime } from "../utils/transformDate";
 import { getParSet, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
@@ -51,45 +58,6 @@ ChartJS.register(
   Tooltip,
   Filler
 );
-
-async function chartToHintCharts(charts) {
-  let hintCharts = [];
-  for (let i in charts) {
-    let points = await fetchPointsByChartId(charts[i].id);
-    let hintChart = {
-      id: charts[i].id,
-      createdAt: charts[i].created_at,
-      points: points,
-    };
-    hintCharts.push(hintChart);
-  }
-  return hintCharts;
-}
-
-export const options = {
-  animations: {
-    x: {
-      duration: 1000,
-    },
-    y: {
-      duration: 0,
-    },
-  },
-  scales: {
-    y: {
-      beginAtZero: false,
-      min: 0.6,
-    },
-  },
-  plugins: {
-    legend: {
-      onClick: () => {},
-    },
-  },
-};
-
-const trainingTimeLimitMs = 15 * 60 * 1000;
-const gameTimeLimitMs = 60 * 60 * 1000;
 
 const Home = observer(() => {
   const chartRef = useRef < ChartJS > null;
@@ -134,8 +102,6 @@ const Home = observer(() => {
   const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
 
   const containerRef = React.useRef(null);
-
-  const speedOptions = [0.5, 1, 1.5, 2];
 
   const [time, setTime] = useState(Date.now());
   const [isChartPaused, setIsChartPaused] = useState(true);
@@ -375,43 +341,9 @@ const Home = observer(() => {
     if (hintCharts.length <= 0) {
       return;
     }
-    let newCause = "";
-    for (let i = 0; i < hintCharts[curLocalHintChartNum].points.length; i++) {
-      if (hintCharts[curLocalHintChartNum].points[i].is_stop) {
-        if (i - 1 < 0) {
-          newCause = "Остановка без предупреждения от ИИ (неправильная)";
-          break;
-        }
-        if (hintCharts[curLocalHintChartNum].points[i - 1].is_useful_ai_signal) {
-          newCause = "Остановка после правильного предупреждения от ИИ";
-        } else if (hintCharts[curLocalHintChartNum].points[i - 1].is_deceptive_ai_signal) {
-          newCause = "Остановка после неправильного предупреждения от ИИ";
-        } else {
-          if (i + 1 >= hintCharts[curLocalHintChartNum].points.length) {
-            break;
-          }
-          if (hintCharts[curLocalHintChartNum].points[i + 1].y >= chart.chartData.criticalValue) {
-            newCause = "Остановка без предупреждения от ИИ (правильная)";
-          } else {
-            newCause = "Остановка без предупреждения от ИИ (неправильная)";
-          }
-        }
-        break;
-      }
-      if (hintCharts[curLocalHintChartNum].points[i].is_crash) {
-        if (i - 1 < 0) {
-          newCause = "Взрыв без предупреждения от ИИ";
-          break;
-        }
-        if (hintCharts[curLocalHintChartNum].points[i - 1].is_useful_ai_signal) {
-          newCause = "Взрыв после отклонения правильного предупреждения от ИИ";
-        } else {
-          newCause = "Взрыв без предупреждения от ИИ";
-        }
-        break;
-      }
-    }
-    setEndGameCause(newCause);
+    setEndGameCause(
+      inferEndGameCause(hintCharts[curLocalHintChartNum].points, chart.chartData.criticalValue)
+    );
   }, [curLocalHintChartNum]);
 
   const moveToNextHintChart = async () => {
@@ -467,7 +399,7 @@ const Home = observer(() => {
             </Typography>
             <Chart
               ref={fullChartRef}
-              options={options}
+              options={chartOptions}
               data={chart.chartData.formData(
                 chart.chartData.points.slice(chart.chartData.maxPointsToShow, -chart.chartData.checkDangerNum)
               )}
@@ -516,7 +448,7 @@ const Home = observer(() => {
                 >
                   Причина завершения: {endGameCause}
                 </Typography>
-                <Chart ref={fullChartRef} options={options} data={chartData.data} />
+                <Chart ref={fullChartRef} options={chartOptions} data={chartData.data} />
               </>
             ) : (
               <>
@@ -1027,7 +959,7 @@ const Home = observer(() => {
             onAnimationEnd={triggerWrongChoiceAnim}
             className={wrongChoiceAnim ? "crash" : ""}
             ref={chartRef}
-            options={options}
+            options={chartOptions}
             data={chart.chartData.data}
           />
           {user.isAuth ? (
