@@ -14,6 +14,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func validRegisterUserInput() gameServer.RegisterUserInput {
+	return gameServer.RegisterUserInput{
+		Login:           "l",
+		Password:        "p",
+		Role:            "User",
+		Name:            "n",
+		Profession:      "Инженер",
+		ExperienceYears: 5,
+		Gender:          "Мужской",
+		Age:             30,
+	}
+}
+
+const validRegisterUserBody = `{"login": "l", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`
+
 func TestHandler_registration(t *testing.T) {
 	type mockBehavior func(r *service.MockUser, userInput gameServer.RegisterUserInput)
 
@@ -28,13 +43,8 @@ func TestHandler_registration(t *testing.T) {
 	}{
 		{
 			name:      "ok",
-			inputBody: `{"login": "l", "password": "p", "role": "User", "name":"n"}`,
-			userInput: gameServer.RegisterUserInput{
-				Login:    "l",
-				Password: "p",
-				Role:     "User",
-				Name:     "n",
-			},
+			inputBody: validRegisterUserBody,
+			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
 				r.EXPECT().CreateUser(userInput).Return("token", nil)
 			},
@@ -43,13 +53,8 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "redundant fields",
-			inputBody: `{"login": "l", "password": "p", "role": "User", "name":"n", "abc123": "abc123"}`,
-			userInput: gameServer.RegisterUserInput{
-				Login:    "l",
-				Password: "p",
-				Role:     "User",
-				Name:     "n",
-			},
+			inputBody: validRegisterUserBody + `, "abc123": "abc123"`,
+			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
 				r.EXPECT().CreateUser(userInput).Return("token", nil)
 			},
@@ -58,13 +63,8 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "internal server error",
-			inputBody: `{"login": "l", "password": "p", "role": "User", "name":"n"}`,
-			userInput: gameServer.RegisterUserInput{
-				Login:    "l",
-				Password: "p",
-				Role:     "User",
-				Name:     "n",
-			},
+			inputBody: validRegisterUserBody,
+			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
 				r.EXPECT().CreateUser(userInput).Return("", errors.New(""))
 			},
@@ -157,42 +157,56 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:               "incorrect current parameter set id - wrong type",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "cur_par_set_id": "hello"}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": "hello"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect current parameter set id - negative value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "cur_par_set_id": -1}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect current parameter set id - zero value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "cur_par_set_id": 0}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": 0}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - wrong type",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "group_id": "hello"}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": "hello"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - negative value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "group_id": -1}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - zero value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "group_id": 0}`,
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": 0}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "empty profession",
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"", "experience_years":5, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "invalid age",
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":0}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,

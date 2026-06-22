@@ -1,0 +1,5 @@
+ALTER TABLE Users
+    DROP COLUMN IF EXISTS profession,
+    DROP COLUMN IF EXISTS experience_years,
+    DROP COLUMN IF EXISTS gender,
+    DROP COLUMN IF EXISTS age;

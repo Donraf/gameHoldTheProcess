@@ -2,6 +2,7 @@ package gameServer
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -12,13 +13,17 @@ const (
 )
 
 type User struct {
-	Id          int    `json:"user_id" db:"user_id"`
-	Login       string `json:"login" binding:"required"`
-	Password    string `json:"password" binding:"required"`
-	Name        string `json:"name" binding:"required" db:"name"`
-	Role        string `json:"role" binding:"required"`
-	CurParSetId int    `json:"cur_par_set_id" db:"cur_par_set_id"`
-	CreatedAt   string `json:"created_at" db:"created_at"`
+	Id              int     `json:"user_id" db:"user_id"`
+	Login           string  `json:"login" binding:"required"`
+	Password        string  `json:"password" binding:"required"`
+	Name            string  `json:"name" binding:"required" db:"name"`
+	Role            string  `json:"role" binding:"required"`
+	CurParSetId     int     `json:"cur_par_set_id" db:"cur_par_set_id"`
+	Profession      *string `json:"profession,omitempty" db:"profession"`
+	ExperienceYears *int    `json:"experience_years,omitempty" db:"experience_years"`
+	Gender          *string `json:"gender,omitempty" db:"gender"`
+	Age             *int    `json:"age,omitempty" db:"age"`
+	CreatedAt       string  `json:"created_at" db:"created_at"`
 }
 
 type Group struct {
@@ -44,12 +49,16 @@ type PlayerEvent struct {
 }
 
 type RegisterUserInput struct {
-	Login       string `json:"login" binding:"required"`
-	Password    string `json:"password" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Role        string `json:"role" binding:"required"`
-	CurParSetId *int   `json:"cur_par_set_id"`
-	GroupId     *int   `json:"group_id"`
+	Login           string `json:"login" binding:"required"`
+	Password        string `json:"password" binding:"required"`
+	Name            string `json:"name" binding:"required"`
+	Role            string `json:"role" binding:"required"`
+	Profession      string `json:"profession" binding:"required"`
+	ExperienceYears int    `json:"experience_years" binding:"required"`
+	Gender          string `json:"gender" binding:"required"`
+	Age             int    `json:"age" binding:"required"`
+	CurParSetId     *int   `json:"cur_par_set_id"`
+	GroupId         *int   `json:"group_id"`
 }
 
 func (i *RegisterUserInput) Vaildate() error {
@@ -58,6 +67,18 @@ func (i *RegisterUserInput) Vaildate() error {
 	}
 	if i.GroupId != nil && *i.GroupId <= 0 {
 		return errors.New("current group id is non-positive")
+	}
+	if strings.TrimSpace(i.Profession) == "" {
+		return errors.New("profession is empty")
+	}
+	if i.ExperienceYears < 0 {
+		return errors.New("experience years is negative")
+	}
+	if strings.TrimSpace(i.Gender) == "" {
+		return errors.New("gender is empty")
+	}
+	if i.Age <= 0 || i.Age > 150 {
+		return errors.New("age is out of allowed range")
 	}
 	return nil
 }
