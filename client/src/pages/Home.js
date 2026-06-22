@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { Box, Container, CssBaseline, Toolbar } from "@mui/material";
 import {
   Chart as ChartJS,
@@ -21,7 +21,7 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import { Context } from "../index";
 import { observer } from "mobx-react-lite";
 import { useSnackbar } from "notistack";
-import { createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount } from "../http/graphAPI";
+import { fetchGraphs, getGraphsCount, getGraphsPageCount } from "../http/graphAPI";
 import HintModal from "../features/game/components/modals/HintModal/HintModal";
 import RulesModal from "../features/game/components/modals/RulesModal";
 import TrainingEndModal from "../features/game/components/modals/TrainingEndModal";
@@ -29,18 +29,14 @@ import DangerOverlay from "../features/game/components/DangerOverlay";
 import GameControls from "../features/game/components/GameControls";
 import ModeBanner from "../features/game/components/ModeBanner";
 import ScorePanel from "../features/game/components/ScorePanel";
-import {
-  chartOptions,
-  gameTimeLimitMs,
-  speedOptions,
-  trainingTimeLimitMs,
-} from "../features/game/constants";
+import { chartOptions } from "../features/game/constants";
+import { useGameLoop } from "../features/game/hooks/useGameLoop";
+import { useGameSession } from "../features/game/hooks/useGameSession";
+import { useUserParSet } from "../features/game/hooks/useUserParSet";
 import { inferEndGameCause } from "../features/game/services/endGameCause";
 import { chartToHintCharts } from "../features/game/services/hintChartsService";
 import { transformToDbDateDayTime } from "../utils/transformDate";
-import { getParSet, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
-import { getRemTimeRaw } from "../utils/getTimeDiff";
 
 ChartJS.register(
   LineController,
@@ -62,6 +58,35 @@ const Home = observer(() => {
   const [playAlertSound] = useSound(alertSound);
   const [playRightChoiceSound] = useSound(rightChoiceSound);
   const [playWrongChoiceSound] = useSound(wrongChoiceSound);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const {
+    isChartPaused,
+    setIsChartPaused,
+    isChartStopped,
+    setIsChartStopped,
+    isDanger,
+    setIsDanger,
+    curSpeed,
+    wrongChoiceAnim,
+    scoresChanges,
+    totalScore,
+    setTotalScore,
+    totalScoreChange,
+    changeScore,
+    changeTotalScore,
+    increaseSpeed,
+    decreaseSpeed,
+    triggerWrongChoiceAnim,
+  } = useGameSession();
+
+  const { userParSet, isTimeUp, setIsTimeUp, shouldEndTime, setShouldEndTime, updateUserParSetUi } = useUserParSet({
+    isAuth: user.isAuth,
+    userId: user.user.user_id,
+    chartData: chart.chartData,
+    setTotalScore,
+    changeTotalScore,
+  });
 
   const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(true);
   const handleOpenRuleModal = () => setIsRuleModalOpened(true);
@@ -88,179 +113,27 @@ const Home = observer(() => {
   const handleOpenTrainingWarnModal = () => setIsTrainingWarnModalOpened(true);
   const handleCloseTrainingWarnModal = () => setIsTrainingWarnModalOpened(false);
 
-  const [userParSet, setUserParSet] = React.useState(null);
-
-  const [isTimeUp, setIsTimeUp] = React.useState(false);
-  const [shouldEndTime, setShouldEndTime] = React.useState(false);
-  const [updateParSet, setUpdateParSet] = React.useState(true);
-
-  const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
-
-  const [time, setTime] = useState(Date.now());
-  const [isChartPaused, setIsChartPaused] = useState(true);
-  const [isChartStopped, setIsChartStopped] = useState(false);
-  const [isDanger, setIsDanger] = useState(false);
-  const [curSpeed, setCurSpeed] = useState(speedOptions[1]);
-  const [scoresChanges, setScoresChanges] = useState({
-    scoreChange: null,
-    updateFlag: false,
+  useGameLoop({
+    chartData: chart.chartData,
+    isChartPaused,
+    curSpeed,
+    isChartStopped,
+    isDanger,
+    isTimeUp,
+    userParSet,
+    userId: user.user.user_id,
+    totalScore,
+    changeScore,
+    changeTotalScore,
+    setIsChartPaused,
+    setIsDanger,
+    setIsHintModalOpened,
+    triggerWrongChoiceAnim,
+    playAlertSound,
+    playRightChoiceSound,
+    playWrongChoiceSound,
+    enqueueSnackbar,
   });
-  const changeScore = (newScore) =>
-    setScoresChanges((v) => {
-      return {
-        scoreChange: newScore,
-        updateFlag: !v.updateFlag,
-      };
-    });
-  const [totalScore, setTotalScore] = useState(0);
-  const [totalScoreChange, setTotalScoreChange] = useState({
-    scoreChange: 0,
-    updateFlag: false,
-  });
-  const changeTotalScore = (diff) => {
-    setTotalScore((totalScore) => {
-      return totalScore + diff;
-    });
-    setTotalScoreChange((v) => {
-      return {
-        scoreChange: diff,
-        updateFlag: !v.updateFlag,
-      };
-    });
-  };
-
-  const { enqueueSnackbar } = useSnackbar();
-
-  const increaseSpeed = () => {
-    const curIndex = speedOptions.findIndex((value) => {
-      return value === curSpeed;
-    });
-    if (curIndex < speedOptions.length - 1) {
-      setCurSpeed(speedOptions[curIndex + 1]);
-    }
-  };
-
-  const decreaseSpeed = () => {
-    const curIndex = speedOptions.findIndex((value) => {
-      return value === curSpeed;
-    });
-    if (curIndex > 0) {
-      setCurSpeed(speedOptions[curIndex - 1]);
-    }
-  };
-
-  const triggerWrongChoiceAnim = () => {
-    setWrongChoiceAnim((prevState) => {
-      return !prevState;
-    });
-  };
-
-  const triggerUpdateParSet = () => {
-    setUpdateParSet((prevState) => {
-      return !prevState;
-    });
-  };
-
-  useEffect(() => {
-    if (!isChartPaused) {
-      const interval = setInterval(() => {
-        let oldScore = chart.chartData.score;
-        chart.chartData.generateNextPoint();
-        setTime(Date.now());
-        if (chart.chartData.isCrashed()) {
-          chart.chartData.chartCrashed();
-          const totalScoreDiff = chart.chartData.computeEndGameScore();
-          if (userParSet != null) {
-            createGraph(
-              chart.chartData.points.slice(chart.chartData.maxPointsToShow),
-              user.user.user_id,
-              chart.chartData.parSet.id,
-              totalScore + totalScoreDiff,
-              userParSet.is_training
-            );
-          }
-          changeTotalScore(totalScoreDiff);
-          setIsChartPaused(true);
-          setIsHintModalOpened(false);
-          if (!isTimeUp) {
-            triggerWrongChoiceAnim();
-            playWrongChoiceSound();
-            enqueueSnackbar("Критическое значение процесса превышено. Процесс перезапущен.", {
-              variant: "error",
-              autoHideDuration: 5000,
-              preventDuplicate: true,
-              style: {
-                fontSize: "18pt",
-              },
-            });
-          }
-        }
-        if (!isDanger && chart.chartData.isDanger()) {
-          playAlertSound();
-          setIsChartPaused(true);
-          setIsDanger(true);
-        }
-        if (chart.chartData.score !== oldScore) {
-          changeScore(chart.chartData.score - oldScore);
-          if (!isTimeUp) {
-            if (chart.chartData.score - chart.chartData.bonusStep > oldScore) {
-              playRightChoiceSound();
-            } else if (chart.chartData.score - chart.chartData.bonusStep < oldScore) {
-              triggerWrongChoiceAnim();
-              playWrongChoiceSound();
-            }
-          }
-        }
-      }, 1000 / curSpeed);
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [isChartPaused, curSpeed]);
-
-  useEffect(() => {
-    if (isChartStopped) {
-      const isStopNeeded = chart.chartData.chartStopped();
-      const totalScoreDiff = chart.chartData.computeEndGameScore();
-      if (userParSet != null && !isTimeUp) {
-        createGraph(
-          chart.chartData.points.slice(chart.chartData.maxPointsToShow),
-          user.user.user_id,
-          chart.chartData.parSet.id,
-          totalScore + totalScoreDiff,
-          userParSet.is_training
-        );
-      }
-      chart.chartData.generateNextPoint(false);
-      changeTotalScore(totalScoreDiff);
-      setIsHintModalOpened(false);
-      setIsChartPaused(true);
-      if (!isTimeUp) {
-        if (!isStopNeeded) {
-          triggerWrongChoiceAnim();
-          playWrongChoiceSound();
-          enqueueSnackbar("Остановка процесса не была необходима. Часть баллов потеряна.", {
-            variant: "error",
-            autoHideDuration: 5000,
-            preventDuplicate: true,
-            style: {
-              fontSize: "18pt",
-            },
-          });
-        } else {
-          playRightChoiceSound();
-          enqueueSnackbar("Остановка процесса была верным решением!", {
-            variant: "success",
-            autoHideDuration: 5000,
-            preventDuplicate: true,
-            style: {
-              fontSize: "18pt",
-            },
-          });
-        }
-      }
-    }
-  }, [isChartStopped]);
 
   useEffect(() => {
     if (chosenHint === "AllSessions") {
@@ -287,48 +160,6 @@ const Home = observer(() => {
       setHintModalDataFetched(true);
     }
   }, [chosenHint]);
-
-  useEffect(() => {
-    if (user.isAuth) {
-      const oldUps = userParSet;
-      let oldScore = chart.chartData.score;
-      async function fetchParSet() {
-        const parSet = await getParSet(user.user.user_id);
-        chart.chartData.setParSet(parSet);
-        return parSet;
-      }
-      fetchParSet().then((parSet) => {
-        async function fetchParSetInfo() {
-          const newUserParSet = await getUserParSet(user.user.user_id, parSet.id);
-          return newUserParSet;
-        }
-        fetchParSetInfo().then((ups) => {
-          if (
-            oldUps == null ||
-            oldUps.is_training !== ups.is_training ||
-            oldUps.training_start_time !== ups.training_start_time ||
-            oldUps.game_start_time !== ups.game_start_time
-          ) {
-            if (ups.score !== oldScore) {
-              if (ups !== null && !ups.is_training) {
-                setTotalScore(0);
-                changeTotalScore(ups.score);
-              }
-            }
-            setUserParSet(ups);
-          }
-        });
-      });
-    }
-  }, [updateParSet]);
-
-  useEffect(() => {
-    setIsTimeUp(
-      userParSet != null &&
-        ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
-          (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0))
-    );
-  }, [userParSet]);
 
   useEffect(() => {
     if (hintCharts.length <= 0) {
@@ -369,13 +200,6 @@ const Home = observer(() => {
       return;
     }
     setCurLocalHintChartNum(curLocalHintChartNum + 1);
-  };
-
-  const updateUserParSetUi = (updateInfo) => {
-    updateInfo.par_set_id = chart.chartData.parSet.id;
-    updateUserUserParSet(user.user.user_id, updateInfo).then(() => {
-      triggerUpdateParSet();
-    });
   };
 
   const handleSelectCrashProbabilityHint = () => {
