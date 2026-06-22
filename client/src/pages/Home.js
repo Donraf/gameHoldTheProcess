@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Box, Button, Container, CssBaseline, Modal, Stack, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Container, CssBaseline, Stack, Toolbar, Typography } from "@mui/material";
 import {
   Chart as ChartJS,
   LineController,
@@ -27,8 +27,9 @@ import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
 import DangerIcon from "../components/icons/DangerIcon";
 import { useSnackbar } from "notistack";
 import { createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount } from "../http/graphAPI";
-import { ModalContent } from "../components/ModalContent";
-import { ChartData } from "../utils/ChartData";
+import HintModal from "../features/game/components/modals/HintModal/HintModal";
+import RulesModal from "../features/game/components/modals/RulesModal";
+import TrainingEndModal from "../features/game/components/modals/TrainingEndModal";
 import {
   chartOptions,
   gameTimeLimitMs,
@@ -37,7 +38,7 @@ import {
 } from "../features/game/constants";
 import { inferEndGameCause } from "../features/game/services/endGameCause";
 import { chartToHintCharts } from "../features/game/services/hintChartsService";
-import { transformToDbDateDayTime, transformToUiDateDayTime } from "../utils/transformDate";
+import { transformToDbDateDayTime } from "../utils/transformDate";
 import { getParSet, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
 import PlayButtonIcon from "../components/icons/PlayButtonIcon";
@@ -385,260 +386,20 @@ const Home = observer(() => {
     });
   };
 
-  const renderHintModal = (chosenVariant) => {
-    switch (chosenVariant) {
-      case "CurrentSession":
-        return (
-          <>
-            <Typography
-              sx={{
-                userSelect: "none",
-              }}
-            >
-              Вся текущая сессия
-            </Typography>
-            <Chart
-              ref={fullChartRef}
-              options={chartOptions}
-              data={chart.chartData.formData(
-                chart.chartData.points.slice(chart.chartData.maxPointsToShow, -chart.chartData.checkDangerNum)
-              )}
-            />
-            <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: "#9356A0",
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                setChosenHint("");
-              }}
-            >
-              Назад
-            </Button>
-          </>
-        );
-      case "AllSessions":
-        let chartData = new ChartData();
-        if (hintModalDataFetched && hintCharts.length > 0) {
-          chartData.restoreFromPoints(hintCharts[curLocalHintChartNum].points);
-        }
-        return (
-          <>
-            {hintModalDataFetched && hintCharts.length > 0 ? (
-              <>
-                <Typography
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  Все предыдущие сессии
-                </Typography>
-                <Typography
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  Игровая сессия {transformToUiDateDayTime(hintCharts[curLocalHintChartNum].createdAt)}
-                </Typography>
-                <Typography
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  Причина завершения: {endGameCause}
-                </Typography>
-                <Chart ref={fullChartRef} options={chartOptions} data={chartData.data} />
-              </>
-            ) : (
-              <>
-                {hintCharts.length <= 0 ? (
-                  <Typography
-                    sx={{
-                      userSelect: "none",
-                    }}
-                  >
-                    Предыдущих сессий нет
-                  </Typography>
-                ) : (
-                  <></>
-                )}
-              </>
-            )}
-            <Stack display="flex" direction="row" spacing={1}>
-              <Box
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#9356A0",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  px: "8px",
-                  py: "12px",
-                  borderRadius: "4px",
-                }}
-                onClick={() => {
-                  moveToPrevHintChart();
-                }}
-              >
-                <DecreaseSpeedIcon />
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid #000000",
-                  borderRadius: "4px",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  {curHintChartNum + "/" + countHintCharts}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#9356A0",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  px: "8px",
-                  py: "12px",
-                  borderRadius: "4px",
-                }}
-                onClick={() => {
-                  moveToNextHintChart();
-                }}
-              >
-                <IncreaseSpeedIcon />
-              </Box>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#9356A0",
-                  flexGrow: 1,
-                }}
-                onClick={() => {
-                  setChosenHint("");
-                }}
-              >
-                Назад
-              </Button>
-            </Stack>
-          </>
-        );
-      case "CrashProbability":
-        return (
-          <>
-            {hintModalDataFetched ? (
-              <>
-                <Typography
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  {crashProb}
-                </Typography>
-                <Button
-                  sx={{
-                    color: "#FFFFFF",
-                    backgroundColor: "#9356A0",
-                    flexGrow: 1,
-                  }}
-                  onClick={() => {
-                    setChosenHint("");
-                  }}
-                >
-                  Назад
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography
-                  sx={{
-                    userSelect: "none",
-                  }}
-                >
-                  Расчет вероятности...
-                </Typography>
-              </>
-            )}
-          </>
-        );
-      default:
-        return (
-          <>
-            <Typography
-              sx={{
-                userSelect: "none",
-              }}
-            >
-              Какую подсказку хотите купить?
-            </Typography>
-            {/* <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: COLORS.takeHintButton,
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                setChosenHint("CurrentSession");
-                chart.chartData.chartHintUsed(50);
-                changeScore(-50);
-              }}
-            >
-              Показать весь текущий гейм (50 очков)
-            </Button>
-            <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: COLORS.takeHintButton,
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                setChosenHint("AllSessions");
-                chart.chartData.chartHintUsed(200);
-                changeScore(-200);
-              }}
-            >
-              Показать все свои предыдущие геймы (200 очков)
-            </Button> */}
-            <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: COLORS.takeHintButton,
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                setChosenHint("CrashProbability");
-                chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
-                changeScore(-250);
-              }}
-            >
-              Показать рискованность продолжения (250 очков)
-            </Button>
+  const handleSelectCrashProbabilityHint = () => {
+    setChosenHint("CrashProbability");
+    chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
+    changeScore(-250);
+  };
 
-            <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: "#9356A0",
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                handleCloseHintModal();
-              }}
-            >
-              Назад
-            </Button>
-          </>
-        );
-    }
+  const handleConfirmEndTraining = () => {
+    setIsChartPaused(true);
+    chart.chartData.restart();
+    setIsDanger(false);
+    handleCloseTrainingWarnModal();
+    setShouldEndTime(false);
+    setIsTimeUp(false);
+    updateUserParSetUi({ is_training: false });
   };
 
   return (
@@ -825,135 +586,30 @@ const Home = observer(() => {
             Правила игры
           </Button>
         </Stack>
-        <Modal
-          sx={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          open={isRuleModalOpened}
-          onClose={handleCloseRuleModal}
-        >
-          <ModalContent sx={{ height: "90%", width: 800, overflow: "scroll" }}>
-            <Typography>Описание игры "Удержи процесс!"</Typography>
-            <Typography>
-              Вы – оператор атомной электростанции. Состояние процесса демонстрирует график, поступающий на монитор.
-              Если его уровень превысит 1.0, это приведет к катастрофическому взрыву. При угрозе взрыва искусственный
-              интеллект подаёт сигнал, однако неизбежны и ложные тревоги. При сигнале Вы можете:
-            </Typography>
-            <Typography>
-                • завершить процесс (вернуть в ноль);
-            </Typography>
-            <Typography>
-                • продолжить процесс, если Вы сочли тревогу ложной;
-            </Typography>
-            <Typography>
-                • предварительно получить дополнительную информацию о степени риска ("Риск очень высок"; "Умеренный
-                риск"; "Невысокий уровень риска").
-            </Typography>
-            <Typography>
-                За каждый шаг Вы получаете 50 очков. 
-            </Typography>
-            <Typography>
-                Дополнительная информация требует затраты ресурсов. За ее запрос снимается 250 очков.
-            </Typography>
-            <img src="scoresTable.png"/>
-            <Typography>
-                Период игры до завершения процесса или взрыва – это ГЕЙМ. При взрыве он считается ПРОИГРАННЫМ и положительные
-                очки аннулируются. Штраф с подсказкой 4000 очков, без подсказки - 2000 очков. Если взрыва не было, то гейм ПРОЙДЕН УСПЕШНО
-                и положительные очки сохраняются.
-            </Typography>
-            <Typography>
-                РЕЗУЛЬТАТЫ ИГРЫ – это число успешно пройденных геймов (в соотношении с проигранными), а также набранная сумма
-                очков.
-            </Typography>
-            <Typography>
-                Стрелочки позволяют убыстрить / замедлить процесс, кнопка "Пауза" приостанавливает его.
-            </Typography>
-            <Typography>
-                До начала игры Вам предлагается ТРЕНИРОВОЧНАЯ СЕССИЯ (не более 15 минут). В любой момент Вы можете перейти к
-                основной игре (она закончится через 60 минут). 
-            </Typography>
-            <Typography>
-                УДАЧНОЙ ИГРЫ!
-            </Typography>
-            <Button
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: "#9356A0",
-                flexGrow: 1,
-              }}
-              onClick={handleCloseRuleModal}
-            >
-              К игре
-            </Button>
-          </ModalContent>
-
-        </Modal>
-        <Modal
-          sx={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 6500,
-          }}
+        <RulesModal open={isRuleModalOpened} onClose={handleCloseRuleModal} />
+        <HintModal
           open={isHintModalOpened}
           onClose={handleCloseHintModal}
-        >
-          <ModalContent sx={{ width: 800 }}>{renderHintModal(chosenHint)}</ModalContent>
-        </Modal>
-        <Modal
-          sx={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 6500,
-          }}
+          chosenHint={chosenHint}
+          onBack={() => setChosenHint("")}
+          chartData={chart.chartData}
+          chartRef={fullChartRef}
+          hintCharts={hintCharts}
+          hintModalDataFetched={hintModalDataFetched}
+          endGameCause={endGameCause}
+          crashProb={crashProb}
+          curHintChartNum={curHintChartNum}
+          countHintCharts={countHintCharts}
+          curLocalHintChartNum={curLocalHintChartNum}
+          onPrevHintChart={moveToPrevHintChart}
+          onNextHintChart={moveToNextHintChart}
+          onSelectCrashProbability={handleSelectCrashProbabilityHint}
+        />
+        <TrainingEndModal
           open={isTrainingWarnModalOpened}
           onClose={handleCloseTrainingWarnModal}
-        >
-          <ModalContent sx={{ width: 800 }}>
-            <Typography>
-              Вы уверены, что хотите перейти в обычный режим? После этого действия вернуться к тренировке будет нельзя.
-            </Typography>
-            <Stack direction="row" gap={2}>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: COLORS.graphGradientLow,
-                  width: "100%",
-                }}
-                onClick={handleCloseTrainingWarnModal}
-              >
-                Продолжить тренироваться
-              </Button>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "orange",
-                  width: "100%",
-                }}
-                onClick={() => {
-                  setIsChartPaused(true);
-                  chart.chartData.restart();
-                  setIsDanger(false);
-                  handleCloseTrainingWarnModal();
-                  setShouldEndTime(false);
-                  setIsTimeUp(false);
-                  updateUserParSetUi({ is_training: false });
-                }}
-              >
-                Закончить тренировку
-              </Button>
-            </Stack>
-          </ModalContent>
-        </Modal>
+          onConfirmEndTraining={handleConfirmEndTraining}
+        />
         <Container sx={{ width: "95%" }}>
           <Chart
             onAnimationEnd={triggerWrongChoiceAnim}
