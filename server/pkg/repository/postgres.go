@@ -24,6 +24,8 @@ const (
 	groupsTable            = "groups"
 	userGroupsTable        = "user_groups"
 	statisticsTable        = "statistics"
+	testsTable             = "tests"
+	testResultsTable       = "test_results"
 )
 
 func NewPostgresDB(cfg Config) (*sqlx.DB, error) {

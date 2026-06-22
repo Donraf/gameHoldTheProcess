@@ -56,11 +56,23 @@ type Statistics interface {
 	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
 }
 
+type Test interface {
+	GetAllTests() ([]gameServer.Test, error)
+	GetSessionStatus(userId int) (gameServer.TestSessionStatus, error)
+	SubmitResult(userId int, input gameServer.SubmitTestResultInput) (int, error)
+	CreateTest(input gameServer.CreateTestInput) (int, error)
+	UpdateTest(id int, input gameServer.UpdateTestInput) error
+	DeleteTest(id int) error
+	GetUserResults(userId int) ([]gameServer.TestResult, error)
+	GetUserResultsWithTests(userId int) ([]gameServer.TestResultWithTest, error)
+}
+
 type Service struct {
 	User
 	Chart
 	Point
 	Statistics
+	Test
 }
 
 func NewService(repo *repository.Repository) *Service {
@@ -69,5 +81,6 @@ func NewService(repo *repository.Repository) *Service {
 		Chart:      NewChartService(repo.Chart),
 		Point:      NewPointService(repo.Point),
 		Statistics: NewStatisticsService(repo.Statistics),
+		Test:       NewTestService(repo.Test),
 	}
 }

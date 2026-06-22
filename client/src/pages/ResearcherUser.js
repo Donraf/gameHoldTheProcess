@@ -27,6 +27,7 @@ import StatisticsIcon from "../components/icons/StatisticsIcon";
 import ResUserCharts from "../components/ResUserCharts";
 import ResUserVengerTable from "../components/ResUserVengerTable";
 import ResUserVengerCharts from "../components/ResUserVengerCharts";
+import PlayerTestResults from "../components/PlayerTestResults";
 
 const ResearcherUser = () => {
   const { user } = useContext(Context);
@@ -97,6 +98,11 @@ const ResearcherUser = () => {
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             ФИО игрока: {location.state.player.name}
           </Typography>
+
+          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            Пройденные тесты:
+          </Typography>
+          <PlayerTestResults userId={location.state.player.id} />
 
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Набор параметров:

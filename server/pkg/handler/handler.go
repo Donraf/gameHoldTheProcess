@@ -79,6 +79,18 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			statistics.POST("/", h.computeStatistics)
 			statistics.GET("user_id/:userId/par_set_id/:parSetId", h.getStatistics)
 		}
+
+		test := api.Group("/test", h.checkUserAuth)
+		{
+			test.GET("/session", h.getTestSessionStatus)
+			test.POST("/results", h.submitTestResult)
+			test.GET("/results/user/:userId", h.checkResearcherRole, h.getPlayerTestResults)
+			test.GET("/results", h.getUserTestResults)
+			test.GET("/", h.checkAdminRole, h.getAllTests)
+			test.POST("/", h.checkAdminRole, h.createTest)
+			test.PUT("/:id", h.checkAdminRole, h.updateTest)
+			test.DELETE("/:id", h.checkAdminRole, h.deleteTest)
+		}
 	}
 
 	return router

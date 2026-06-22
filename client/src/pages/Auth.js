@@ -2,16 +2,18 @@ import React, { useContext, useState } from "react";
 import { Box, Button, Card, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from "@mui/material";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
+  ADMIN_ROUTE,
   HOME_ROUTE,
   LOGIN_ROUTE,
+  ONBOARDING_TESTS_ROUTE,
   REGISTRATION_ROUTE,
   RESEARCHER_ROOM_ROUTE,
   USER_GENDER_FEMALE,
   USER_GENDER_MALE,
   USER_GENDER_OPTIONS,
-  USER_ROLE_RESEARCHER,
 } from "../utils/constants";
 import { getAllGroups, login, registration } from "../http/userAPI";
+import { resolvePostAuthRoute } from "../http/testAPI";
 import { observer } from "mobx-react-lite";
 import { Context } from "../index";
 import { useSnackbar } from "notistack";
@@ -87,11 +89,14 @@ const Auth = observer(() => {
         user.setUser(data);
         user.setIsAuth(true);
 
-        if (data.role === USER_ROLE_RESEARCHER) {
-          navigate(RESEARCHER_ROOM_ROUTE);
-        } else {
-          navigate(HOME_ROUTE);
-        }
+        const nextRoute = await resolvePostAuthRoute(
+          data.role,
+          HOME_ROUTE,
+          RESEARCHER_ROOM_ROUTE,
+          ONBOARDING_TESTS_ROUTE,
+          ADMIN_ROUTE
+        );
+        navigate(nextRoute);
       }
     } catch (e) {
       enqueueSnackbar("Ошибка при авторизации или регистрации", {

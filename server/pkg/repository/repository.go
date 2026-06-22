@@ -63,11 +63,25 @@ type Statistics interface {
 	GetAllEvents(input gameServer.ComputeStatisticsInput) ([]gameServer.Point, error)
 }
 
+type Test interface {
+	GetAllTests() ([]gameServer.Test, error)
+	GetActiveTests() ([]gameServer.Test, error)
+	GetOneTest(id int) (gameServer.Test, error)
+	CreateTest(input gameServer.CreateTestInput) (int, error)
+	UpdateTest(id int, input gameServer.UpdateTestInput) error
+	DeleteTest(id int) error
+	GetCompletedTestIds(userId int) (map[int]bool, error)
+	CreateTestResult(userId int, input gameServer.SubmitTestResultInput, score *float64) (int, error)
+	GetUserResults(userId int) ([]gameServer.TestResult, error)
+	GetUserResultsWithTests(userId int) ([]gameServer.TestResultWithTest, error)
+}
+
 type Repository struct {
 	User
 	Chart
 	Point
 	Statistics
+	Test
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
@@ -76,5 +90,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 		Chart:      NewChartPostgres(db),
 		Point:      NewPointPostgres(db),
 		Statistics: NewStatisticsPostgres(db),
+		Test:       NewTestPostgres(db),
 	}
 }

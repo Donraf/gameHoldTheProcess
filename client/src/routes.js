@@ -2,9 +2,11 @@ import {
   ADMIN_GRAPH_ROUTE,
   ADMIN_PARSET_ROUTE,
   ADMIN_ROUTE,
+  ADMIN_TESTS_ROUTE,
   ADMIN_USER_ROUTE,
   HOME_ROUTE,
   LOGIN_ROUTE,
+  ONBOARDING_TESTS_ROUTE,
   REGISTRATION_ROUTE,
   RESEARCHER_GROUP_ROUTE,
   RESEARCHER_ROOM_ROUTE,
@@ -21,6 +23,8 @@ import ResearcherRoom from "./pages/ResearcherRoom";
 import AdminParset from "./pages/AdminParSet";
 import ResearcherUser from "./pages/ResearcherUser";
 import ResearcherGroup from "./pages/ResearcherGroup";
+import AdminTests from "./pages/AdminTests";
+import OnboardingTests from "./pages/OnboardingTests";
 
 export const authRoutes = [
   {
@@ -40,6 +44,10 @@ export const authRoutes = [
     Component: <AdminParset />,
   },
   {
+    path: ADMIN_TESTS_ROUTE,
+    Component: <AdminTests />,
+  },
+  {
     path: USER_PROFILE_ROUTE,
     Component: <UserProfile />,
   },
@@ -54,6 +62,10 @@ export const authRoutes = [
   {
     path: RESEARCHER_GROUP_ROUTE,
     Component: <ResearcherGroup />,
+  },
+  {
+    path: ONBOARDING_TESTS_ROUTE,
+    Component: <OnboardingTests />,
   },
 ];
 
