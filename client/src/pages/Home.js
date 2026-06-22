@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Box, Button, Container, CssBaseline, Stack, Toolbar, Typography } from "@mui/material";
+import { Box, Container, CssBaseline, Toolbar } from "@mui/material";
 import {
   Chart as ChartJS,
   LineController,
@@ -13,23 +13,22 @@ import {
   Filler,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { COLORS } from "../utils/constants";
 import "./Home.css";
 import alertSound from "../components/sounds/alert.mp3";
 import rightChoiceSound from "../components/sounds/rightChoice.mp3";
 import wrongChoiceSound from "../components/sounds/wrongChoice.mp3";
-
 import NavBarDrawer from "../components/NavBarDrawer";
 import { Context } from "../index";
 import { observer } from "mobx-react-lite";
-import DecreaseSpeedIcon from "../components/icons/DecreaseSpeedIcon";
-import IncreaseSpeedIcon from "../components/icons/IncreaseSpeedIcon";
-import DangerIcon from "../components/icons/DangerIcon";
 import { useSnackbar } from "notistack";
 import { createGraph, fetchGraphs, getGraphsCount, getGraphsPageCount } from "../http/graphAPI";
 import HintModal from "../features/game/components/modals/HintModal/HintModal";
 import RulesModal from "../features/game/components/modals/RulesModal";
 import TrainingEndModal from "../features/game/components/modals/TrainingEndModal";
+import DangerOverlay from "../features/game/components/DangerOverlay";
+import GameControls from "../features/game/components/GameControls";
+import ModeBanner from "../features/game/components/ModeBanner";
+import ScorePanel from "../features/game/components/ScorePanel";
 import {
   chartOptions,
   gameTimeLimitMs,
@@ -41,12 +40,7 @@ import { chartToHintCharts } from "../features/game/services/hintChartsService";
 import { transformToDbDateDayTime } from "../utils/transformDate";
 import { getParSet, getUserParSet, updateUserUserParSet } from "../http/userAPI";
 import useSound from "use-sound";
-import PlayButtonIcon from "../components/icons/PlayButtonIcon";
-import StopButtonIcon from "../components/icons/StopButtonIcon";
-import TakeHintButtonIcon from "../components/icons/TakeHintButtonIcon";
-import PauseButtonIcon from "../components/icons/PauseButtonIcon";
-import { getRemTimeRaw, millisToMinutesAndSeconds } from "../utils/getTimeDiff";
-import Timer from "../components/Timer";
+import { getRemTimeRaw } from "../utils/getTimeDiff";
 
 ChartJS.register(
   LineController,
@@ -101,8 +95,6 @@ const Home = observer(() => {
   const [updateParSet, setUpdateParSet] = React.useState(true);
 
   const [wrongChoiceAnim, setWrongChoiceAnim] = React.useState(false);
-
-  const containerRef = React.useRef(null);
 
   const [time, setTime] = useState(Date.now());
   const [isChartPaused, setIsChartPaused] = useState(true);
@@ -402,190 +394,79 @@ const Home = observer(() => {
     updateUserParSetUi({ is_training: false });
   };
 
+  const handleStartGame = () => {
+    if (userParSet != null) {
+      if (userParSet.is_training) {
+        updateUserParSetUi({ training_start_time: transformToDbDateDayTime(Date.now()) });
+      } else if (!userParSet.is_training) {
+        updateUserParSetUi({ game_start_time: transformToDbDateDayTime(Date.now()) });
+      }
+      setIsChartPaused(false);
+    }
+  };
+
+  const handleContinue = () => {
+    if (chart.chartData.isCrashed()) {
+      chart.chartData.restart();
+      if (shouldEndTime) {
+        setIsTimeUp(true);
+      }
+    }
+    if (isChartStopped) {
+      chart.chartData.restart();
+      setIsChartStopped(false);
+      if (shouldEndTime) {
+        setIsTimeUp(true);
+      }
+    }
+    if (shouldEndTime) {
+      setIsChartPaused(true);
+    } else {
+      setIsChartPaused(false);
+    }
+    setIsDanger(false);
+  };
+
+  const handlePause = () => {
+    setIsChartPaused(true);
+    chart.chartData.chartPaused();
+    changeScore(-50);
+  };
+
+  const handleDangerContinue = () => {
+    setIsChartPaused(false);
+    setIsDanger(false);
+    handleCloseHintModal();
+  };
+
+  const handleDangerStop = () => {
+    setIsChartStopped(true);
+    setIsDanger(false);
+  };
+
+  const gameScore =
+    isChartStopped || chart.chartData.isCrashed()
+      ? chart.chartData.score
+      : chart.chartData.score - chart.chartData.bonusStep * 2;
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <NavBarDrawer />
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
-        {userParSet != null && userParSet.is_training ? (
-          <>
-            <Stack
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              direction="row"
-              gap={1}
-              sx={{
-                textAlign: "center",
-                background: "orange",
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "10px",
-              }}
-            >
-              <Typography
-                sx={{
-                  textAlign: "center",
-                }}
-              >
-                {" "}
-                Тренировочный режим. Оставшееся время:
-              </Typography>
-              {userParSet.training_start_time != null ? (
-                <>
-                  <Timer
-                    active={userParSet.training_start_time != null}
-                    deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
-                    onDeadline={() => {
-                      setShouldEndTime(true);
-                    }}
-                  />
-                </>
-              ) : (
-                <>{millisToMinutesAndSeconds(trainingTimeLimitMs)}</>
-              )}
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#9356A0",
-                }}
-                onClick={handleOpenTrainingWarnModal}
-              >
-                Закончить тренировку
-              </Button>
-            </Stack>
-          </>
-        ) : (
-          <></>
-        )}
-        {userParSet != null && !userParSet.is_training ? (
-          <>
-            <Stack
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              direction="row"
-              gap={1}
-              sx={{
-                textAlign: "center",
-                background: "green",
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "10px",
-              }}
-            >
-              <Typography
-                sx={{
-                  textAlign: "center",
-                  color: "#ffffff",
-                }}
-              >
-                {" "}
-                Основной режим. Оставшееся время:
-              </Typography>
-              {userParSet.game_start_time != null ? (
-                <>
-                  <Timer
-                    active={userParSet.game_start_time != null}
-                    deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
-                    onDeadline={() => {
-                      setShouldEndTime(true);
-                    }}
-                    textClr="#ffffff"
-                  />
-                </>
-              ) : (
-                <Typography sx={{ color: "#ffffff" }}>{millisToMinutesAndSeconds(gameTimeLimitMs)}</Typography>
-              )}
-            </Stack>
-          </>
-        ) : (
-          <></>
-        )}
-        <Stack justifyContent="space-between" alignContent="flex-start" display="flex" direction="row">
-          <Stack display="flex" direction="column">
-            <Box
-              sx={{
-                height: 50,
-                overflow: "hidden",
-                display: "flex",
-                direction: "row",
-                gap: "5px",
-              }}
-              ref={containerRef}
-            >
-              <Typography
-                variant="h3"
-                sx={{
-                  userSelect: "none",
-                }}
-              >
-                Очки за сет: {totalScore}
-              </Typography>
-              <Typography
-                key={totalScoreChange.updateFlag}
-                className="move-up"
-                variant="h3"
-                color={totalScoreChange.scoreChange < 0 ? "red" : "green"}
-                sx={{
-                  userSelect: "none",
-                }}
-              >
-                {" "}
-                {totalScoreChange.scoreChange > 0 ? "+" + totalScoreChange.scoreChange : ""}
-                {totalScoreChange.scoreChange < 0 ? totalScoreChange.scoreChange : ""}
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                height: 50,
-                overflow: "hidden",
-                display: "flex",
-                direction: "row",
-                gap: "5px",
-              }}
-              ref={containerRef}
-            >
-              <Typography
-                variant="h3"
-                sx={{
-                  userSelect: "none",
-                }}
-              >
-                Очки за гейм:{" "}
-                {isChartStopped || chart.chartData.isCrashed()
-                  ? chart.chartData.score
-                  : chart.chartData.score - chart.chartData.bonusStep * 2}
-              </Typography>
-              <Typography
-                key={scoresChanges.updateFlag}
-                className="move-up"
-                variant="h3"
-                color={scoresChanges.scoreChange < 0 ? "red" : "green"}
-                sx={{
-                  userSelect: "none",
-                }}
-              >
-                {" "}
-                {scoresChanges.scoreChange > 0 ? "+" + scoresChanges.scoreChange : ""}
-                {scoresChanges.scoreChange < 0 ? scoresChanges.scoreChange : ""}
-              </Typography>
-            </Box>
-          </Stack>
-          <Button
-            sx={{
-              color: "#9356A0",
-              border: "#9356A0 1px solid",
-              height: 40,
-            }}
-            onClick={() => {
-              handleOpenRuleModal();
-            }}
-          >
-            Правила игры
-          </Button>
-        </Stack>
+        <ModeBanner
+          userParSet={userParSet}
+          onDeadline={() => setShouldEndTime(true)}
+          onEndTraining={handleOpenTrainingWarnModal}
+        />
+        <ScorePanel
+          totalScore={totalScore}
+          totalScoreChange={totalScoreChange}
+          gameScore={gameScore}
+          scoresChanges={scoresChanges}
+          onOpenRules={handleOpenRuleModal}
+        />
         <RulesModal open={isRuleModalOpened} onClose={handleCloseRuleModal} />
         <HintModal
           open={isHintModalOpened}
@@ -618,279 +499,27 @@ const Home = observer(() => {
             options={chartOptions}
             data={chart.chartData.data}
           />
-          {user.isAuth ? (
-            <>
-              {(userParSet == null ||
-                (userParSet.is_training && userParSet.training_start_time == null) ||
-                (!userParSet.is_training && userParSet.game_start_time == null)) &&
-              isChartPaused ? (
-                <Button
-                  sx={{
-                    color: "#FFFFFF",
-                    backgroundColor: "#9356A0",
-                    width: "100%",
-                  }}
-                  onClick={() => {
-                    if (userParSet != null) {
-                      if (userParSet.is_training) {
-                        updateUserParSetUi({ training_start_time: transformToDbDateDayTime(Date.now()) });
-                      } else if (!userParSet.is_training) {
-                        updateUserParSetUi({ game_start_time: transformToDbDateDayTime(Date.now()) });
-                      }
-                      setIsChartPaused(false);
-                    }
-                  }}
-                >
-                  Начать игру!
-                </Button>
-              ) : (
-                <>
-                  {!isTimeUp ? (
-                    <>
-                      <Stack display="flex" direction="column" spacing={1}>
-                        <Stack display="flex" direction="row" spacing={1}>
-                          <Box
-                            sx={{
-                              color: "#FFFFFF",
-                              backgroundColor: "#9356A0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              px: "8px",
-                              py: "12px",
-                              borderRadius: "4px",
-                            }}
-                            onClick={() => {
-                              decreaseSpeed();
-                            }}
-                          >
-                            <DecreaseSpeedIcon />
-                          </Box>
-                          <Box
-                            sx={{
-                              width: "60px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              border: "1px solid #000000",
-                              borderRadius: "4px",
-                            }}
-                          >
-                            <Typography
-                              variant="h6"
-                              sx={{
-                                userSelect: "none",
-                              }}
-                            >
-                              {"x" + curSpeed.toString()}
-                            </Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              color: "#FFFFFF",
-                              backgroundColor: "#9356A0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              px: "8px",
-                              py: "12px",
-                              borderRadius: "4px",
-                            }}
-                            onClick={() => {
-                              increaseSpeed();
-                            }}
-                          >
-                            <IncreaseSpeedIcon />
-                          </Box>
-                          {isChartPaused ? (
-                            <Button
-                              sx={{
-                                color: "#FFFFFF",
-                                backgroundColor: COLORS.continueButton,
-                                flexGrow: 1,
-                              }}
-                              disabled={isDanger}
-                              onClick={() => {
-                                if (chart.chartData.isCrashed()) {
-                                  chart.chartData.restart();
-                                  if (shouldEndTime) {
-                                    setIsTimeUp(true);
-                                  }
-                                }
-                                if (isChartStopped) {
-                                  chart.chartData.restart();
-                                  setIsChartStopped(false);
-                                  if (shouldEndTime) {
-                                    setIsTimeUp(true);
-                                  }
-                                }
-                                if (shouldEndTime) {
-                                  setIsChartPaused(true);
-                                } else {
-                                  setIsChartPaused(false);
-                                }
-                                setIsDanger(false);
-                              }}
-                              startIcon={<PlayButtonIcon />}
-                            >
-                              Продолжить
-                            </Button>
-                          ) : (
-                            <Button
-                              sx={{
-                                color: "#FFFFFF",
-                                backgroundColor: COLORS.takeHintButton,
-                                flexGrow: 1,
-                              }}
-                              onClick={() => {
-                                setIsChartPaused(true);
-                                chart.chartData.chartPaused();
-                                changeScore(-50);
-                              }}
-                              startIcon={<PauseButtonIcon />}
-                            >
-                              Пауза
-                            </Button>
-                          )}
-                          {/* <Button
-                            sx={{
-                              color: "#FFFFFF",
-                              backgroundColor: COLORS.stopButton,
-                              flexGrow: 1,
-                            }}
-                            disabled={isDanger}
-                            onClick={() => {
-                              setIsChartStopped(true);
-                              setIsDanger(false);
-                            }}
-                            startIcon={<StopButtonIcon />}
-                          >
-                            Завершить процесс
-                          </Button> */}
-                        </Stack>
-                        {/* {isChartPaused ? (
-                          <Button
-                            sx={{
-                              color: "#FFFFFF",
-                              backgroundColor: COLORS.takeHintButton,
-                              flexGrow: 1,
-                            }}
-                            onClick={() => {
-                              handleOpenHintModal();
-                            }}
-                            startIcon={<TakeHintButtonIcon />}
-                          >
-                            Купить подсказки
-                          </Button>
-                        ) : (
-                          <></>
-                        )} */}
-                      </Stack>
-                    </>
-                  ) : (
-                    <>
-                      {userParSet.is_training ? (
-                        <>
-                          <Typography sx={{ textAlign: "center" }} variant="h2">
-                            Время для тренировки истекло. Перейдите в основной режим.
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          <Typography sx={{ textAlign: "center" }} variant="h2">
-                            Время основной игры истекло. Спасибо за игру!
-                          </Typography>
-                        </>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            <Typography sx={{ textAlign: "center" }} variant="h2">
-              Войдите в аккаунт, чтобы начать игру
-            </Typography>
-          )}
+          <GameControls
+            isAuth={user.isAuth}
+            userParSet={userParSet}
+            isChartPaused={isChartPaused}
+            isTimeUp={isTimeUp}
+            isDanger={isDanger}
+            curSpeed={curSpeed}
+            onStartGame={handleStartGame}
+            onDecreaseSpeed={decreaseSpeed}
+            onIncreaseSpeed={increaseSpeed}
+            onContinue={handleContinue}
+            onPause={handlePause}
+          />
         </Container>
       </Box>
-      {isDanger ? (
-        <Box
-          className="alert-border"
-          sx={{
-            position: "fixed",
-            zIndex: 5500,
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            display: "flex",
-            padding: "0.75rem",
-            borderRadius: "12px",
-            backgroundColor: "#FFFFFF",
-            border: "black solid 4px",
-          }}
-        >
-          <Stack spacing={1}>
-            <Stack direction="row" spacing={1} alignItems={"center"}>
-              <DangerIcon />
-              <Typography
-                variant="h5"
-                sx={{
-                  userSelect: "none",
-                }}
-              >
-                Опасность взрыва! Решите, что делать.
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: COLORS.continueButton,
-                  flexGrow: 1,
-                }}
-                onClick={() => {
-                  setIsChartPaused(false);
-                  setIsDanger(false);
-                  handleCloseHintModal();
-                }}
-                startIcon={<PlayButtonIcon />}
-              >
-                Продолжить процесс
-              </Button>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: COLORS.takeHintButton,
-                  flexGrow: 1,
-                }}
-                onClick={() => {
-                  handleOpenHintModal();
-                }}
-                startIcon={<TakeHintButtonIcon />}
-              >
-                Купить подсказки
-              </Button>
-              <Button
-                sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: COLORS.stopButton,
-                  flexGrow: 1,
-                }}
-                onClick={() => {
-                  setIsChartStopped(true);
-                  setIsDanger(false);
-                }}
-                startIcon={<StopButtonIcon />}
-              >
-                Завершить процесс
-              </Button>
-            </Stack>
-          </Stack>
-        </Box>
-      ) : (
-        <></>
-      )}
+      <DangerOverlay
+        isDanger={isDanger}
+        onContinue={handleDangerContinue}
+        onOpenHints={handleOpenHintModal}
+        onStop={handleDangerStop}
+      />
     </Box>
   );
 });
