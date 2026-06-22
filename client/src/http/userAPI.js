@@ -2,13 +2,17 @@ import { $authHost, $host } from "./index";
 import { jwtDecode } from "jwt-decode";
 import { USER_ROLE_USER } from "../utils/constants";
 
-export const createUser = async (login, password, name, role, groupId = null) => {
+export const createUser = async (login, password, name, role, profile, groupId = null) => {
   try {
     const { data } = await $authHost.post("api/user/registration", {
       login: login,
       password: password,
       role: role,
       name: name,
+      profession: profile.profession,
+      experience_years: profile.experienceYears,
+      gender: profile.gender,
+      age: profile.age,
       group_id: groupId,
     });
     return jwtDecode(data.token);
@@ -17,13 +21,17 @@ export const createUser = async (login, password, name, role, groupId = null) =>
   }
 };
 
-export const registration = async (login, password, name, groupId = null) => {
+export const registration = async (login, password, name, profile, groupId = null) => {
   try {
     const { data } = await $host.post("api/user/registration", {
       login: login,
       password: password,
       role: USER_ROLE_USER,
       name: name,
+      profession: profile.profession,
+      experience_years: profile.experienceYears,
+      gender: profile.gender,
+      age: profile.age,
       group_id: groupId,
     });
     localStorage.setItem("token", data.token);

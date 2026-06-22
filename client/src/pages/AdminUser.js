@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER } from "../utils/constants";
+import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER, USER_GENDER_FEMALE, USER_GENDER_MALE } from "../utils/constants";
 import {
   Autocomplete,
   Box,
@@ -38,6 +38,10 @@ const AdminUser = () => {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [profession, setProfession] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [gender, setGender] = useState(USER_GENDER_MALE);
+  const [age, setAge] = useState("");
   const [role, setRole] = useState(USER_ROLE_USER);
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
@@ -105,6 +109,15 @@ const AdminUser = () => {
     if (name === "") {
       snackErrors.push("Введите ФИО пользователя");
     }
+    if (profession.trim() === "") {
+      snackErrors.push("Введите профессию пользователя");
+    }
+    if (experienceYears === "" || Number(experienceYears) < 0) {
+      snackErrors.push("Введите корректный стаж пользователя");
+    }
+    if (age === "" || Number(age) <= 0 || Number(age) > 150) {
+      snackErrors.push("Введите корректный возраст пользователя");
+    }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
       return;
@@ -115,7 +128,12 @@ const AdminUser = () => {
       groupId = selectedGroup.id;
     }
 
-    createUser(login, password, name, role, groupId).then(
+    createUser(login, password, name, role, {
+      profession: profession.trim(),
+      experienceYears: Number(experienceYears),
+      gender,
+      age: Number(age),
+    }, groupId).then(
       (_) => {
         enqueueSnackbar("Пользователь добавлен", {
           variant: "success",
@@ -125,6 +143,10 @@ const AdminUser = () => {
         setLogin("");
         setPassword("");
         setName("");
+        setProfession("");
+        setExperienceYears("");
+        setGender(USER_GENDER_MALE);
+        setAge("");
         setRole(USER_ROLE_USER);
         setSelectedGroup("");
         setSearchParams({ group_name: qGroupName, page: qPage });
@@ -252,6 +274,54 @@ const AdminUser = () => {
             value={name}
             id="name-field"
             label="Введите ФИО пользователя"
+            required={true}
+            variant="outlined"
+          />
+          <TextField
+            onChange={(event) => {
+              setProfession(event.target.value);
+            }}
+            value={profession}
+            id="profession-field"
+            label="Профессия"
+            required={true}
+            variant="outlined"
+          />
+          <TextField
+            type="number"
+            inputProps={{ min: 0 }}
+            onChange={(event) => {
+              setExperienceYears(event.target.value);
+            }}
+            value={experienceYears}
+            id="experience-field"
+            label="Стаж (лет)"
+            required={true}
+            variant="outlined"
+          />
+          <TextField
+            select
+            value={gender}
+            onChange={(event) => {
+              setGender(event.target.value);
+            }}
+            id="gender-select"
+            label="Пол"
+            required={true}
+            variant="outlined"
+          >
+            <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
+            <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
+          </TextField>
+          <TextField
+            type="number"
+            inputProps={{ min: 1, max: 150 }}
+            onChange={(event) => {
+              setAge(event.target.value);
+            }}
+            value={age}
+            id="age-field"
+            label="Возраст"
             required={true}
             variant="outlined"
           />

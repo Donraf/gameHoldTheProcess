@@ -6,6 +6,9 @@ import {
   LOGIN_ROUTE,
   REGISTRATION_ROUTE,
   RESEARCHER_ROOM_ROUTE,
+  USER_GENDER_FEMALE,
+  USER_GENDER_MALE,
+  USER_GENDER_OPTIONS,
   USER_ROLE_RESEARCHER,
 } from "../utils/constants";
 import { getAllGroups, login, registration } from "../http/userAPI";
@@ -24,6 +27,10 @@ const Auth = observer(() => {
   const [userLogin, setUserLogin] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [profession, setProfession] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [gender, setGender] = useState(USER_GENDER_MALE);
+  const [age, setAge] = useState("");
 
   const [isOpenedGroupSelect, setIsOpenedGroupSelect] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState([]);
@@ -33,17 +40,48 @@ const Auth = observer(() => {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const validateRegistration = () => {
+    if (profession.trim() === "") {
+      return "Введите профессию";
+    }
+    if (experienceYears === "" || Number(experienceYears) < 0) {
+      return "Введите корректный стаж (в годах)";
+    }
+    if (age === "" || Number(age) <= 0 || Number(age) > 150) {
+      return "Введите корректный возраст";
+    }
+    if (!USER_GENDER_OPTIONS.includes(gender)) {
+      return "Выберите пол";
+    }
+    return null;
+  };
+
   const click = async () => {
     try {
       let data;
       if (isLogin) {
         data = await login(userLogin, password);
       } else {
+        const validationError = validateRegistration();
+        if (validationError) {
+          enqueueSnackbar(validationError, {
+            variant: "error",
+            autoHideDuration: 3000,
+            preventDuplicate: true,
+          });
+          return;
+        }
+
         let groupId = null;
         if (selectedGroup !== "") {
           groupId = selectedGroup.id;
         }
-        data = await registration(userLogin, password, name, groupId);
+        data = await registration(userLogin, password, name, {
+          profession: profession.trim(),
+          experienceYears: Number(experienceYears),
+          gender,
+          age: Number(age),
+        }, groupId);
       }
       if (data !== undefined) {
         user.setUser(data);
@@ -107,6 +145,56 @@ const Auth = observer(() => {
               label="Введите ФИО"
               variant="outlined"
             />
+          )}
+          {!isLogin ? (
+            <>
+              <TextField
+                onChange={(event) => {
+                  setProfession(event.target.value);
+                }}
+                value={profession}
+                id="profession-field"
+                label="Профессия"
+                variant="outlined"
+              />
+              <TextField
+                type="number"
+                inputProps={{ min: 0 }}
+                onChange={(event) => {
+                  setExperienceYears(event.target.value);
+                }}
+                value={experienceYears}
+                id="experience-field"
+                label="Стаж (лет)"
+                variant="outlined"
+              />
+              <TextField
+                select
+                value={gender}
+                onChange={(event) => {
+                  setGender(event.target.value);
+                }}
+                id="gender-select"
+                label="Пол"
+                variant="outlined"
+              >
+                <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
+                <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
+              </TextField>
+              <TextField
+                type="number"
+                inputProps={{ min: 1, max: 150 }}
+                onChange={(event) => {
+                  setAge(event.target.value);
+                }}
+                value={age}
+                id="age-field"
+                label="Возраст"
+                variant="outlined"
+              />
+            </>
+          ) : (
+            <></>
           )}
           <Stack display="flex" direction="row" spacing={2}>
             <TextField

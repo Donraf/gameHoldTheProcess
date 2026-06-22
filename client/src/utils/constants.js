@@ -18,6 +18,10 @@ export const USER_ROLE_USER = "User";
 export const USER_ROLE_ADMIN = "ADMIN";
 export const USER_ROLE_RESEARCHER = "Researcher";
 
+export const USER_GENDER_MALE = "Мужской";
+export const USER_GENDER_FEMALE = "Женский";
+export const USER_GENDER_OPTIONS = [USER_GENDER_MALE, USER_GENDER_FEMALE];
+
 export const COLORS = {
   stopButton: "#ED0800",
   continueButton: "#25a040",
