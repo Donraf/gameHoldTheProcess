@@ -9,7 +9,7 @@ const backButtonSx = {
   flexGrow: 1,
 };
 
-export default function HintMenu({ onSelectCrashProbability, onClose }) {
+export default function HintMenu({ hintCost, onSelectCrashProbability, onClose }) {
   return (
     <>
       <Typography sx={noSelectSx}>Какую подсказку хотите купить?</Typography>
@@ -49,7 +49,7 @@ export default function HintMenu({ onSelectCrashProbability, onClose }) {
         }}
         onClick={onSelectCrashProbability}
       >
-        Показать рискованность продолжения (250 очков)
+        Показать рискованность продолжения ({hintCost} очков)
       </Button>
       <Button sx={backButtonSx} onClick={onClose}>
         Назад

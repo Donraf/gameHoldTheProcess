@@ -1,20 +1,41 @@
 import { COLORS } from "./constants";
+import {
+  DEFAULT_FALSE_ALARM_THRESHOLD,
+  DEFAULT_HINT_COST,
+  DEFAULT_SCORING_CONFIG,
+} from "../features/game/constants/parSetDefaults";
+
+const SCORING_FIELD_MAP = {
+  bonus_step: "bonusStep",
+  bonus_reject_incorrect_advice_with_check: "bonusRejectIncorrectAdviceWithCheck",
+  bonus_reject_incorrect_advice_no_check: "bonusRejectIncorrectAdviceNoCheck",
+  bonus_accept_correct_advice_with_check: "bonusAcceptCorrectAdviceWithCheck",
+  bonus_accept_correct_advice_no_check: "bonusAcceptCorrectAdviceNoCheck",
+  penalty_reject_correct_advice_with_check: "penaltyRejectCorrectAdviceWithCheck",
+  penalty_reject_correct_advice_no_check: "penaltyRejectCorrectAdviceNoCheck",
+  penalty_accept_incorrect_advice_with_check: "penaltyAcceptIncorrectAdviceWithCheck",
+  penalty_accept_incorrect_advice_no_check: "penaltyAcceptIncorrectAdviceNoCheck",
+  penalty_incorrect_stop_no_advice: "penaltyIncorrectStopNoAdvice",
+  penalty_explosion_no_advice: "penaltyExplosionNoAdvice",
+  penalty_pause: "penaltyPause",
+};
 
 export class ChartData {
   // Бонусы
-  bonusStep = 50; // Бонус за шаг
-  bonusRejectIncorrectAdviceWithCheck = 1000; // Бонус за отклонение ложной тревоги от ИИ с подсказкой
-  bonusRejectIncorrectAdviceNoCheck = 2000; // Бонус за отклонение ложной тревоги от ИИ без подсказки
-  bonusAcceptCorrectAdviceWithCheck = 250; // Бонус за принятие правильного совета ИИ с подсказкой
-  bonusAcceptCorrectAdviceNoCheck = 500; // Бонус за принятие правильного совета ИИ без подсказки
+  bonusStep = DEFAULT_SCORING_CONFIG.bonus_step;
+  bonusRejectIncorrectAdviceWithCheck = DEFAULT_SCORING_CONFIG.bonus_reject_incorrect_advice_with_check;
+  bonusRejectIncorrectAdviceNoCheck = DEFAULT_SCORING_CONFIG.bonus_reject_incorrect_advice_no_check;
+  bonusAcceptCorrectAdviceWithCheck = DEFAULT_SCORING_CONFIG.bonus_accept_correct_advice_with_check;
+  bonusAcceptCorrectAdviceNoCheck = DEFAULT_SCORING_CONFIG.bonus_accept_correct_advice_no_check;
   // Штрафы
-  penaltyRejectCorrectAdviceWithCheck = 4000; // Штраф взрыва при отклонении правильного совета ИИ с подсказкой
-  penaltyRejectCorrectAdviceNoCheck = 2000; // Штраф взрыва при отклонении правильного совета ИИ без подсказки
-  penaltyAcceptIncorrectAdviceWithCheck = 2000; // Штраф остановки при ложной тревоге от ИИ с подсказкой
-  penaltyAcceptIncorrectAdviceNoCheck = 1000; // Штраф остановки при ложной тревоге от ИИ без подсказки
-  penaltyIncorrectStopNoAdvice = 2000; // Штраф за неправильный останов без совета ИИ
-  penaltyExplosionNoAdvice = 0; // Штраф взрыва без совета совета ИИ (пропуск цели оператором)
-  penaltyPause = 50; // Штраф за паузу
+  penaltyRejectCorrectAdviceWithCheck = DEFAULT_SCORING_CONFIG.penalty_reject_correct_advice_with_check;
+  penaltyRejectCorrectAdviceNoCheck = DEFAULT_SCORING_CONFIG.penalty_reject_correct_advice_no_check;
+  penaltyAcceptIncorrectAdviceWithCheck = DEFAULT_SCORING_CONFIG.penalty_accept_incorrect_advice_with_check;
+  penaltyAcceptIncorrectAdviceNoCheck = DEFAULT_SCORING_CONFIG.penalty_accept_incorrect_advice_no_check;
+  penaltyIncorrectStopNoAdvice = DEFAULT_SCORING_CONFIG.penalty_incorrect_stop_no_advice;
+  penaltyExplosionNoAdvice = DEFAULT_SCORING_CONFIG.penalty_explosion_no_advice;
+  penaltyPause = DEFAULT_SCORING_CONFIG.penalty_pause;
+  hintCost = DEFAULT_HINT_COST;
 
 
   constructor(
@@ -41,7 +62,7 @@ export class ChartData {
     this.wasRealAlert = false;
     this.wasFakeAlert = false;
     this.parSet = parSet;
-    this.falseAlarmThreshold = 0.9;
+    this.falseAlarmThreshold = DEFAULT_FALSE_ALARM_THRESHOLD;
     this.restart();
   }
 
@@ -270,10 +291,30 @@ export class ChartData {
     this.data = this.formData(newPoints);
   }
 
+  applyScoringConfig(scoringConfig) {
+    if (!scoringConfig) {
+      return;
+    }
+
+    const scoring = typeof scoringConfig === "string" ? JSON.parse(scoringConfig) : scoringConfig;
+    Object.entries(SCORING_FIELD_MAP).forEach(([jsonKey, propertyName]) => {
+      if (scoring[jsonKey] != null) {
+        this[propertyName] = scoring[jsonKey];
+      }
+    });
+  }
+
   setParSet(parSet) {
     this.parSet = parSet;
     this.missingDangerProb = parSet.missing_danger_prob;
     this.falseWarningProb = parSet.false_warning_prob;
+    if (parSet.false_alarm_threshold != null) {
+      this.falseAlarmThreshold = parSet.false_alarm_threshold;
+    }
+    if (parSet.hint_cost != null) {
+      this.hintCost = parSet.hint_cost;
+    }
+    this.applyScoringConfig(parSet.scoring_config);
     this.restart();
   }
 

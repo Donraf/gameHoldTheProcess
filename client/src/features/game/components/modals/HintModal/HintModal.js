@@ -22,6 +22,7 @@ export default function HintModal({
   onPrevHintChart,
   onNextHintChart,
   onSelectCrashProbability,
+  hintCost,
 }) {
   const renderContent = () => {
     switch (chosenHint) {
@@ -51,7 +52,13 @@ export default function HintModal({
           />
         );
       default:
-        return <HintMenu onSelectCrashProbability={onSelectCrashProbability} onClose={onClose} />;
+        return (
+          <HintMenu
+            hintCost={hintCost}
+            onSelectCrashProbability={onSelectCrashProbability}
+            onClose={onClose}
+          />
+        );
     }
   };
 

@@ -68,5 +68,6 @@ func (s *ChartService) GetParSetsPageCount() (int, error) {
 }
 
 func (s *ChartService) CreateParSet(input gameServer.CreateParSetInput) (int, error) {
+	input.ApplyDefaults()
 	return s.repo.CreateParSet(input)
 }

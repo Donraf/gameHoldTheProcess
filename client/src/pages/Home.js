@@ -203,9 +203,10 @@ const Home = observer(() => {
   };
 
   const handleSelectCrashProbabilityHint = () => {
+    const hintCost = chart.chartData.hintCost;
     setChosenHint("CrashProbability");
-    chart.chartData.chartHintUsed(250, chart.chartData.getCrashProbApprox());
-    changeScore(-250);
+    chart.chartData.chartHintUsed(hintCost, chart.chartData.getCrashProbApprox());
+    changeScore(-hintCost);
   };
 
   const handleConfirmEndTraining = () => {
@@ -254,7 +255,7 @@ const Home = observer(() => {
   const handlePause = () => {
     setIsChartPaused(true);
     chart.chartData.chartPaused();
-    changeScore(-50);
+    changeScore(-chart.chartData.penaltyPause);
   };
 
   const handleDangerContinue = () => {
@@ -291,13 +292,18 @@ const Home = observer(() => {
           scoresChanges={scoresChanges}
           onOpenRules={handleOpenRuleModal}
         />
-        <RulesModal open={isRuleModalOpened} onClose={handleCloseRuleModal} />
+        <RulesModal
+          open={isRuleModalOpened}
+          onClose={handleCloseRuleModal}
+          rulesText={chart.chartData.parSet?.rules_text}
+        />
         <HintModal
           open={isHintModalOpened}
           onClose={handleCloseHintModal}
           chosenHint={chosenHint}
           onBack={() => setChosenHint("")}
           chartData={chart.chartData}
+          hintCost={chart.chartData.hintCost}
           chartRef={fullChartRef}
           hintCharts={hintCharts}
           hintModalDataFetched={hintModalDataFetched}

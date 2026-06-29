@@ -25,6 +25,12 @@ import { useSnackbar } from "notistack";
 import { createParSet, getParSets, getParSetsPageCount } from "../http/graphAPI";
 import { ChartData } from "../utils/ChartData";
 import {
+  DEFAULT_FALSE_ALARM_THRESHOLD,
+  DEFAULT_HINT_COST,
+  DEFAULT_SCORING_CONFIG,
+} from "../features/game/constants/parSetDefaults";
+import { isValidLocalizedNumber, parseLocalizedJson, parseLocalizedNumber } from "../utils/parseLocalizedNumber";
+import {
   Chart as ChartJS,
   LineController,
   LinearScale,
@@ -59,6 +65,38 @@ const options = {
   },
 };
 
+function formatScoringConfig(scoringConfig) {
+  if (scoringConfig == null) {
+    return "—";
+  }
+
+  try {
+    const config = typeof scoringConfig === "string" ? JSON.parse(scoringConfig) : scoringConfig;
+    return JSON.stringify(config, null, 2);
+  } catch (e) {
+    return String(scoringConfig);
+  }
+}
+
+function formatRulesText(rulesText) {
+  if (!rulesText?.trim()) {
+    return "Стандартные правила";
+  }
+  return rulesText;
+}
+
+const scrollableCellSx = {
+  maxWidth: 320,
+  verticalAlign: "top",
+};
+
+const scrollableBoxSx = {
+  maxHeight: 160,
+  overflow: "auto",
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
+};
+
 const AdminParset = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
@@ -71,6 +109,10 @@ const AdminParset = () => {
   const [noiseStdev, setNoiseStdev] = React.useState(-1);
   const [falseWarningProb, setFalseWarningProb] = React.useState(-1);
   const [missingDangerProb, setMissingDangerProb] = React.useState(-1);
+  const [hintCost, setHintCost] = React.useState(DEFAULT_HINT_COST);
+  const [falseAlarmThreshold, setFalseAlarmThreshold] = React.useState(DEFAULT_FALSE_ALARM_THRESHOLD);
+  const [scoringConfig, setScoringConfig] = React.useState(JSON.stringify(DEFAULT_SCORING_CONFIG, null, 2));
+  const [rulesText, setRulesText] = React.useState("");
 
   const [parSetShowTrigger, setParSetShowTrigger] = useState(false);
   const chartRef = useRef < ChartJS > null;
@@ -108,32 +150,76 @@ const AdminParset = () => {
     );
   }, [snackErrTexts]);
 
+  const isUnset = (value) => value === -1 || value === "-1" || value === "" || value == null;
+
   const addParSet = () => {
     let snackErrors = [];
-    if (a === -1) {
+    if (isUnset(a)) {
       snackErrors.push("Введите коэффициент усиления");
+    } else if (!isValidLocalizedNumber(a) || parseLocalizedNumber(a) < 0) {
+      snackErrors.push("Коэффициент a должен быть неотрицательным числом");
     }
-    if (b === -1) {
+    if (isUnset(b)) {
       snackErrors.push("Введите константу времени");
+    } else if (!isValidLocalizedNumber(b) || parseLocalizedNumber(b) < 0) {
+      snackErrors.push("Коэффициент b должен быть неотрицательным числом");
     }
-    if (noiseMean === -1) {
+    if (isUnset(noiseMean)) {
       snackErrors.push("Введите математическое ожидание помехи");
+    } else if (!isValidLocalizedNumber(noiseMean) || parseLocalizedNumber(noiseMean) < 0) {
+      snackErrors.push("Математическое ожидание помехи должно быть неотрицательным числом");
     }
-    if (noiseStdev === -1) {
+    if (isUnset(noiseStdev)) {
       snackErrors.push("Введите стандартное отклонение помехи");
+    } else if (!isValidLocalizedNumber(noiseStdev) || parseLocalizedNumber(noiseStdev) < 0) {
+      snackErrors.push("Стандартное отклонение помехи должно быть неотрицательным числом");
     }
-    if (falseWarningProb === -1) {
+    if (isUnset(falseWarningProb)) {
       snackErrors.push("Введите вероятность ложной тревоги");
+    } else if (!isValidLocalizedNumber(falseWarningProb) || parseLocalizedNumber(falseWarningProb) < 0) {
+      snackErrors.push("Вероятность ложной тревоги должна быть неотрицательным числом");
     }
-    if (missingDangerProb === -1) {
+    if (isUnset(missingDangerProb)) {
       snackErrors.push("Введите вероятность пропуска цели");
+    } else if (!isValidLocalizedNumber(missingDangerProb) || parseLocalizedNumber(missingDangerProb) < 0) {
+      snackErrors.push("Вероятность пропуска цели должна быть неотрицательным числом");
+    }
+    let parsedScoringConfig;
+    try {
+      parsedScoringConfig = parseLocalizedJson(scoringConfig);
+    } catch (e) {
+      snackErrors.push("Конфигурация бонусов и штрафов должна быть валидным JSON");
+    }
+    const parsedHintCost = parseLocalizedNumber(hintCost);
+    if (hintCost === "" || Number.isNaN(parsedHintCost) || parsedHintCost < 0) {
+      snackErrors.push("Введите корректную стоимость подсказки");
+    }
+    const parsedFalseAlarmThreshold = parseLocalizedNumber(falseAlarmThreshold);
+    if (
+      falseAlarmThreshold === "" ||
+      Number.isNaN(parsedFalseAlarmThreshold) ||
+      parsedFalseAlarmThreshold <= 0 ||
+      parsedFalseAlarmThreshold > 1
+    ) {
+      snackErrors.push("Порог ложной тревоги должен быть в диапазоне (0, 1]");
     }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
       return;
     }
 
-    createParSet(a, b, noiseMean, noiseStdev, falseWarningProb, missingDangerProb).then(
+    createParSet({
+      a: parseLocalizedNumber(a),
+      b: parseLocalizedNumber(b),
+      noise_mean: parseLocalizedNumber(noiseMean),
+      noise_stdev: parseLocalizedNumber(noiseStdev),
+      false_warning_prob: parseLocalizedNumber(falseWarningProb),
+      missing_danger_prob: parseLocalizedNumber(missingDangerProb),
+      scoring_config: parsedScoringConfig,
+      hint_cost: parsedHintCost,
+      false_alarm_threshold: parsedFalseAlarmThreshold,
+      rules_text: rulesText,
+    }).then(
       (_) => {
         enqueueSnackbar("Пользователь добавлен", {
           variant: "success",
@@ -146,6 +232,10 @@ const AdminParset = () => {
         setNoiseStdev(-1);
         setFalseWarningProb(-1);
         setMissingDangerProb(-1);
+        setHintCost(DEFAULT_HINT_COST);
+        setFalseAlarmThreshold(DEFAULT_FALSE_ALARM_THRESHOLD);
+        setScoringConfig(JSON.stringify(DEFAULT_SCORING_CONFIG, null, 2));
+        setRulesText("");
         setUpdateTrigger(!updateTrigger);
       },
       (_) => {
@@ -166,15 +256,30 @@ const AdminParset = () => {
   };
 
   function createChartData() {
-    if (a < 0 || b < 0 || noiseMean < 0 || noiseStdev < 0) {
+    const parsedA = parseLocalizedNumber(a);
+    const parsedB = parseLocalizedNumber(b);
+    const parsedNoiseMean = parseLocalizedNumber(noiseMean);
+    const parsedNoiseStdev = parseLocalizedNumber(noiseStdev);
+
+    if (
+      isUnset(a) ||
+      isUnset(b) ||
+      isUnset(noiseMean) ||
+      isUnset(noiseStdev) ||
+      parsedA < 0 ||
+      parsedB < 0 ||
+      parsedNoiseMean < 0 ||
+      parsedNoiseStdev < 0
+    ) {
       setChartData(null);
       return;
     }
-    let parSet = {
-      a: a,
-      b: b,
-      noise_mean: noiseMean,
-      noise_stdev: noiseStdev,
+
+    const parSet = {
+      a: parsedA,
+      b: parsedB,
+      noise_mean: parsedNoiseMean,
+      noise_stdev: parsedNoiseStdev,
       false_warning_prob: 0,
       missing_danger_prob: 0,
     };
@@ -258,6 +363,44 @@ const AdminParset = () => {
                 required={true}
                 variant="outlined"
               />
+              <TextField
+                onChange={(event) => setHintCost(event.target.value)}
+                value={hintCost}
+                id="hint-cost-field"
+                label="Стоимость подсказки (кнопка)"
+                required={true}
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => setFalseAlarmThreshold(event.target.value)}
+                value={falseAlarmThreshold}
+                id="false-alarm-threshold-field"
+                label="Порог ложной тревоги (falseAlarmThreshold)"
+                required={true}
+                variant="outlined"
+                helperText="Можно вводить 0.9 или 0,9"
+              />
+              <TextField
+                onChange={(event) => setScoringConfig(event.target.value)}
+                value={scoringConfig}
+                id="scoring-config-field"
+                label="Бонусы и штрафы (JSON)"
+                multiline
+                minRows={8}
+                required={true}
+                variant="outlined"
+                helperText="В числах допустимы и точка, и запятая как разделитель дробной части"
+              />
+              <TextField
+                onChange={(event) => setRulesText(event.target.value)}
+                value={rulesText}
+                id="rules-text-field"
+                label="Текст правил игры"
+                multiline
+                minRows={8}
+                variant="outlined"
+                helperText="Пустое поле — стандартные правила. Сложная таблица: HTML <table> с colspan и rowspan"
+              />
             </Stack>
 
             <Container>
@@ -289,7 +432,7 @@ const AdminParset = () => {
             Изменение набора параметров
           </Typography>
           <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table sx={{ minWidth: 1400 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell />
@@ -300,6 +443,10 @@ const AdminParset = () => {
                   <TableCell>Стандартное отклонение помехи</TableCell>
                   <TableCell>Вероятность ложной тревоги</TableCell>
                   <TableCell>Вероятность пропуска цели</TableCell>
+                  <TableCell>Стоимость подсказки</TableCell>
+                  <TableCell>Порог ложной тревоги</TableCell>
+                  <TableCell>Бонусы и штрафы</TableCell>
+                  <TableCell>Текст правил игры</TableCell>
                   <TableCell>Время добавления</TableCell>
                 </TableRow>
               </TableHead>
@@ -323,6 +470,16 @@ const AdminParset = () => {
                       <TableCell>{parSet.noise_stdev}</TableCell>
                       <TableCell>{parSet.false_warning_prob}</TableCell>
                       <TableCell>{parSet.missing_danger_prob}</TableCell>
+                      <TableCell>{parSet.hint_cost}</TableCell>
+                      <TableCell>{parSet.false_alarm_threshold}</TableCell>
+                      <TableCell sx={scrollableCellSx}>
+                        <Box sx={{ ...scrollableBoxSx, fontFamily: "monospace", fontSize: 12 }}>
+                          {formatScoringConfig(parSet.scoring_config)}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={scrollableCellSx}>
+                        <Box sx={{ ...scrollableBoxSx, fontSize: 13 }}>{formatRulesText(parSet.rules_text)}</Box>
+                      </TableCell>
                       <TableCell>{dateFormat(parSet.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
                     </TableRow>
                   ))

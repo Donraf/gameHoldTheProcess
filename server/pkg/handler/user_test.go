@@ -827,19 +827,23 @@ func TestHandler_getParSet(t *testing.T) {
 			mockBehavior: func(r *service.MockUser, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().GetParSet(idInt).Return(gameServer.ParameterSet{
-					Id:                1,
-					A:                 1.1,
-					B:                 1.1,
-					NoiseMean:         1.1,
-					NoiseStDev:        1.1,
-					FalseWarningProb:  0.1,
-					MissingDangerProb: 0.1,
-					CreatedAt:         "2023-10-01T00:00:00Z",
+					Id:                  1,
+					A:                   1.1,
+					B:                   1.1,
+					NoiseMean:             1.1,
+					NoiseStDev:            1.1,
+					FalseWarningProb:      0.1,
+					MissingDangerProb:     0.1,
+					ScoringConfig:         gameServer.DefaultScoringConfigJSON(),
+					HintCost:              250,
+					FalseAlarmThreshold:   0.9,
+					RulesText:             "",
+					CreatedAt:             "2023-10-01T00:00:00Z",
 				},
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"a":1.1,"b":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"a":1.1,"b":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"scoring_config":{"bonus_step":50,"bonus_reject_incorrect_advice_with_check":1000,"bonus_reject_incorrect_advice_no_check":2000,"bonus_accept_correct_advice_with_check":250,"bonus_accept_correct_advice_no_check":500,"penalty_reject_correct_advice_with_check":4000,"penalty_reject_correct_advice_no_check":2000,"penalty_accept_incorrect_advice_with_check":2000,"penalty_accept_incorrect_advice_no_check":1000,"penalty_incorrect_stop_no_advice":2000,"penalty_explosion_no_advice":0,"penalty_pause":50},"hint_cost":250,"false_alarm_threshold":0.9,"rules_text":"","created_at":"2023-10-01T00:00:00Z"}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",

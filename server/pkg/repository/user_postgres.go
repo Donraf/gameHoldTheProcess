@@ -197,7 +197,7 @@ func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (i
 
 func (u *UserPostgres) GetParSet(id int) (gameServer.ParameterSet, error) {
 	var parSet gameServer.ParameterSet
-	query := fmt.Sprintf("SELECT id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob  FROM %s AS ut JOIN %s AS pst ON ut.cur_par_set_id=pst.id WHERE user_id=$1", usersTable, parameterSetsTable)
+	query := fmt.Sprintf("SELECT %s FROM %s AS pst JOIN %s AS ut ON ut.cur_par_set_id=pst.id WHERE ut.user_id=$1", parSetAliasedColumns, parameterSetsTable, usersTable)
 
 	err := u.db.Get(&parSet, query, id)
 	if err != nil {
@@ -299,7 +299,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 
 	for _, user := range users {
 		var parSets []gameServer.ParameterSet
-		query = fmt.Sprintf("SELECT pst.id, pst.a, pst.b, pst.noise_mean, pst.noise_stdev, pst.false_warning_prob, pst.missing_danger_prob FROM %s AS pst JOIN %s AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id=$1", parameterSetsTable, userParameterSetsTable)
+		query = fmt.Sprintf("SELECT %s FROM %s AS pst JOIN %s AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id=$1", parSetAliasedColumns, parameterSetsTable, userParameterSetsTable)
 		err := u.db.Select(&parSets, query, user.Id)
 		if err != nil {
 			return nil, err

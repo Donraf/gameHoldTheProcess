@@ -108,9 +108,9 @@ func (p *ChartPostgres) GetAllParSets(input gameServer.GetAllParSetsInput) ([]ga
 	query := ""
 	switch input.CurrentPage {
 	case -1:
-		query = fmt.Sprintf("SELECT id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at FROM %s", parameterSetsTable)
+		query = fmt.Sprintf("SELECT %s FROM %s", parSetColumns, parameterSetsTable)
 	default:
-		query = fmt.Sprintf("SELECT id, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at FROM %s OFFSET %v LIMIT 9", parameterSetsTable, (input.CurrentPage-1)*9)
+		query = fmt.Sprintf("SELECT %s FROM %s OFFSET %v LIMIT 9", parSetColumns, parameterSetsTable, (input.CurrentPage-1)*9)
 	}
 
 	err := p.db.Select(&parSets, query)
@@ -132,10 +132,26 @@ func (p *ChartPostgres) GetParSetsCount() (int, error) {
 
 func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id", parameterSetsTable)
+	query := fmt.Sprintf(
+		"INSERT INTO %s (a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, scoring_config, hint_cost, false_alarm_threshold, rules_text, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
+		parameterSetsTable,
+	)
 
 	timeNow := time.Now().UTC().Add(3 * time.Hour)
-	row := p.db.QueryRow(query, input.A, input.B, input.NoiseMean, input.NoiseStdev, input.FalseWarningProb, input.MissingDangerProb, timeNow)
+	row := p.db.QueryRow(
+		query,
+		input.A,
+		input.B,
+		input.NoiseMean,
+		input.NoiseStdev,
+		input.FalseWarningProb,
+		input.MissingDangerProb,
+		input.ScoringConfig,
+		input.HintCost,
+		input.FalseAlarmThreshold,
+		input.RulesText,
+		timeNow,
+	)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
