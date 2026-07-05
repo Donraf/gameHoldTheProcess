@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@mui/material";
 import GameModal from "./GameModal";
 import RulesTextContent from "./RulesTextContent";
+import VideoGuidePlayer from "./VideoGuidePlayer";
 import { DEFAULT_RULES_TEXT } from "../../constants/defaultRulesText";
 
 const backButtonSx = {
@@ -14,6 +15,7 @@ export default function RulesModal({ open, onClose, rulesText }) {
   if (rulesText?.trim()) {
     return (
       <GameModal open={open} onClose={onClose} contentSx={{ height: "90%", width: 800, overflow: "scroll" }}>
+        <VideoGuidePlayer />
         <RulesTextContent text={rulesText} />
         <Button sx={backButtonSx} onClick={onClose}>
           К игре
@@ -24,6 +26,7 @@ export default function RulesModal({ open, onClose, rulesText }) {
 
   return (
     <GameModal open={open} onClose={onClose} contentSx={{ height: "90%", width: 800, overflow: "scroll" }}>
+      <VideoGuidePlayer />
       <RulesTextContent text={DEFAULT_RULES_TEXT} />
       <Button sx={backButtonSx} onClick={onClose}>
         К игре
