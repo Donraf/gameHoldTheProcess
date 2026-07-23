@@ -24,7 +24,7 @@ const App = observer(() => {
         }
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- проверка сессии при загрузке
 
   if (loading) {
     return <div>Loading...</div>;

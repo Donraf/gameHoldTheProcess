@@ -26,7 +26,7 @@ const UserProfile = observer(() => {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
+  }, [snackErrTexts, enqueueSnackbar]);
 
   const updateUserUi = () => {
     let snackErrors = [];

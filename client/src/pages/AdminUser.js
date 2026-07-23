@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER, USER_GENDER_FEMALE, USER_GENDER_MALE } from "../utils/constants";
 import {
   Autocomplete,
@@ -77,6 +77,20 @@ const AdminUser = () => {
     });
   };
 
+  const filterData = useCallback(async () => {
+    let filteredDataFromQuery;
+    let newPageCount;
+    if (qGroupName) {
+      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, parseInt(qPage));
+      newPageCount = await getUsersPageCount("group_name", qGroupName);
+    } else {
+      filteredDataFromQuery = await fetchUsers(null, null, parseInt(qPage));
+      newPageCount = await getUsersPageCount();
+    }
+    setPageCount(newPageCount);
+    setFilteredData(filteredDataFromQuery);
+  }, [qGroupName, qPage]);
+
   useEffect(() => {
     fetchGroups();
   }, []);
@@ -86,7 +100,7 @@ const AdminUser = () => {
     filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [searchParams]);
+  }, [searchParams, filterData]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -96,7 +110,7 @@ const AdminUser = () => {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
+  }, [snackErrTexts, enqueueSnackbar]);
 
   const addUser = () => {
     let snackErrors = [];
@@ -219,20 +233,6 @@ const AdminUser = () => {
         });
       }
     );
-  };
-
-  const filterData = async () => {
-    let filteredDataFromQuery;
-    let newPageCount;
-    if (qGroupName) {
-      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, parseInt(qPage));
-      newPageCount = await getUsersPageCount("group_name", qGroupName);
-    } else {
-      filteredDataFromQuery = await fetchUsers(null, null, parseInt(qPage));
-      newPageCount = await getUsersPageCount();
-    }
-    setPageCount(newPageCount);
-    setFilteredData(filteredDataFromQuery);
   };
 
   const handleClickOpen = (id) => {

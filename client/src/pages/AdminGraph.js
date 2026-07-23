@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import dateFormat from "dateformat";
 import {
   Box,
@@ -30,32 +30,39 @@ const AdminGraph = () => {
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
+
+  const filterData = useCallback(
+    async (updatePage) => {
+      let filteredDataFromQuery;
+      let newPageCount;
+      if (filterInput) {
+        filteredDataFromQuery = await fetchGraphs("chart_id", filterInput, page);
+        newPageCount = await getGraphsPageCount("chart_id", filterInput);
+      } else {
+        filteredDataFromQuery = await fetchGraphs(null, null, page);
+        newPageCount = await getGraphsPageCount();
+      }
+      setPageCount(newPageCount);
+      if (updatePage) setPage(1);
+      setFilteredData(filteredDataFromQuery);
+    },
+    [filterInput, page]
+  );
 
   useEffect(() => {
     setIsDataFetched(false);
     filterData(false).then(() => {
       setIsDataFetched(true);
     });
-  }, [page]);
+  }, [page, filterData]);
 
   useEffect(() => {
     setIsDataFetched(false);
     filterData(true).then(() => {
       setIsDataFetched(true);
     });
-  }, [updateTrigger]);
-
-  useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts]);
+  }, [updateTrigger, filterData]);
 
   const deleteGraphUi = (id) => {
     deleteGraph(id).then(
@@ -77,21 +84,6 @@ const AdminGraph = () => {
         });
       }
     );
-  };
-
-  const filterData = async (updatePage) => {
-    let filteredDataFromQuery;
-    let newPageCount;
-    if (filterInput) {
-      filteredDataFromQuery = await fetchGraphs("chart_id", filterInput, page);
-      newPageCount = await getGraphsPageCount("chart_id", filterInput);
-    } else {
-      filteredDataFromQuery = await fetchGraphs(null, null, page);
-      newPageCount = await getGraphsPageCount();
-    }
-    setPageCount(newPageCount);
-    if (updatePage) setPage(1);
-    setFilteredData(filteredDataFromQuery);
   };
 
   return (

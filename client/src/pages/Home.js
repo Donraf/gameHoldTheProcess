@@ -51,8 +51,8 @@ ChartJS.register(
 );
 
 const Home = observer(() => {
-  const chartRef = useRef < ChartJS > null;
-  const fullChartRef = useRef < ChartJS > null;
+  const chartRef = useRef(null);
+  const fullChartRef = useRef(null);
   const { user, chart } = useContext(Context);
 
   const [playAlertSound] = useSound(alertSound);
@@ -159,7 +159,7 @@ const Home = observer(() => {
       setCrashProb(crashProb);
       setHintModalDataFetched(true);
     }
-  }, [chosenHint]);
+  }, [chosenHint, chart.chartData, user.user.user_id]);
 
   useEffect(() => {
     if (hintCharts.length <= 0) {
@@ -168,7 +168,7 @@ const Home = observer(() => {
     setEndGameCause(
       inferEndGameCause(hintCharts[curLocalHintChartNum].points, chart.chartData.criticalValue)
     );
-  }, [curLocalHintChartNum]);
+  }, [curLocalHintChartNum, hintCharts, chart.chartData.criticalValue]);
 
   const moveToNextHintChart = async () => {
     if (curHintChartNum >= countHintCharts) return;

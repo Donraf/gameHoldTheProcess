@@ -129,7 +129,7 @@ export default function PlayerCard({ player }) {
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
-  const chartRef = useRef < ChartJS > null;
+  const chartRef = useRef(null);
   const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
 
   const [chunkData, setChunkData] = useState(null);
@@ -151,7 +151,7 @@ export default function PlayerCard({ player }) {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
+  }, [snackErrTexts, enqueueSnackbar]);
 
   useEffect(() => {
     setIsDataFetched(false);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import dateFormat from "dateformat";
 import {
   Box,
@@ -30,18 +30,6 @@ import {
   DEFAULT_SCORING_CONFIG,
 } from "../features/game/constants/parSetDefaults";
 import { isValidLocalizedNumber, parseLocalizedJson, parseLocalizedNumber } from "../utils/parseLocalizedNumber";
-import {
-  Chart as ChartJS,
-  LineController,
-  LinearScale,
-  CategoryScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Legend,
-  Tooltip,
-  Filler,
-} from "chart.js";
 import { Chart } from "react-chartjs-2";
 
 const options = {
@@ -97,6 +85,8 @@ const scrollableBoxSx = {
   wordBreak: "break-word",
 };
 
+const isUnset = (value) => value === -1 || value === "-1" || value === "" || value == null;
+
 const AdminParset = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
@@ -115,7 +105,7 @@ const AdminParset = () => {
   const [rulesText, setRulesText] = React.useState("");
 
   const [parSetShowTrigger, setParSetShowTrigger] = useState(false);
-  const chartRef = useRef < ChartJS > null;
+  const chartRef = useRef(null);
   const [chartData, setChartData] = useState(null);
 
   const [updateTrigger, setUpdateTrigger] = useState(false);
@@ -123,12 +113,55 @@ const AdminParset = () => {
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
+  const getParSetsUI = useCallback(async () => {
+    const filteredDataFromQuery = await getParSets();
+    const newPageCount = await getParSetsPageCount();
+    setPageCount(newPageCount);
+    setFilteredData(filteredDataFromQuery);
+  }, []);
+
+  const createChartData = useCallback(() => {
+    const parsedA = parseLocalizedNumber(a);
+    const parsedB = parseLocalizedNumber(b);
+    const parsedNoiseMean = parseLocalizedNumber(noiseMean);
+    const parsedNoiseStdev = parseLocalizedNumber(noiseStdev);
+
+    if (
+      isUnset(a) ||
+      isUnset(b) ||
+      isUnset(noiseMean) ||
+      isUnset(noiseStdev) ||
+      parsedA < 0 ||
+      parsedB < 0 ||
+      parsedNoiseMean < 0 ||
+      parsedNoiseStdev < 0
+    ) {
+      setChartData(null);
+      return;
+    }
+
+    const parSet = {
+      a: parsedA,
+      b: parsedB,
+      noise_mean: parsedNoiseMean,
+      noise_stdev: parsedNoiseStdev,
+      false_warning_prob: 0,
+      missing_danger_prob: 0,
+    };
+    let newChartData = new ChartData(0);
+    newChartData.setParSet(parSet);
+    while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
+      newChartData.generateNextPoint();
+    }
+    setChartData(newChartData.fullData);
+  }, [a, b, noiseMean, noiseStdev]);
+
   useEffect(() => {
     setIsDataFetched(false);
     getParSetsUI().then(() => {
       setIsDataFetched(true);
     });
-  }, [page, updateTrigger]);
+  }, [page, updateTrigger, getParSetsUI]);
 
   const triggerUpdateParSet = () => {
     setParSetShowTrigger((prevState) => {
@@ -138,7 +171,7 @@ const AdminParset = () => {
 
   useEffect(() => {
     createChartData();
-  }, [parSetShowTrigger]);
+  }, [parSetShowTrigger, createChartData]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -148,9 +181,7 @@ const AdminParset = () => {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
-
-  const isUnset = (value) => value === -1 || value === "-1" || value === "" || value == null;
+  }, [snackErrTexts, enqueueSnackbar]);
 
   const addParSet = () => {
     let snackErrors = [];
@@ -247,49 +278,6 @@ const AdminParset = () => {
       }
     );
   };
-
-  const getParSetsUI = async () => {
-    const filteredDataFromQuery = await getParSets();
-    const newPageCount = await getParSetsPageCount();
-    setPageCount(newPageCount);
-    setFilteredData(filteredDataFromQuery);
-  };
-
-  function createChartData() {
-    const parsedA = parseLocalizedNumber(a);
-    const parsedB = parseLocalizedNumber(b);
-    const parsedNoiseMean = parseLocalizedNumber(noiseMean);
-    const parsedNoiseStdev = parseLocalizedNumber(noiseStdev);
-
-    if (
-      isUnset(a) ||
-      isUnset(b) ||
-      isUnset(noiseMean) ||
-      isUnset(noiseStdev) ||
-      parsedA < 0 ||
-      parsedB < 0 ||
-      parsedNoiseMean < 0 ||
-      parsedNoiseStdev < 0
-    ) {
-      setChartData(null);
-      return;
-    }
-
-    const parSet = {
-      a: parsedA,
-      b: parsedB,
-      noise_mean: parsedNoiseMean,
-      noise_stdev: parsedNoiseStdev,
-      false_warning_prob: 0,
-      missing_danger_prob: 0,
-    };
-    let newChartData = new ChartData(0);
-    newChartData.setParSet(parSet);
-    while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
-      newChartData.generateNextPoint();
-    }
-    setChartData(newChartData.fullData);
-  }
 
   return (
     <Box sx={{ display: "flex" }}>

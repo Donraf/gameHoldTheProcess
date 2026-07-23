@@ -110,7 +110,7 @@ function formTableData(choiceStats) {
 }
 
 export default function ResUserCharts({ choiceStats }) {
-  const chartRef = useRef < ChartJS > null;
+  const chartRef = useRef(null);
   const chunksData = formChartData(choiceStats);
   const tableData = formTableData(choiceStats);
   return (

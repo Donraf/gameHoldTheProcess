@@ -1,74 +1,19 @@
 import {
   Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
-import React, { useRef } from "react";
-import Grid from "@mui/material/Grid2";
-
-function formChartData(choiceStats) {
-  try {
-    if (!choiceStats || choiceStats === "{}") return null;
-    var chunksData = [];
-    var jsCS = JSON.parse(choiceStats);
-    const labels = Object.keys(jsCS[0].ChunkChoiceStat);
-    for (const i in jsCS) {
-      const chunk = jsCS[i];
-      const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
-      const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
-      const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
-      for (const j in chunk.ChunkChoiceStat) {
-        if (
-          chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel ===
-          0
-        ) {
-          hintDS.data.push(NaN);
-          contDS.data.push(NaN);
-          stopDS.data.push(NaN);
-        } else {
-          hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
-          contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
-          stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
-        }
-      }
-      chunksData.push({
-        chartTitle: chunk.Title,
-        labels: labels,
-        datasets: [hintDS, contDS, stopDS],
-      });
-    }
-    return chunksData;
-  } catch {
-    return null;
-  }
-}
+import React from "react";
 
 function formTableData(choiceStats) {
   if (!choiceStats || choiceStats === "{}") return [];
   var tableData = JSON.parse(choiceStats);
   return tableData;
 }
-
-// function formTableData(choiceStats) {
-//   if (!choiceStats || choiceStats === "{}") return [];
-//   var tableData = [];
-//   var jsCS = JSON.parse(choiceStats);
-//   for (const i in jsCS) {
-//     const chunk = jsCS[i];
-//     const chunkData = [];
-//     for (var j in chunk.ChunkChoiceStat) {
-//       chunkData.push([j, chunk.ChunkChoiceStat[j]]);
-//     }
-//     tableData.push(chunkData);
-//   }
-//   return tableData;
-// }
 
 export default function ResUserVengerTable({ choiceStats }) {
   const tableData = formTableData(choiceStats);

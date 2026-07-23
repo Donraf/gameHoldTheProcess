@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -38,17 +38,17 @@ export default function AdminTests() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
 
-  const loadTests = () => {
+  const loadTests = useCallback(() => {
     fetchAllTests()
       .then((data) => setTests(Array.isArray(data) ? data : []))
       .catch(() => {
         enqueueSnackbar("Не удалось загрузить тесты", { variant: "error" });
       });
-  };
+  }, [enqueueSnackbar]);
 
   useEffect(() => {
     loadTests();
-  }, []);
+  }, [loadTests]);
 
   const resetForm = () => {
     setForm(emptyForm);

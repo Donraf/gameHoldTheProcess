@@ -43,7 +43,7 @@ export function useUserParSet({ isAuth, userId, chartData, setTotalScore, change
         }
       });
     });
-  }, [updateParSet]);
+  }, [updateParSet]); // eslint-disable-line react-hooks/exhaustive-deps -- refresh on explicit trigger only
 
   useEffect(() => {
     setIsTimeUp(

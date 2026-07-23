@@ -64,7 +64,7 @@ const ResearcherGroup = () => {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
+  }, [snackErrTexts, enqueueSnackbar]);
 
   const changeGroupParSetUi = () => {
     let snackErrors = [];

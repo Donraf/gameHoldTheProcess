@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   Autocomplete,
   Box,
@@ -49,6 +49,20 @@ const ResearcherRoom = () => {
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
+  const filterData = useCallback(async () => {
+    let filteredDataFromQuery;
+    let newPageCount;
+    if (qGroupName) {
+      filteredDataFromQuery = await getPlayersStat("group_name", qGroupName, parseInt(qPage));
+      newPageCount = await getPlayersPageCount("group_name", qGroupName);
+    } else {
+      filteredDataFromQuery = await getPlayersStat(null, null, parseInt(qPage));
+      newPageCount = await getPlayersPageCount();
+    }
+    setPageCount(newPageCount);
+    setFilteredData(filteredDataFromQuery);
+  }, [qGroupName, qPage]);
+
   useEffect(() => {
     fetchGroups();
     fetchParSets();
@@ -59,7 +73,7 @@ const ResearcherRoom = () => {
     filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [searchParams]);
+  }, [searchParams, filterData]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -69,7 +83,7 @@ const ResearcherRoom = () => {
         preventDuplicate: true,
       })
     );
-  }, [snackErrTexts]);
+  }, [snackErrTexts, enqueueSnackbar]);
 
   const tryCreateGroup = () => {
     let snackErrors = [];
@@ -112,20 +126,6 @@ const ResearcherRoom = () => {
     getParSets(-1).then((data) => {
       setFetchedParSets(data);
     });
-  };
-
-  const filterData = async () => {
-    let filteredDataFromQuery;
-    let newPageCount;
-    if (qGroupName) {
-      filteredDataFromQuery = await getPlayersStat("group_name", qGroupName, parseInt(qPage));
-      newPageCount = await getPlayersPageCount("group_name", qGroupName);
-    } else {
-      filteredDataFromQuery = await getPlayersStat(null, null, parseInt(qPage));
-      newPageCount = await getPlayersPageCount();
-    }
-    setPageCount(newPageCount);
-    setFilteredData(filteredDataFromQuery);
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, CssBaseline, Stack, Toolbar, Typography } from "@mui/material";
@@ -6,13 +6,9 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import { ADMIN_GRAPH_ROUTE, ADMIN_PARSET_ROUTE, ADMIN_TESTS_ROUTE, ADMIN_USER_ROUTE } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
 import { fetchPointsInCsv } from "../http/pointAPI";
-import { createGraph } from "../http/graphAPI";
-import { Context } from "..";
-import { ChartData } from "../utils/ChartData";
 
 const Admin = observer(() => {
   const navigate = useNavigate();
-  const { user } = useContext(Context);
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   Autocomplete,
   Box,
@@ -29,6 +29,14 @@ import ResUserVengerTable from "../components/ResUserVengerTable";
 import ResUserVengerCharts from "../components/ResUserVengerCharts";
 import PlayerTestResults from "../components/PlayerTestResults";
 
+const EVENT_TYPE_MAP = new Map([
+  ["Все события", ""],
+  ["Ручная остановка", "stop"],
+  ["Пауза", "pause"],
+  ["Использована подсказка", "check"],
+  ["Отклонение совета ИИ", "reject_advice"],
+]);
+
 const ResearcherUser = () => {
   const { user } = useContext(Context);
   const location = useLocation();
@@ -40,51 +48,45 @@ const ResearcherUser = () => {
   const [pageCount, setPageCount] = React.useState(1);
   const [selectedGroup, setSelectedGroup] = React.useState("Все события");
 
-  const eventTypeMap = new Map([
-    ["Все события", ""],
-    ["Ручная остановка", "stop"],
-    ["Пауза", "pause"],
-    ["Использована подсказка", "check"],
-    ["Отклонение совета ИИ", "reject_advice"],
-  ]);
+  const filterData = useCallback(
+    async (updatePage) => {
+      const filteredDataFromQuery = await getPlayersEvents(
+        location.state.player.id,
+        selectedParSetId,
+        page,
+        EVENT_TYPE_MAP.get(selectedGroup)
+      );
+      const newPageCount = await getPlayersEventsPageCount(
+        location.state.player.id,
+        selectedParSetId,
+        EVENT_TYPE_MAP.get(selectedGroup)
+      );
+      const nextStats = await getStatistics(location.state.player.id, selectedParSetId);
+      setPageCount(newPageCount);
+      if (updatePage) setPage(1);
+      setFilteredData(filteredDataFromQuery);
+      setStats(nextStats);
+    },
+    [location.state.player.id, page, selectedGroup, selectedParSetId]
+  );
 
   useEffect(() => {
     setIsDataFetched(false);
     filterData(false).then(() => {
       setIsDataFetched(true);
     });
-  }, [page]);
+  }, [page, filterData]);
 
   useEffect(() => {
     setIsDataFetched(false);
     filterData(true).then(() => {
       setIsDataFetched(true);
     });
-  }, [selectedParSetId, selectedGroup]);
-
-  const filterData = async (updatePage) => {
-    let filteredDataFromQuery;
-    filteredDataFromQuery = await getPlayersEvents(
-      location.state.player.id,
-      selectedParSetId,
-      page,
-      eventTypeMap.get(selectedGroup)
-    );
-    let newPageCount = await getPlayersEventsPageCount(
-      location.state.player.id,
-      selectedParSetId,
-      eventTypeMap.get(selectedGroup)
-    );
-    let stats = await getStatistics(location.state.player.id, selectedParSetId);
-    setPageCount(newPageCount);
-    if (updatePage) setPage(1);
-    setFilteredData(filteredDataFromQuery);
-    setStats(stats);
-  };
+  }, [selectedParSetId, selectedGroup, filterData]);
 
   const computeStats = async () => {
-    computeStatistics(location.state.player.id, selectedParSetId).then((stats) => {
-      setStats(stats);
+    computeStatistics(location.state.player.id, selectedParSetId).then((nextStats) => {
+      setStats(nextStats);
     });
   };
 
@@ -154,21 +156,11 @@ const ResearcherUser = () => {
             {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
           </Typography>
-          {/* <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка без сигнала μ=
-            {stats?.mean_stop_without_signal != null ? stats?.mean_stop_without_signal.toFixed(3) : "???"} σ=
-            {stats?.stdev_stop_without_signal != null ? stats?.stdev_stop_without_signal.toFixed(3) : "???"}
-          </Typography> */}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Запрос информации по сигналу n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
             {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
           </Typography>
-          {/* <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации без сигнала n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
-            {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
-            {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
-          </Typography> */}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Продолжение после сигнала n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
@@ -184,7 +176,7 @@ const ResearcherUser = () => {
             Вид события:
           </Typography>
           <Autocomplete
-            options={Array.from(eventTypeMap.keys())}
+            options={Array.from(EVENT_TYPE_MAP.keys())}
             renderInput={(params) => <TextField {...params} label="Выберите вид события" />}
             value={selectedGroup}
             onChange={(_, newValue) => {
