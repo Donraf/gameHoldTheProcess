@@ -2,7 +2,8 @@ import React from "react";
 import { Button, Stack, Typography } from "@mui/material";
 import Timer from "../../../components/Timer";
 import { gameTimeLimitMs, trainingTimeLimitMs } from "../constants";
-import { getRemTimeRaw, millisToMinutesAndSeconds } from "../../../utils/getTimeDiff";
+import { millisToMinutesAndSeconds } from "../../../utils/getTimeDiff";
+import { getServerRemTimeMs } from "../services/remTime";
 
 export default function ModeBanner({ userParSet, onDeadline, onEndTraining }) {
   if (userParSet == null) {
@@ -29,7 +30,7 @@ export default function ModeBanner({ userParSet, onDeadline, onEndTraining }) {
         {userParSet.training_start_time != null ? (
           <Timer
             active={userParSet.training_start_time != null}
-            deadlineIntervalMs={getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs)}
+            deadlineIntervalMs={getServerRemTimeMs(userParSet)}
             onDeadline={onDeadline}
           />
         ) : (
@@ -67,7 +68,7 @@ export default function ModeBanner({ userParSet, onDeadline, onEndTraining }) {
       {userParSet.game_start_time != null ? (
         <Timer
           active={userParSet.game_start_time != null}
-          deadlineIntervalMs={getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs)}
+          deadlineIntervalMs={getServerRemTimeMs(userParSet)}
           onDeadline={onDeadline}
           textClr="#ffffff"
         />

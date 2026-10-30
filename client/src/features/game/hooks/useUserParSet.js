@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { gameTimeLimitMs, trainingTimeLimitMs } from "../constants";
-import { getParSet, getUserParSet, updateUserUserParSet } from "../../../http/userAPI";
-import { getRemTimeRaw } from "../../../utils/getTimeDiff";
+import { getParSet, getUserParSet, startSession as apiStartSession, updateUserUserParSet } from "../../../http/userAPI";
+import { getServerRemTimeMs } from "../services/remTime";
 
 export function useUserParSet({ isAuth, userId, chartData, setTotalScore, changeTotalScore }) {
   const [userParSet, setUserParSet] = useState(null);
@@ -46,11 +45,21 @@ export function useUserParSet({ isAuth, userId, chartData, setTotalScore, change
   }, [updateParSet]); // eslint-disable-line react-hooks/exhaustive-deps -- refresh on explicit trigger only
 
   useEffect(() => {
-    setIsTimeUp(
-      userParSet != null &&
-        ((userParSet.is_training && getRemTimeRaw(userParSet.training_start_time, trainingTimeLimitMs) <= 0) ||
-          (!userParSet.is_training && getRemTimeRaw(userParSet.game_start_time, gameTimeLimitMs) <= 0))
-    );
+    if (userParSet == null) {
+      setIsTimeUp(false);
+      return undefined;
+    }
+
+    const remMsAtFetch = getServerRemTimeMs(userParSet);
+    const fetchedAt = Date.now();
+
+    const check = () => {
+      setIsTimeUp(remMsAtFetch - (Date.now() - fetchedAt) <= 0);
+    };
+
+    check();
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
   }, [userParSet]);
 
   const updateUserParSetUi = useCallback(
@@ -63,6 +72,13 @@ export function useUserParSet({ isAuth, userId, chartData, setTotalScore, change
     [chartData, userId, refreshParSet]
   );
 
+  const startSession = useCallback(() => {
+    return apiStartSession(chartData.parSet.id).then((ups) => {
+      setUserParSet(ups);
+      return ups;
+    });
+  }, [chartData]);
+
   return {
     userParSet,
     isTimeUp,
@@ -70,5 +86,6 @@ export function useUserParSet({ isAuth, userId, chartData, setTotalScore, change
     shouldEndTime,
     setShouldEndTime,
     updateUserParSetUi,
+    startSession,
   };
 }

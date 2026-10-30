@@ -35,7 +35,6 @@ import { useGameSession } from "../features/game/hooks/useGameSession";
 import { useUserParSet } from "../features/game/hooks/useUserParSet";
 import { inferEndGameCause } from "../features/game/services/endGameCause";
 import { chartToHintCharts } from "../features/game/services/hintChartsService";
-import { transformToDbDateDayTime } from "../utils/transformDate";
 import useSound from "use-sound";
 
 ChartJS.register(
@@ -80,13 +79,14 @@ const Home = observer(() => {
     triggerWrongChoiceAnim,
   } = useGameSession();
 
-  const { userParSet, isTimeUp, setIsTimeUp, shouldEndTime, setShouldEndTime, updateUserParSetUi } = useUserParSet({
-    isAuth: user.isAuth,
-    userId: user.user.user_id,
-    chartData: chart.chartData,
-    setTotalScore,
-    changeTotalScore,
-  });
+  const { userParSet, isTimeUp, setIsTimeUp, shouldEndTime, setShouldEndTime, updateUserParSetUi, startSession } =
+    useUserParSet({
+      isAuth: user.isAuth,
+      userId: user.user.user_id,
+      chartData: chart.chartData,
+      setTotalScore,
+      changeTotalScore,
+    });
 
   const [isRuleModalOpened, setIsRuleModalOpened] = React.useState(true);
   const handleOpenRuleModal = () => setIsRuleModalOpened(true);
@@ -113,6 +113,16 @@ const Home = observer(() => {
   const handleOpenTrainingWarnModal = () => setIsTrainingWarnModalOpened(true);
   const handleCloseTrainingWarnModal = () => setIsTrainingWarnModalOpened(false);
 
+  const handleSessionExpired = () => {
+    setShouldEndTime(true);
+    setIsTimeUp(true);
+    enqueueSnackbar("Время игровой сессии истекло. Результаты не учтены.", {
+      variant: "warning",
+      autoHideDuration: 6000,
+      preventDuplicate: true,
+    });
+  };
+
   useGameLoop({
     chartData: chart.chartData,
     isChartPaused,
@@ -133,6 +143,7 @@ const Home = observer(() => {
     playRightChoiceSound,
     playWrongChoiceSound,
     enqueueSnackbar,
+    onSessionExpired: handleSessionExpired,
   });
 
   useEffect(() => {
@@ -221,11 +232,9 @@ const Home = observer(() => {
 
   const handleStartGame = () => {
     if (userParSet != null) {
-      if (userParSet.is_training) {
-        updateUserParSetUi({ training_start_time: transformToDbDateDayTime(Date.now()) });
-      } else if (!userParSet.is_training) {
-        updateUserParSetUi({ game_start_time: transformToDbDateDayTime(Date.now()) });
-      }
+      startSession().catch(() => {
+        enqueueSnackbar("Не удалось начать сессию. Обновите страницу.", { variant: "error", preventDuplicate: true });
+      });
       setIsChartPaused(false);
     }
   };

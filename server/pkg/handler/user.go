@@ -66,6 +66,10 @@ func (h *Handler) updateScore(c *gin.Context) {
 		return
 	}
 
+	if _, ok := h.sessionGuard(c, input.UserId, input.ParSetId); !ok {
+		return
+	}
+
 	err := h.services.User.UpdateScore(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -217,6 +221,8 @@ func (h *Handler) getUserParSet(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	ups.RemTimeMs = ups.RemTime(gameServer.NowDbClock())
 
 	c.JSON(http.StatusOK, getUserParSetResponse{
 		UserParameterSet: ups,
@@ -450,6 +456,21 @@ func (h *Handler) updateUserUserParSet(c *gin.Context) {
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
+	}
+
+	ctxUserId := c.GetInt(userCtx)
+	if ctxUserId == 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user not authorized")
+		return
+	}
+
+	if !isStaffRole(c) {
+		if ctxUserId != id {
+			newErrorResponse(c, http.StatusForbidden, "not enough rights")
+			return
+		}
+		input.TrainingStartTime = nil
+		input.GameStartTime = nil
 	}
 
 	if err := input.Validate(); err != nil {

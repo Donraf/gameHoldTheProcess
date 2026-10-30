@@ -136,6 +136,17 @@ func (i *UpdateUserUserParSetInput) Validate() error {
 	return nil
 }
 
+type StartSessionInput struct {
+	ParSetId int `json:"par_set_id"`
+}
+
+func (i *StartSessionInput) Validate() error {
+	if i.ParSetId <= 0 {
+		return errors.New("current parameter set id is non-positive")
+	}
+	return nil
+}
+
 type GetUsersPageCountInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`

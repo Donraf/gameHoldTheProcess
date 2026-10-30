@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/service"
@@ -15,11 +16,12 @@ import (
 )
 
 func TestHandler_createChart(t *testing.T) {
-	type mockBehavior func(r *service.MockChart, createChartInput gameServer.CreateChartInput)
+	type mockBehavior func(chartMock *service.MockChart, userMock *service.MockUser, createChartInput gameServer.CreateChartInput)
 
 	tests := []struct {
 		name                string
 		inputBody           string
+		ctxUserId           int
 		createChartInput    gameServer.CreateChartInput
 		mockBehavior        mockBehavior
 		expectedStatusCode  int
@@ -29,67 +31,110 @@ func TestHandler_createChart(t *testing.T) {
 		{
 			name:      "ok",
 			inputBody: `{"par_set_id": 1, "user_id": 1}`,
+			ctxUserId: 1,
 			createChartInput: gameServer.CreateChartInput{
 				ParameterSetId: 1,
 				UserId:         1,
 			},
-			mockBehavior: func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {
-				r.EXPECT().CreateChart(createChartInput).Return(1, nil)
+			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
+				start := gameServer.NowDbClock()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
+				cm.EXPECT().CreateChart(createChartInput).Return(1, nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"id":1}`,
 		},
 		{
+			name:               "attempt to create chart for another user",
+			inputBody:          `{"par_set_id": 1, "user_id": 2}`,
+			ctxUserId:          1,
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "session is not started",
+			inputBody: `{"par_set_id": 1, "user_id": 1}`,
+			ctxUserId: 1,
+			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "session time is up",
+			inputBody: `{"par_set_id": 1, "user_id": 1}`,
+			ctxUserId: 1,
+			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
+				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:               "not authorized",
+			inputBody:          `{"par_set_id": 1, "user_id": 1}`,
+			ctxUserId:          0,
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
 			name:               "incorrect user id - negative value",
 			inputBody:          `{"par_set_id": 1, "user_id": -1}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect user id - zero value",
 			inputBody:          `{"par_set_id": 1, "user_id": 0}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect user id - wrong type",
 			inputBody:          `{"par_set_id": 1, "user_id": "1"}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter set id - negative value",
 			inputBody:          `{"par_set_id": -1, "user_id": 1}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter set id - zero value",
 			inputBody:          `{"par_set_id": 0, "user_id": 1}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect usparameter seter id - wrong type",
 			inputBody:          `{"par_set_id": "1", "user_id": 1}`,
-			mockBehavior:       func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {},
+			mockBehavior:       func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:      "internal server error",
 			inputBody: `{"par_set_id": 1, "user_id": 1}`,
+			ctxUserId: 1,
 			createChartInput: gameServer.CreateChartInput{
 				ParameterSetId: 1,
 				UserId:         1,
 			},
-			mockBehavior: func(r *service.MockChart, createChartInput gameServer.CreateChartInput) {
-				r.EXPECT().CreateChart(createChartInput).Return(0, errors.New(""))
+			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
+				start := gameServer.NowDbClock()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
+				cm.EXPECT().CreateChart(createChartInput).Return(0, errors.New(""))
 			},
 			expectedStatusCode: 500,
 			isError:            true,
@@ -99,14 +144,21 @@ func TestHandler_createChart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			chartMock := service.NewMockChart(t)
-			tt.mockBehavior(chartMock, tt.createChartInput)
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(chartMock, userMock, tt.createChartInput)
 
-			services := &service.Service{Chart: chartMock}
+			services := &service.Service{Chart: chartMock, User: userMock}
 			handler := NewHandler(services)
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/", handler.createChart)
+			r.POST("/", func(c *gin.Context) {
+				if tt.ctxUserId != 0 {
+					c.Set(userCtx, tt.ctxUserId)
+					c.Set(userCtxRole, gameServer.RoleUser)
+				}
+				handler.createChart(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", bytes.NewBufferString(tt.inputBody))
@@ -148,7 +200,7 @@ func TestHandler_getOneChart(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",
@@ -481,7 +533,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
 		},
 		{
 			name:      "internal server error",
@@ -516,7 +568,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
 		},
 		{
 			name:      "empty filter value",
@@ -537,7 +589,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
 		},
 		{
 			name:      "empty filter tag and value",
@@ -558,7 +610,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
 		},
 		{
 			name:               "incorrect filter tag - wrong type",

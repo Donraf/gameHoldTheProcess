@@ -1,4 +1,5 @@
-filename: mocks.go
+dir: pkg/service
+filename: mock_{{.InterfaceName}}.go
 packages:
     example.com/gameHoldTheProcessServer/pkg/service:
         interfaces:

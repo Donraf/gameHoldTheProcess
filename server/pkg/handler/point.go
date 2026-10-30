@@ -20,6 +20,21 @@ func (h *Handler) createPoint(c *gin.Context) {
 		return
 	}
 
+	if c.GetInt(userCtx) == 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user not authorized")
+		return
+	}
+
+	chart, err := h.services.Chart.GetOneChart(input.ChartId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if _, ok := h.sessionGuard(c, chart.UserId, chart.ParameterSetId); !ok {
+		return
+	}
+
 	id, err := h.services.Point.CreatePoint(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

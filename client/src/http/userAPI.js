@@ -239,6 +239,15 @@ export const updateUserParSet = async (userId, parSetId) => {
   }
 };
 
+export const startSession = async (parSetId) => {
+  try {
+    const { data } = await $authHost.post("api/user/session/start", { par_set_id: parSetId });
+    return data.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const updateUserUserParSet = async (id, updateInfo) => {
   try {
     const { data } = await $authHost.put(`api/user/${id}/userParSet`, updateInfo);

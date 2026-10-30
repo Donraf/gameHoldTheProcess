@@ -21,6 +21,12 @@ func (h *Handler) createChart(c *gin.Context) {
 		return
 	}
 
+	ups, ok := h.sessionGuard(c, input.UserId, input.ParameterSetId)
+	if !ok {
+		return
+	}
+	input.IsTraining = ups.IsTraining
+
 	id, err := h.services.Chart.CreateChart(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

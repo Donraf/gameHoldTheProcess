@@ -192,4 +192,5 @@ type UserParameterSet struct {
 	UserId            int        `json:"-"`
 	ParameterSetId    int        `json:"-"`
 	CreatedAt         string     `json:"created_at" binding:"required" db:"created_at"`
+	RemTimeMs         int64      `json:"rem_time_ms"`
 }

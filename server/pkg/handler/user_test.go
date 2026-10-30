@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/service"
@@ -375,6 +376,7 @@ func TestHandler_updateScore(t *testing.T) {
 	tests := []struct {
 		name                string
 		inputBody           string
+		ctxUserId           int
 		updateScoreInput    gameServer.UpdateScoreInput
 		mockBehavior        mockBehavior
 		expectedStatusCode  int
@@ -384,12 +386,15 @@ func TestHandler_updateScore(t *testing.T) {
 		{
 			name:      "ok",
 			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			ctxUserId: 1,
 			updateScoreInput: gameServer.UpdateScoreInput{
 				UserId:   1,
 				ParSetId: 1,
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				start := gameServer.NowDbClock()
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
 			},
 			expectedStatusCode:  200,
@@ -398,6 +403,7 @@ func TestHandler_updateScore(t *testing.T) {
 		{
 			name:               "broken json input syntax",
 			inputBody:          `{"login": "l", "password": "p"`,
+			ctxUserId:          1,
 			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -405,26 +411,70 @@ func TestHandler_updateScore(t *testing.T) {
 		{
 			name:      "redundant fields",
 			inputBody: `{"userId": 1, "parSetId": 1, "score": 100, "abc123": "abc123"}`,
+			ctxUserId: 1,
 			updateScoreInput: gameServer.UpdateScoreInput{
 				UserId:   1,
 				ParSetId: 1,
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				start := gameServer.NowDbClock()
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"status":"ok"}`,
 		},
 		{
+			name:      "attempt to update score for another user",
+			inputBody: `{"userId": 2, "parSetId": 1, "score": 100}`,
+			ctxUserId: 1,
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "session is not started",
+			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			ctxUserId: 1,
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "session time is up",
+			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			ctxUserId: 1,
+			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:               "not authorized",
+			inputBody:          `{"userId": 1, "parSetId": 1, "score": 100}`,
+			ctxUserId:          0,
+			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
 			name:      "internal server error",
 			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
+			ctxUserId: 1,
 			updateScoreInput: gameServer.UpdateScoreInput{
 				UserId:   1,
 				ParSetId: 1,
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
+				start := gameServer.NowDbClock()
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(errors.New(""))
 			},
 			expectedStatusCode: 500,
@@ -491,7 +541,13 @@ func TestHandler_updateScore(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/score", handler.updateScore)
+			r.POST("/score", func(c *gin.Context) {
+				if tt.ctxUserId != 0 {
+					c.Set(userCtx, tt.ctxUserId)
+					c.Set(userCtxRole, gameServer.RoleUser)
+				}
+				handler.updateScore(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/score", bytes.NewBufferString(tt.inputBody))
@@ -1458,7 +1514,7 @@ func TestHandler_getAllGroups(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1,"parameter_set_id":0}]}`,
 		},
 		{
 			name: "internal server error",
@@ -1511,10 +1567,11 @@ func TestHandler_createGroup(t *testing.T) {
 	}{
 		{
 			name:      "ok",
-			inputBody: `{"creator_id": 1, "name": "n"}`,
+			inputBody: `{"creator_id": 1, "name": "n", "par_set_id": 1}`,
 			createGroupInput: gameServer.CreateGroupInput{
 				CreatorId: 1,
 				Name:      "n",
+				ParSetId:  1,
 			},
 			mockBehavior: func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {
 				r.EXPECT().CreateGroup(createGroupInput).Return(1, nil)
@@ -1524,10 +1581,11 @@ func TestHandler_createGroup(t *testing.T) {
 		},
 		{
 			name:      "internal server error",
-			inputBody: `{"creator_id": 1, "name": "n"}`,
+			inputBody: `{"creator_id": 1, "name": "n", "par_set_id": 1}`,
 			createGroupInput: gameServer.CreateGroupInput{
 				CreatorId: 1,
 				Name:      "n",
+				ParSetId:  1,
 			},
 			mockBehavior: func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {
 				r.EXPECT().CreateGroup(createGroupInput).Return(0, errors.New(""))

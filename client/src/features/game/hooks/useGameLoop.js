@@ -21,6 +21,7 @@ export function useGameLoop({
   playRightChoiceSound,
   playWrongChoiceSound,
   enqueueSnackbar,
+  onSessionExpired,
 }) {
   const isTimeUpRef = useRef(isTimeUp);
   const isDangerRef = useRef(isDanger);
@@ -43,6 +44,21 @@ export function useGameLoop({
     totalScoreRef.current = totalScore;
   }, [totalScore]);
 
+  const handleSaveError = (e) => {
+    if (e.response && e.response.status === 403) {
+      onSessionExpired();
+    } else {
+      enqueueSnackbar("Не удалось сохранить результаты игры.", {
+        variant: "error",
+        autoHideDuration: 5000,
+        preventDuplicate: true,
+      });
+    }
+  };
+
+  const handleSaveErrorRef = useRef(handleSaveError);
+  handleSaveErrorRef.current = handleSaveError;
+
   useEffect(() => {
     if (isChartPaused) {
       return;
@@ -64,7 +80,7 @@ export function useGameLoop({
             chartData.parSet.id,
             totalScoreRef.current + totalScoreDiff,
             currentUserParSet.is_training
-          );
+          ).catch((e) => handleSaveErrorRef.current(e));
         }
 
         changeTotalScore(totalScoreDiff);
@@ -141,7 +157,7 @@ export function useGameLoop({
         chartData.parSet.id,
         totalScoreRef.current + totalScoreDiff,
         currentUserParSet.is_training
-      );
+      ).catch((e) => handleSaveErrorRef.current(e));
     }
 
     chartData.generateNextPoint(false);

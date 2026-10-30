@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/service"
@@ -15,11 +16,12 @@ import (
 )
 
 func TestHandler_createPoint(t *testing.T) {
-	type mockBehavior func(r *service.MockPoint, point gameServer.Point)
+	type mockBehavior func(pointMock *service.MockPoint, chartMock *service.MockChart, userMock *service.MockUser, point gameServer.Point)
 
 	tests := []struct {
 		name                string
 		inputBody           string
+		ctxUserId           int
 		point               gameServer.Point
 		mockBehavior        mockBehavior
 		expectedStatusCode  int
@@ -29,6 +31,7 @@ func TestHandler_createPoint(t *testing.T) {
 		{
 			name:      "ok",
 			inputBody: `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": 1}`,
+			ctxUserId: 1,
 			point: gameServer.Point{
 				X:                   1,
 				Y:                   1,
@@ -41,8 +44,11 @@ func TestHandler_createPoint(t *testing.T) {
 				IsCheck:             false,
 				ChartId:             1,
 			},
-			mockBehavior: func(r *service.MockPoint, point gameServer.Point) {
-				r.EXPECT().CreatePoint(point).Return(1, nil)
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				start := gameServer.NowDbClock()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
+				pm.EXPECT().CreatePoint(point).Return(1, nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"id":1}`,
@@ -50,34 +56,55 @@ func TestHandler_createPoint(t *testing.T) {
 		{
 			name:               "incorrect chart id - negative value",
 			inputBody:          `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": -1}`,
-			mockBehavior:       func(r *service.MockPoint, point gameServer.Point) {},
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect chart id - zero value",
 			inputBody:          `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": 0}`,
-			mockBehavior:       func(r *service.MockPoint, point gameServer.Point) {},
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect chart id - wrong type",
 			inputBody:          `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": "1"}`,
-			mockBehavior:       func(r *service.MockPoint, point gameServer.Point) {},
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect chart id - negative value",
 			inputBody:          `{"x": -1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": -1}`,
-			mockBehavior:       func(r *service.MockPoint, point gameServer.Point) {},
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {},
 			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:      "session time is up",
+			inputBody: `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": 1}`,
+			ctxUserId: 1,
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:               "not authorized",
+			inputBody:          `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": 1}`,
+			ctxUserId:          0,
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {},
+			expectedStatusCode: 401,
 			isError:            true,
 		},
 		{
 			name:      "internal server error",
 			inputBody: `{"x": 1, "y": 1, "score": 1, "is_crash": false, "is_useful_ai_signal": false, "is_deceptive_ai_signal": false, "is_stop": false, "is_pause": false, "is_check": false, "chart_id": 1}`,
+			ctxUserId: 1,
 			point: gameServer.Point{
 				X:                   1,
 				Y:                   1,
@@ -90,8 +117,11 @@ func TestHandler_createPoint(t *testing.T) {
 				IsCheck:             false,
 				ChartId:             1,
 			},
-			mockBehavior: func(r *service.MockPoint, point gameServer.Point) {
-				r.EXPECT().CreatePoint(point).Return(0, errors.New(""))
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				start := gameServer.NowDbClock()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
+				pm.EXPECT().CreatePoint(point).Return(0, errors.New(""))
 			},
 			expectedStatusCode: 500,
 			isError:            true,
@@ -101,14 +131,22 @@ func TestHandler_createPoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pointMock := service.NewMockPoint(t)
-			tt.mockBehavior(pointMock, tt.point)
+			chartMock := service.NewMockChart(t)
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(pointMock, chartMock, userMock, tt.point)
 
-			services := &service.Service{Point: pointMock}
+			services := &service.Service{Point: pointMock, Chart: chartMock, User: userMock}
 			handler := NewHandler(services)
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/", handler.createPoint)
+			r.POST("/", func(c *gin.Context) {
+				if tt.ctxUserId != 0 {
+					c.Set(userCtx, tt.ctxUserId)
+					c.Set(userCtxRole, gameServer.RoleUser)
+				}
+				handler.createPoint(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/", bytes.NewBufferString(tt.inputBody))
@@ -158,7 +196,7 @@ func TestHandler_getOnePoint(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z","check_info":null}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",
@@ -255,7 +293,7 @@ func TestHandler_getAllPointsById(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z","check_info":null}]}`,
 		},
 		{
 			name:               "incorrect parameter chart id - negative value",
