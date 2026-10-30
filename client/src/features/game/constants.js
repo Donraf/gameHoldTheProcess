@@ -22,4 +22,4 @@ export const chartOptions = {
 
 export const trainingTimeLimitMs = 10 * 60 * 1000;
 export const gameTimeLimitMs = 45 * 60 * 1000;
-export const speedOptions = [0.5, 1, 1.5, 2];
+export const speedOptions = [0.5, 1, 1.5, 2, 3, 4];
