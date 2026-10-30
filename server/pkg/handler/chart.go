@@ -170,6 +170,10 @@ func (h *Handler) getAllParSets(c *gin.Context) {
 		return
 	}
 
+	for i := range parSets {
+		gameServer.ApplySessionMeta(&parSets[i])
+	}
+
 	c.JSON(http.StatusOK, getAllParSetsResponse{
 		Data: parSets,
 	})

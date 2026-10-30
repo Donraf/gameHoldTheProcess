@@ -1,3 +1,5 @@
+import { gameTimeLimitMs, trainingTimeLimitMs } from "../constants";
+
 export const SCORES_TABLE_HTML = `<table>
   <thead>
     <tr>
@@ -50,6 +52,15 @@ ${SCORES_TABLE_HTML}
 
 Стрелочки позволяют убыстрить / замедлить процесс, кнопка "Пауза" приостанавливает его.
 
-До начала игры вам предлагается ТРЕНИРОВОЧНАЯ СЕССИЯ (не более 10 минут). В любой момент вы можете перейти к основной игре (она закончится через 45 минут).
+До начала игры вам предлагается ТРЕНИРОВОЧНАЯ СЕССИЯ (не более {{TRAINING_LIMIT_MIN}} минут). В любой момент вы можете перейти к основной игре (она закончится через {{GAME_LIMIT_MIN}} минут).
 
 УДАЧНОЙ ИГРЫ!`;
+
+export const substituteRuleLimits = (text, parSet) => {
+  if (!text) {
+    return text;
+  }
+  const trainingMin = parSet?.training_limit_min ?? Math.round(trainingTimeLimitMs / 60000);
+  const gameMin = parSet?.game_limit_min ?? Math.round(gameTimeLimitMs / 60000);
+  return text.replace(/\{\{TRAINING_LIMIT_MIN\}\}/g, String(trainingMin)).replace(/\{\{GAME_LIMIT_MIN\}\}/g, String(gameMin));
+};

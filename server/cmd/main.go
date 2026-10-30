@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/handler"
@@ -19,6 +20,11 @@ func main() {
 	if err := initConfig(); err != nil {
 		logrus.Fatalf("error when initializing config: %s", err.Error())
 	}
+
+	gameServer.SetTimeLimits(
+		time.Duration(viper.GetInt("session.training_time_limit_min"))*time.Minute,
+		time.Duration(viper.GetInt("session.game_time_limit_min"))*time.Minute,
+	)
 
 	if err := godotenv.Load(); err != nil {
 		logrus.Fatalf("error when loading env variables: %s", err.Error())

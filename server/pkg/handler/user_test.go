@@ -899,7 +899,20 @@ func TestHandler_getParSet(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"a":1.1,"b":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"scoring_config":{"bonus_step":50,"bonus_reject_incorrect_advice_with_check":1000,"bonus_reject_incorrect_advice_no_check":2000,"bonus_accept_correct_advice_with_check":250,"bonus_accept_correct_advice_no_check":500,"penalty_reject_correct_advice_with_check":4000,"penalty_reject_correct_advice_no_check":2000,"penalty_accept_incorrect_advice_with_check":2000,"penalty_accept_incorrect_advice_no_check":1000,"penalty_incorrect_stop_no_advice":2000,"penalty_explosion_no_advice":0,"penalty_pause":50},"hint_cost":250,"false_alarm_threshold":0.9,"rules_text":"","created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"id":1,"a":1.1,"b":1.1,"noise_mean":1.1,"noise_stdev":1.1,"false_warning_prob":0.1,"missing_danger_prob":0.1,"scoring_config":{"bonus_step":50,"bonus_reject_incorrect_advice_with_check":1000,"bonus_reject_incorrect_advice_no_check":2000,"bonus_accept_correct_advice_with_check":250,"bonus_accept_correct_advice_no_check":500,"penalty_reject_correct_advice_with_check":4000,"penalty_reject_correct_advice_no_check":2000,"penalty_accept_incorrect_advice_with_check":2000,"penalty_accept_incorrect_advice_no_check":1000,"penalty_incorrect_stop_no_advice":2000,"penalty_explosion_no_advice":0,"penalty_pause":50},"hint_cost":250,"false_alarm_threshold":0.9,"rules_text":"","created_at":"2023-10-01T00:00:00Z","training_limit_min":10,"game_limit_min":45}}`,
+		},
+		{
+			name:    "rules text time limit placeholders substituted",
+			paramId: "1",
+			mockBehavior: func(r *service.MockUser, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetParSet(idInt).Return(gameServer.ParameterSet{
+					Id:        1,
+					RulesText: "Тренировка не более {{TRAINING_LIMIT_MIN}} минут, игра {{GAME_LIMIT_MIN}} минут",
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":{"id":1,"a":0,"b":0,"noise_mean":0,"noise_stdev":0,"false_warning_prob":0,"missing_danger_prob":0,"scoring_config":null,"hint_cost":0,"false_alarm_threshold":0,"rules_text":"Тренировка не более 10 минут, игра 45 минут","created_at":"","training_limit_min":10,"game_limit_min":45}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",

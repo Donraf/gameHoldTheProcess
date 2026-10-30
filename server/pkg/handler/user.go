@@ -166,6 +166,8 @@ func (h *Handler) getParSet(c *gin.Context) {
 		return
 	}
 
+	gameServer.ApplySessionMeta(&parSet)
+
 	c.JSON(http.StatusOK, getParSetResponse{
 		Data: parSet,
 	})
@@ -361,6 +363,12 @@ func (h *Handler) getPlayersStat(c *gin.Context) {
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	for i := range users {
+		for j := range users[i].ParSets {
+			gameServer.ApplySessionMeta(&users[i].ParSets[j])
+		}
 	}
 
 	c.JSON(http.StatusOK, getPlayersStatResponse{

@@ -182,6 +182,8 @@ type ParameterSet struct {
 	FalseAlarmThreshold   float32         `json:"false_alarm_threshold" db:"false_alarm_threshold"`
 	RulesText             string          `json:"rules_text" db:"rules_text"`
 	CreatedAt             string          `json:"created_at" db:"created_at"`
+	TrainingLimitMin      int             `json:"training_limit_min"`
+	GameLimitMin          int             `json:"game_limit_min"`
 }
 
 type UserParameterSet struct {

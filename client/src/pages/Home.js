@@ -305,6 +305,7 @@ const Home = observer(() => {
           open={isRuleModalOpened}
           onClose={handleCloseRuleModal}
           rulesText={chart.chartData.parSet?.rules_text}
+          parSet={chart.chartData.parSet}
         />
         <HintModal
           open={isHintModalOpened}

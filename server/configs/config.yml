@@ -1,5 +1,9 @@
 port: "5439"
 
+session:
+    training_time_limit_min: 10
+    game_time_limit_min: 45
+
 db:
     username: "postgres"
     host: "localhost"
