@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,7 +28,11 @@ func (h *Handler) registration(c *gin.Context) {
 
 	token, err := h.services.User.CreateUser(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, gameServer.ErrDuplicateLogin) {
+			newErrorResponse(c, http.StatusConflict, "login already exists")
+			return
+		}
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -55,7 +61,11 @@ func (h *Handler) createUser(c *gin.Context) {
 
 	token, err := h.services.User.CreateUser(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, gameServer.ErrDuplicateLogin) {
+			newErrorResponse(c, http.StatusConflict, "login already exists")
+			return
+		}
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -74,7 +84,11 @@ func (h *Handler) login(c *gin.Context) {
 
 	token, err := h.services.User.GenerateToken(input.Login, input.Password)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			newErrorResponse(c, http.StatusUnauthorized, "invalid login or password")
+			return
+		}
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -102,7 +116,7 @@ func (h *Handler) updateScore(c *gin.Context) {
 
 	err := h.services.User.UpdateScore(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -148,7 +162,7 @@ func (h *Handler) getOneUser(c *gin.Context) {
 
 	user, err := h.services.User.GetOneUser(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -170,7 +184,7 @@ func (h *Handler) getUsersPageCount(c *gin.Context) {
 
 	pageCount, err := h.services.User.GetUsersPageCount(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -192,7 +206,7 @@ func (h *Handler) getParSet(c *gin.Context) {
 
 	parSet, err := h.services.User.GetParSet(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -222,7 +236,7 @@ func (h *Handler) getScore(c *gin.Context) {
 
 	score, err := h.services.User.GetScore(userId, parSetId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -250,7 +264,7 @@ func (h *Handler) getUserParSet(c *gin.Context) {
 
 	ups, err := h.services.User.GetUserParameterSet(userId, parSetId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -279,7 +293,7 @@ func (h *Handler) getAllUsers(c *gin.Context) {
 
 	users, err := h.services.User.GetAllUsers(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -297,7 +311,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 
 	err = h.services.User.DeleteUser(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -325,7 +339,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 	}
 
 	if err := h.services.User.UpdateUser(id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -341,7 +355,7 @@ type getAllGroupsResponse struct {
 func (h *Handler) getAllGroups(c *gin.Context) {
 	groups, err := h.services.User.GetAllGroups()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -364,7 +378,7 @@ func (h *Handler) createGroup(c *gin.Context) {
 
 	id, err := h.services.User.CreateGroup(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -391,7 +405,7 @@ func (h *Handler) getPlayersStat(c *gin.Context) {
 
 	users, err := h.services.User.GetPlayersStat(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -419,7 +433,7 @@ func (h *Handler) getPlayersPageCount(c *gin.Context) {
 
 	pageCount, err := h.services.User.GetPlayersPageCount(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -446,7 +460,7 @@ func (h *Handler) getPlayersEvents(c *gin.Context) {
 
 	events, err := h.services.User.GetPlayersEvents(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -474,7 +488,7 @@ func (h *Handler) updateUserParSet(c *gin.Context) {
 	}
 
 	if err := h.services.User.UpdateUserParSet(id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -517,7 +531,7 @@ func (h *Handler) updateUserUserParSet(c *gin.Context) {
 	}
 
 	if err := h.services.User.UpdateUserUserParSet(id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -539,7 +553,7 @@ func (h *Handler) getPlayersEventsPageCount(c *gin.Context) {
 
 	pageCount, err := h.services.User.GetPlayersEventsPageCount(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -561,7 +575,7 @@ func (h *Handler) changeGroupParSet(c *gin.Context) {
 	}
 
 	if err := h.services.User.ChangeGroupParSet(input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 

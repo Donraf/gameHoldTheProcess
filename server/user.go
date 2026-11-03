@@ -16,6 +16,8 @@ func ValidRole(role string) bool {
 	return role == RoleUser || role == RoleAdmin || role == RoleResearcher
 }
 
+var ErrDuplicateLogin = errors.New("login already taken")
+
 type User struct {
 	Id              int     `json:"user_id" db:"user_id"`
 	Login           string  `json:"login" binding:"required"`

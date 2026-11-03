@@ -27,7 +27,7 @@ func (h *Handler) createPoint(c *gin.Context) {
 
 	chart, err := h.services.Chart.GetOneChart(input.ChartId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -37,7 +37,7 @@ func (h *Handler) createPoint(c *gin.Context) {
 
 	id, err := h.services.Point.CreatePoint(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *Handler) getOnePoint(c *gin.Context) {
 
 	point, err := h.services.Point.GetOnePoint(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *Handler) getAllPointsById(c *gin.Context) {
 
 	points, err := h.services.Point.GetAllPointsById(chartId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func (h *Handler) getAllPointsById(c *gin.Context) {
 func (h *Handler) getAllPointsInCsv(c *gin.Context) {
 	csv, err := h.services.Point.GetCsvOfPoints()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *Handler) deletePoint(c *gin.Context) {
 
 	err = h.services.Point.DeletePoint(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 

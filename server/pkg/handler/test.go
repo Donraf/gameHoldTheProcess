@@ -31,7 +31,7 @@ func (h *Handler) getTestSessionStatus(c *gin.Context) {
 	userId, _ := c.Get(userCtx)
 	status, err := h.services.Test.GetSessionStatus(userId.(int))
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func (h *Handler) submitTestResult(c *gin.Context) {
 	userId, _ := c.Get(userCtx)
 	id, err := h.services.Test.SubmitResult(userId.(int), input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -73,7 +73,7 @@ type getAllTestsResponse struct {
 func (h *Handler) getAllTests(c *gin.Context) {
 	tests, err := h.services.Test.GetAllTests()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 	if tests == nil {
@@ -96,7 +96,7 @@ func (h *Handler) createTest(c *gin.Context) {
 
 	id, err := h.services.Test.CreateTest(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *Handler) updateTest(c *gin.Context) {
 	}
 
 	if err := h.services.Test.UpdateTest(id, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *Handler) deleteTest(c *gin.Context) {
 	}
 
 	if err := h.services.Test.DeleteTest(id); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -152,7 +152,7 @@ func (h *Handler) getUserTestResults(c *gin.Context) {
 	userId, _ := c.Get(userCtx)
 	results, err := h.services.Test.GetUserResults(userId.(int))
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 	if results == nil {
@@ -171,7 +171,7 @@ func (h *Handler) getPlayerTestResults(c *gin.Context) {
 
 	results, err := h.services.Test.GetUserResultsWithTests(userId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 	if results == nil {

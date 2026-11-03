@@ -29,7 +29,7 @@ func (h *Handler) createChart(c *gin.Context) {
 
 	id, err := h.services.Chart.CreateChart(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (h *Handler) getOneChart(c *gin.Context) {
 
 	chart, err := h.services.Chart.GetOneChart(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *Handler) getChartsPageCount(c *gin.Context) {
 
 	pageCount, err := h.services.Chart.GetChartsPageCount(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 	}
 
 	c.JSON(http.StatusOK, getChartsPageCountResponse{
@@ -94,7 +94,7 @@ func (h *Handler) getChartsCount(c *gin.Context) {
 
 	chartsCount, err := h.services.Chart.GetChartsCount(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *Handler) getAllCharts(c *gin.Context) {
 
 	charts, err := h.services.Chart.GetAllCharts(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *Handler) deleteChart(c *gin.Context) {
 
 	err = h.services.Chart.DeleteChart(id)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *Handler) getAllParSets(c *gin.Context) {
 
 	parSets, err := h.services.Chart.GetAllParSets(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -186,7 +186,7 @@ type getParSetsPageCountResponse struct {
 func (h *Handler) getParSetsPageCount(c *gin.Context) {
 	pageCount, err := h.services.Chart.GetParSetsPageCount()
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -210,7 +210,7 @@ func (h *Handler) createParSet(c *gin.Context) {
 
 	id, err := h.services.Chart.CreateParSet(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 

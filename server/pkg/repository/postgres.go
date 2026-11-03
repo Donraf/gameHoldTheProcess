@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type Config struct {
@@ -32,6 +34,11 @@ const (
 
 func likePattern(value string) string {
 	return "%" + value + "%"
+}
+
+func isUniqueViolation(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23505"
 }
 
 func NewPostgresDB(cfg Config) (*sqlx.DB, error) {

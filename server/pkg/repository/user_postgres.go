@@ -46,6 +46,9 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 	row := tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, input.Profession, input.ExperienceYears, input.Gender, input.Age, timeNow)
 	if err := row.Scan(&userId); err != nil {
 		tx.Rollback()
+		if isUniqueViolation(err) {
+			return 0, gameServer.ErrDuplicateLogin
+		}
 		return 0, err
 	}
 

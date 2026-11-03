@@ -31,7 +31,7 @@ func (h *Handler) sessionGuard(c *gin.Context, userId, parSetId int) (gameServer
 
 	fetched, err := h.services.User.GetUserParameterSet(userId, parSetId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return ups, false
 	}
 
@@ -72,7 +72,7 @@ func (h *Handler) startSession(c *gin.Context) {
 
 	ups, err := h.services.User.GetUserParameterSet(userId, input.ParSetId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *Handler) startSession(c *gin.Context) {
 				ParSetId:          input.ParSetId,
 				TrainingStartTime: &startTime,
 			}); err != nil {
-				newErrorResponse(c, http.StatusInternalServerError, err.Error())
+				internalErrorResponse(c, err)
 				return
 			}
 			ups.TrainingStartTime = &startTime
@@ -95,7 +95,7 @@ func (h *Handler) startSession(c *gin.Context) {
 			ParSetId:      input.ParSetId,
 			GameStartTime: &startTime,
 		}); err != nil {
-			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			internalErrorResponse(c, err)
 			return
 		}
 		ups.GameStartTime = &startTime

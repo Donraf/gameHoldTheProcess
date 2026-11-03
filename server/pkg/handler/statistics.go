@@ -26,7 +26,7 @@ func (h *Handler) computeStatistics(c *gin.Context) {
 
 	stats, err := h.services.Statistics.ComputeStatistics(input)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *Handler) getStatistics(c *gin.Context) {
 
 	stats, err := h.services.Statistics.GetStatistics(userId, parSetId)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		internalErrorResponse(c, err)
 		return
 	}
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http/httptest"
@@ -67,10 +68,11 @@ func TestHandler_registration(t *testing.T) {
 			inputBody: validRegisterUserBody,
 			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("", errors.New(""))
+				r.EXPECT().CreateUser(userInput).Return("", errors.New("pq: duplicate key value violates unique constraint"))
 			},
-			expectedStatusCode: 500,
-			isError:            true,
+			expectedStatusCode:  500,
+			expectedRequestBody: `{"error":"internal server error"}`,
+			isError:             true,
 		},
 		{
 			name:      "role is forced to User on public registration",
@@ -85,6 +87,16 @@ func TestHandler_registration(t *testing.T) {
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:      "duplicate login returns conflict",
+			inputBody: validRegisterUserBody,
+			userInput: validRegisterUserInput(),
+			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
+				r.EXPECT().CreateUser(userInput).Return("", gameServer.ErrDuplicateLogin)
+			},
+			expectedStatusCode: 409,
+			isError:            true,
 		},
 		{
 			name:               "no login",
@@ -248,6 +260,9 @@ func TestHandler_registration(t *testing.T) {
 			assert.Equal(t, tt.expectedStatusCode, w.Code)
 			if tt.isError {
 				assert.Contains(t, w.Body.String(), "error")
+				if tt.expectedRequestBody != "" {
+					assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+				}
 			} else {
 				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
 			}
@@ -393,10 +408,25 @@ func TestHandler_login(t *testing.T) {
 				Password: "p",
 			},
 			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
-				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", errors.New(""))
+				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", errors.New("db connection lost"))
 			},
-			expectedStatusCode: 500,
-			isError:            true,
+			expectedStatusCode:  500,
+			expectedRequestBody: `{"error":"internal server error"}`,
+			isError:             true,
+		},
+		{
+			name:      "wrong credentials returns unauthorized without details",
+			inputBody: `{"login": "l", "password": "p"}`,
+			loginInput: gameServer.LoginInput{
+				Login:    "l",
+				Password: "p",
+			},
+			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
+				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", sql.ErrNoRows)
+			},
+			expectedStatusCode:  401,
+			expectedRequestBody: `{"error":"invalid login or password"}`,
+			isError:             true,
 		},
 		{
 			name:               "no login",
@@ -462,6 +492,9 @@ func TestHandler_login(t *testing.T) {
 			assert.Equal(t, tt.expectedStatusCode, w.Code)
 			if tt.isError {
 				assert.Contains(t, w.Body.String(), "error")
+				if tt.expectedRequestBody != "" {
+					assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+				}
 			} else {
 				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
 			}
