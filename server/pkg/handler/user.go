@@ -23,6 +23,37 @@ func (h *Handler) registration(c *gin.Context) {
 		return
 	}
 
+	input.Role = gameServer.RoleUser
+
+	token, err := h.services.User.CreateUser(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]any{
+		"token": token,
+	})
+}
+
+func (h *Handler) createUser(c *gin.Context) {
+	var input gameServer.RegisterUserInput
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Vaildate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if !gameServer.ValidRole(input.Role) {
+		newErrorResponse(c, http.StatusBadRequest, "invalid role")
+		return
+	}
+
 	token, err := h.services.User.CreateUser(input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

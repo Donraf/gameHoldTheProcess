@@ -73,6 +73,20 @@ func TestHandler_registration(t *testing.T) {
 			isError:            true,
 		},
 		{
+			name:      "role is forced to User on public registration",
+			inputBody: `{"login": "l", "password": "p", "role": "ADMIN", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
+			userInput: func() gameServer.RegisterUserInput {
+				input := validRegisterUserInput()
+				input.Role = gameServer.RoleUser
+				return input
+			}(),
+			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
+				r.EXPECT().CreateUser(userInput).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
 			name:               "no login",
 			inputBody:          `{"password": "p", "role": "User", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
@@ -228,6 +242,91 @@ func TestHandler_registration(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/registration", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_createUser(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, userInput gameServer.RegisterUserInput)
+
+	adminBody := func(role string) string {
+		return fmt.Sprintf(`{"login": "l", "password": "p", "role": "%s", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`, role)
+	}
+
+	inputWithRole := func(role string) gameServer.RegisterUserInput {
+		input := validRegisterUserInput()
+		input.Role = role
+		return input
+	}
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		ctxRole             string
+		userInput           gameServer.RegisterUserInput
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok - researcher role allowed for admin",
+			inputBody: adminBody(gameServer.RoleResearcher),
+			ctxRole:   gameServer.RoleAdmin,
+			userInput: inputWithRole(gameServer.RoleResearcher),
+			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
+				r.EXPECT().CreateUser(userInput).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:               "invalid role rejected",
+			inputBody:          adminBody("Superuser"),
+			ctxRole:            gameServer.RoleAdmin,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "not enough rights for regular user",
+			inputBody:          adminBody(gameServer.RoleAdmin),
+			ctxRole:            gameServer.RoleUser,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, tt.userInput)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/create", func(c *gin.Context) {
+				if tt.ctxRole != "" {
+					c.Set(userCtx, 1)
+					c.Set(userCtxRole, tt.ctxRole)
+				}
+				c.Next()
+			}, handler.checkAdminRole, handler.createUser)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/create", bytes.NewBufferString(tt.inputBody))
 
 			r.ServeHTTP(w, req)
 

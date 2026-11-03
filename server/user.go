@@ -12,6 +12,10 @@ const (
 	RoleResearcher = "Researcher"
 )
 
+func ValidRole(role string) bool {
+	return role == RoleUser || role == RoleAdmin || role == RoleResearcher
+}
+
 type User struct {
 	Id              int     `json:"user_id" db:"user_id"`
 	Login           string  `json:"login" binding:"required"`

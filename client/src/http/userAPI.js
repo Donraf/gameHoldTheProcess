@@ -4,7 +4,7 @@ import { USER_ROLE_USER } from "../utils/constants";
 
 export const createUser = async (login, password, name, role, profile, groupId = null) => {
   try {
-    const { data } = await $authHost.post("api/user/registration", {
+    const { data } = await $authHost.post("api/user/create", {
       login: login,
       password: password,
       role: role,
