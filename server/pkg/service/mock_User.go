@@ -224,65 +224,6 @@ func (_c *MockUser_DeleteUser_Call) RunAndReturn(run func(int) error) *MockUser_
 	return _c
 }
 
-// FixBugStat provides a mock function with given fields: start, end
-func (_m *MockUser) FixBugStat(start int, end int) (map[int]float64, error) {
-	ret := _m.Called(start, end)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FixBugStat")
-	}
-
-	var r0 map[int]float64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int, int) (map[int]float64, error)); ok {
-		return rf(start, end)
-	}
-	if rf, ok := ret.Get(0).(func(int, int) map[int]float64); ok {
-		r0 = rf(start, end)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[int]float64)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(start, end)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockUser_FixBugStat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FixBugStat'
-type MockUser_FixBugStat_Call struct {
-	*mock.Call
-}
-
-// FixBugStat is a helper method to define mock.On call
-//   - start int
-//   - end int
-func (_e *MockUser_Expecter) FixBugStat(start interface{}, end interface{}) *MockUser_FixBugStat_Call {
-	return &MockUser_FixBugStat_Call{Call: _e.mock.On("FixBugStat", start, end)}
-}
-
-func (_c *MockUser_FixBugStat_Call) Run(run func(start int, end int)) *MockUser_FixBugStat_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *MockUser_FixBugStat_Call) Return(_a0 map[int]float64, _a1 error) *MockUser_FixBugStat_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockUser_FixBugStat_Call) RunAndReturn(run func(int, int) (map[int]float64, error)) *MockUser_FixBugStat_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GenerateToken provides a mock function with given fields: login, password
 func (_m *MockUser) GenerateToken(login string, password string) (string, error) {
 	ret := _m.Called(login, password)

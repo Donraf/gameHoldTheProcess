@@ -26,7 +26,6 @@ type User interface {
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
 	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
 	ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error
-	GetCharts(start, end int) (map[int]float64, error)
 }
 
 type Chart interface {

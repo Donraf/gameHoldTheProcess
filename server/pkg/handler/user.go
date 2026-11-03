@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -569,27 +568,4 @@ func (h *Handler) changeGroupParSet(c *gin.Context) {
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
 	})
-}
-
-func (h *Handler) fixBugStat(c *gin.Context) {
-	start, err := strconv.Atoi(c.Param("start"))
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid parameter start")
-		return
-	}
-	end, err := strconv.Atoi(c.Param("end"))
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid parameter end")
-		return
-	}
-
-	res, err := h.services.User.FixBugStat(start, end)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	fmt.Println(res)
-
-	c.JSON(http.StatusOK, res)
 }
