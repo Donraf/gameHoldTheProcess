@@ -21,7 +21,7 @@ var ErrDuplicateLogin = errors.New("login already taken")
 type User struct {
 	Id              int     `json:"user_id" db:"user_id"`
 	Login           string  `json:"login" binding:"required"`
-	Password        string  `json:"password" binding:"required"`
+	Password        string  `json:"-" binding:"required"`
 	Name            string  `json:"name" binding:"required" db:"name"`
 	Role            string  `json:"role" binding:"required"`
 	CurParSetId     int     `json:"cur_par_set_id" db:"cur_par_set_id"`

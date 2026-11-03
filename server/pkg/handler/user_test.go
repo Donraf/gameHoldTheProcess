@@ -816,7 +816,7 @@ func TestHandler_getOneUser(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}}`,
+			expectedRequestBody: `{"data":{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",
@@ -837,6 +837,14 @@ func TestHandler_getOneUser(t *testing.T) {
 			paramId:            "abc",
 			mockBehavior:       func(r *service.MockUser, id string) {},
 			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "another user profile is forbidden",
+			paramId: "2",
+			mockBehavior: func(r *service.MockUser, id string) {
+			},
+			expectedStatusCode: 403,
 			isError:            true,
 		},
 		{
@@ -861,7 +869,11 @@ func TestHandler_getOneUser(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/:id", handler.getOneUser)
+			r.GET("/:id", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleUser)
+				handler.getOneUser(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.paramId), nil)
@@ -1202,7 +1214,11 @@ func TestHandler_getScore(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/score/:userId/:parSetId", handler.getScore)
+			r.GET("/score/:userId/:parSetId", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleUser)
+				handler.getScore(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/score/%s/%s", tt.paramUserId, tt.paramParSetId), nil)
@@ -1253,7 +1269,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
 		},
 		{
 			name:      "internal server error",
@@ -1291,7 +1307,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
 		},
 		{
 			name:      "empty filter value",
@@ -1315,7 +1331,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
 		},
 		{
 			name:      "empty filter tag and value",
@@ -1339,7 +1355,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","password":"p","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":1,"created_at":"2023-10-01T00:00:00Z"}]}`,
 		},
 		{
 			name:               "incorrect filter tag - wrong type",

@@ -55,6 +55,10 @@ func (h *Handler) getOneChart(c *gin.Context) {
 		return
 	}
 
+	if !h.ownerGuard(c, chart.UserId) {
+		return
+	}
+
 	c.JSON(http.StatusOK, getOneChartResponse{
 		Data: chart,
 	})
@@ -71,9 +75,17 @@ func (h *Handler) getChartsPageCount(c *gin.Context) {
 		return
 	}
 
+	if !h.forceSelfFilter(c, func(userId string) {
+		input.FilterTag = "user_id"
+		input.FilterValue = userId
+	}) {
+		return
+	}
+
 	pageCount, err := h.services.Chart.GetChartsPageCount(input)
 	if err != nil {
 		internalErrorResponse(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, getChartsPageCountResponse{
@@ -89,6 +101,13 @@ func (h *Handler) getChartsCount(c *gin.Context) {
 	var input gameServer.GetChartsCountInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if !h.forceSelfFilter(c, func(userId string) {
+		input.FilterTag = "user_id"
+		input.FilterValue = userId
+	}) {
 		return
 	}
 
@@ -116,6 +135,13 @@ func (h *Handler) getAllCharts(c *gin.Context) {
 
 	if err := input.Validate(); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if !h.forceSelfFilter(c, func(userId string) {
+		input.FilterTag = "user_id"
+		input.FilterValue = userId
+	}) {
 		return
 	}
 

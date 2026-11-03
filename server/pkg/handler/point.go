@@ -63,6 +63,16 @@ func (h *Handler) getOnePoint(c *gin.Context) {
 		return
 	}
 
+	chart, err := h.services.Chart.GetOneChart(point.ChartId)
+	if err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	if !h.ownerGuard(c, chart.UserId) {
+		return
+	}
+
 	c.JSON(http.StatusOK, getOnePointResponse{
 		Data: point,
 	})
@@ -76,6 +86,16 @@ func (h *Handler) getAllPointsById(c *gin.Context) {
 	chartId, err := strconv.Atoi(c.Param("chart_id"))
 	if err != nil || chartId <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter chart_id")
+		return
+	}
+
+	chart, err := h.services.Chart.GetOneChart(chartId)
+	if err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	if !h.ownerGuard(c, chart.UserId) {
 		return
 	}
 

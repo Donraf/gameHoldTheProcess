@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,36 @@ func isStaffRole(c *gin.Context) bool {
 		return false
 	}
 	return role == gameServer.RoleAdmin || role == gameServer.RoleResearcher
+}
+
+func (h *Handler) ownerGuard(c *gin.Context, ownerUserId int) bool {
+	ctxUserId := c.GetInt(userCtx)
+	if ctxUserId == 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user not authorized")
+		return false
+	}
+
+	if isStaffRole(c) || ctxUserId == ownerUserId {
+		return true
+	}
+
+	newErrorResponse(c, http.StatusForbidden, "not enough rights")
+	return false
+}
+
+func (h *Handler) forceSelfFilter(c *gin.Context, setSelf func(userId string)) bool {
+	if isStaffRole(c) {
+		return true
+	}
+
+	ctxUserId := c.GetInt(userCtx)
+	if ctxUserId == 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user not authorized")
+		return false
+	}
+
+	setSelf(strconv.Itoa(ctxUserId))
+	return true
 }
 
 func (h *Handler) sessionGuard(c *gin.Context, userId, parSetId int) (gameServer.UserParameterSet, bool) {

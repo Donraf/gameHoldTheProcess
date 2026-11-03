@@ -224,6 +224,16 @@ func TestHandler_getOneChart(t *testing.T) {
 			isError:            true,
 		},
 		{
+			name:    "another user's chart is forbidden",
+			paramId: "2",
+			mockBehavior: func(r *service.MockChart, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetOneChart(idInt).Return(gameServer.Chart{Id: 2, UserId: 5}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
 			name:    "internal server error",
 			paramId: "1",
 			mockBehavior: func(r *service.MockChart, id string) {
@@ -245,7 +255,11 @@ func TestHandler_getOneChart(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/:id", handler.getOneChart)
+			r.GET("/:id", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleUser)
+				handler.getOneChart(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.paramId), nil)
@@ -365,7 +379,11 @@ func TestHandler_getChartsPageCount(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/pageCount", handler.getChartsPageCount)
+			r.POST("/pageCount", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleResearcher)
+				handler.getChartsPageCount(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/pageCount", bytes.NewBufferString(tt.inputBody))
@@ -485,7 +503,11 @@ func TestHandler_getChartsCount(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/count", handler.getChartsCount)
+			r.POST("/count", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleResearcher)
+				handler.getChartsCount(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/count", bytes.NewBufferString(tt.inputBody))
@@ -647,11 +669,36 @@ func TestHandler_getAllCharts(t *testing.T) {
 			expectedStatusCode: 400,
 			isError:            true,
 		},
+		{
+			name:      "regular user gets filter forced to own id",
+			inputBody: `{"filter_tag": "", "filter_value": "", "current_page": 1}`,
+			getAllChartsInput: gameServer.GetAllChartsInput{
+				FilterTag:   "user_id",
+				FilterValue: "1",
+				CurrentPage: 1,
+			},
+			mockBehavior: func(r *service.MockChart, getAllChartsInput gameServer.GetAllChartsInput) {
+				r.EXPECT().GetAllCharts(getAllChartsInput).Return([]gameServer.Chart{
+					{
+						Id:             1,
+						ParameterSetId: 1,
+						UserId:         1,
+						CreatedAt:      "2023-10-01T00:00:00Z",
+					},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			chartMock := service.NewMockChart(t)
+			ctxRole := gameServer.RoleResearcher
+			if tt.name == "regular user gets filter forced to own id" {
+				ctxRole = gameServer.RoleUser
+			}
 			tt.mockBehavior(chartMock, tt.getAllChartsInput)
 
 			services := &service.Service{Chart: chartMock}
@@ -659,7 +706,11 @@ func TestHandler_getAllCharts(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/charts", handler.getAllCharts)
+			r.POST("/charts", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, ctxRole)
+				handler.getAllCharts(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/charts", bytes.NewBufferString(tt.inputBody))

@@ -164,7 +164,7 @@ func TestHandler_createPoint(t *testing.T) {
 }
 
 func TestHandler_getOnePoint(t *testing.T) {
-	type mockBehavior func(r *service.MockPoint, id string)
+	type mockBehavior func(r *service.MockPoint, cm *service.MockChart, id string)
 
 	tests := []struct {
 		name                string
@@ -177,7 +177,7 @@ func TestHandler_getOnePoint(t *testing.T) {
 		{
 			name:    "ok",
 			paramId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().GetOnePoint(idInt).Return(gameServer.Point{
 					Id:                  1,
@@ -194,35 +194,47 @@ func TestHandler_getOnePoint(t *testing.T) {
 					CreatedAt:           "2023-10-01T00:00:00Z",
 				},
 					nil)
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1}, nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"data":{"id":1,"x":1,"y":1,"score":1,"is_crash":false,"is_useful_ai_signal":false,"is_deceptive_ai_signal":false,"is_stop":false,"is_pause":false,"is_check":false,"chart_id":1,"created_at":"2023-10-01T00:00:00Z","check_info":null}}`,
 		},
 		{
+			name:    "another user's point is forbidden",
+			paramId: "1",
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().GetOnePoint(idInt).Return(gameServer.Point{Id: 1, ChartId: 1}, nil)
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 5}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
 			name:               "incorrect parameter id - negative value",
 			paramId:            "-1",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter id - zero value",
 			paramId:            "0",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter id - not a number",
 			paramId:            "abc",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:    "internal server error",
 			paramId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().GetOnePoint(idInt).Return(gameServer.Point{}, errors.New(""))
 			},
@@ -234,14 +246,19 @@ func TestHandler_getOnePoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pointMock := service.NewMockPoint(t)
-			tt.mockBehavior(pointMock, tt.paramId)
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(pointMock, chartMock, tt.paramId)
 
-			services := &service.Service{Point: pointMock}
+			services := &service.Service{Point: pointMock, Chart: chartMock}
 			handler := NewHandler(services)
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/:id", handler.getOnePoint)
+			r.GET("/:id", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleUser)
+				handler.getOnePoint(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.paramId), nil)
@@ -259,7 +276,7 @@ func TestHandler_getOnePoint(t *testing.T) {
 }
 
 func TestHandler_getAllPointsById(t *testing.T) {
-	type mockBehavior func(r *service.MockPoint, id string)
+	type mockBehavior func(r *service.MockPoint, cm *service.MockChart, id string)
 
 	tests := []struct {
 		name                string
@@ -272,8 +289,9 @@ func TestHandler_getAllPointsById(t *testing.T) {
 		{
 			name:         "ok",
 			paramChartId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1}, nil)
 				r.EXPECT().GetAllPointsById(idInt).Return([]gameServer.Point{
 					{
 						Id:                  1,
@@ -298,29 +316,39 @@ func TestHandler_getAllPointsById(t *testing.T) {
 		{
 			name:               "incorrect parameter chart id - negative value",
 			paramChartId:       "-1",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter chart id - zero value",
 			paramChartId:       "0",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter chart id - not a number",
 			paramChartId:       "abc",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:         "another user's chart points are forbidden",
+			paramChartId: "1",
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 5}, nil)
+			},
+			expectedStatusCode: 403,
 			isError:            true,
 		},
 		{
 			name:         "internal server error",
 			paramChartId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1}, nil)
 				r.EXPECT().GetAllPointsById(idInt).Return(nil, errors.New(""))
 			},
 			expectedStatusCode: 500,
@@ -331,14 +359,19 @@ func TestHandler_getAllPointsById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pointMock := service.NewMockPoint(t)
-			tt.mockBehavior(pointMock, tt.paramChartId)
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(pointMock, chartMock, tt.paramChartId)
 
-			services := &service.Service{Point: pointMock}
+			services := &service.Service{Point: pointMock, Chart: chartMock}
 			handler := NewHandler(services)
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/chart_id/:chart_id", handler.getAllPointsById)
+			r.GET("/chart_id/:chart_id", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Set(userCtxRole, gameServer.RoleUser)
+				handler.getAllPointsById(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", fmt.Sprintf("/chart_id/%s", tt.paramChartId), nil)
@@ -356,7 +389,7 @@ func TestHandler_getAllPointsById(t *testing.T) {
 }
 
 func TestHandler_deletePoint(t *testing.T) {
-	type mockBehavior func(r *service.MockPoint, id string)
+	type mockBehavior func(r *service.MockPoint, cm *service.MockChart, id string)
 
 	tests := []struct {
 		name                string
@@ -369,7 +402,7 @@ func TestHandler_deletePoint(t *testing.T) {
 		{
 			name:    "ok",
 			paramId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().DeletePoint(idInt).Return(nil)
 			},
@@ -379,28 +412,28 @@ func TestHandler_deletePoint(t *testing.T) {
 		{
 			name:               "incorrect parameter id - negative value",
 			paramId:            "-1",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter id - zero value",
 			paramId:            "0",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect parameter id - not a number",
 			paramId:            "abc",
-			mockBehavior:       func(r *service.MockPoint, id string) {},
+			mockBehavior:       func(r *service.MockPoint, cm *service.MockChart, id string) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:    "internal server error",
 			paramId: "1",
-			mockBehavior: func(r *service.MockPoint, id string) {
+			mockBehavior: func(r *service.MockPoint, cm *service.MockChart, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().DeletePoint(idInt).Return(errors.New(""))
 			},
@@ -412,9 +445,10 @@ func TestHandler_deletePoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pointMock := service.NewMockPoint(t)
-			tt.mockBehavior(pointMock, tt.paramId)
+			chartMock := service.NewMockChart(t)
+			tt.mockBehavior(pointMock, chartMock, tt.paramId)
 
-			services := &service.Service{Point: pointMock}
+			services := &service.Service{Point: pointMock, Chart: chartMock}
 			handler := NewHandler(services)
 
 			gin.SetMode(gin.TestMode)

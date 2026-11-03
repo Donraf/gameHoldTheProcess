@@ -160,6 +160,10 @@ func (h *Handler) getOneUser(c *gin.Context) {
 		return
 	}
 
+	if !h.ownerGuard(c, id) {
+		return
+	}
+
 	user, err := h.services.User.GetOneUser(id)
 	if err != nil {
 		internalErrorResponse(c, err)
@@ -234,6 +238,10 @@ func (h *Handler) getScore(c *gin.Context) {
 		return
 	}
 
+	if !h.ownerGuard(c, userId) {
+		return
+	}
+
 	score, err := h.services.User.GetScore(userId, parSetId)
 	if err != nil {
 		internalErrorResponse(c, err)
@@ -259,6 +267,10 @@ func (h *Handler) getUserParSet(c *gin.Context) {
 	parSetId, err := strconv.Atoi(c.Param("parSetId"))
 	if err != nil || parSetId <= 0 {
 		newErrorResponse(c, http.StatusBadRequest, "invalid parameter parSetId")
+		return
+	}
+
+	if !h.ownerGuard(c, userId) {
 		return
 	}
 
