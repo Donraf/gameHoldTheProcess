@@ -40,19 +40,23 @@ func (p *ChartPostgres) GetOneChart(id int) (gameServer.Chart, error) {
 func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput) (int, error) {
 	var chartsCount int
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "chart_id":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE id=%s", chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE id=$1", chartsTable)
+			args = []any{input.FilterValue}
 		}
 	case "user_login":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE '%%%s%%'", usersTable, chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1", usersTable, chartsTable)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_id":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE user_id=%s", chartsTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE user_id=$1", chartsTable)
+			args = []any{input.FilterValue}
 		}
 	default:
 		{
@@ -60,7 +64,7 @@ func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput)
 		}
 	}
 
-	row := p.db.QueryRow(query)
+	row := p.db.QueryRow(query, args...)
 	if err := row.Scan(&chartsCount); err != nil {
 		return 0, err
 	}
@@ -71,19 +75,23 @@ func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput)
 func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]gameServer.Chart, error) {
 	var charts []gameServer.Chart
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "chart_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE id=%s OFFSET %v LIMIT 9", chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE id=$1 OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
+			args = []any{input.FilterValue}
 		}
 	case "user_login":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE '%%%s%%' OFFSET %v LIMIT 9", usersTable, chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT ct.id, ct.created_at, ct.parameter_set_id, ct.user_id, ct.is_training FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1 OFFSET %v LIMIT 9", usersTable, chartsTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE user_id=%s OFFSET %v LIMIT 9", chartsTable, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE user_id=$1 OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
+			args = []any{input.FilterValue}
 		}
 	default:
 		{
@@ -91,7 +99,7 @@ func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]game
 		}
 	}
 
-	err := p.db.Select(&charts, query)
+	err := p.db.Select(&charts, query, args...)
 
 	return charts, err
 }

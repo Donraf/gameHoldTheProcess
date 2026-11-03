@@ -118,11 +118,13 @@ func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) erro
 func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error) {
 	var users []gameServer.User
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE login LIKE '%%%s%%' OFFSET %v LIMIT 9", usersTable, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE login LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "group_name":
 		{
@@ -131,12 +133,14 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%%%s%%' OFFSET %v LIMIT 9`,
-				groupsTable, userGroupsTable, usersTable, input.FilterValue, (input.CurrentPage-1)*9)
+				 WHERE gt.name LIKE $1 OFFSET %v LIMIT 9`,
+				groupsTable, userGroupsTable, usersTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE name LIKE '%%%s%%' OFFSET %v LIMIT 9", usersTable, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE name LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
 		{
@@ -144,7 +148,7 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 		}
 	}
 
-	err := u.db.Select(&users, query)
+	err := u.db.Select(&users, query, args...)
 
 	return users, err
 
@@ -161,11 +165,13 @@ func (u *UserPostgres) GetOneUser(id int) (gameServer.User, error) {
 func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (int, error) {
 	var usersCount int
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login LIKE '%%%s%%'", usersTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login LIKE $1", usersTable)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "group_name":
 		{
@@ -174,12 +180,14 @@ func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (i
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%%%s%%'`,
-				groupsTable, userGroupsTable, usersTable, input.FilterValue)
+				 WHERE gt.name LIKE $1`,
+				groupsTable, userGroupsTable, usersTable)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE '%%%s%%'", usersTable, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE $1", usersTable)
+			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
 		{
@@ -187,7 +195,7 @@ func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (i
 		}
 	}
 
-	row := u.db.QueryRow(query)
+	row := u.db.QueryRow(query, args...)
 	if err := row.Scan(&usersCount); err != nil {
 		return 0, err
 	}
@@ -267,11 +275,13 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 
 	var users []gameServer.User
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE login LIKE '%%%s%%' AND role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE login LIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	case "group_name":
 		{
@@ -280,22 +290,25 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%s' AND role='%s'
+				 WHERE gt.name LIKE $1 AND role=$2
 				 ORDER BY name 
 				 OFFSET %v LIMIT 9`,
-				groupsTable, userGroupsTable, usersTable, input.FilterValue, gameServer.RoleUser, (input.CurrentPage-1)*9)
+				groupsTable, userGroupsTable, usersTable, (input.CurrentPage-1)*9)
+			args = []any{input.FilterValue, gameServer.RoleUser}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE '%%%s%%' AND role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, input.FilterValue, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE role='%s' ORDER BY name OFFSET %v LIMIT 9", usersTable, gameServer.RoleUser, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE role=$1 ORDER BY name OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			args = []any{gameServer.RoleUser}
 		}
 	}
 
-	err := u.db.Select(&users, query)
+	err := u.db.Select(&users, query, args...)
 
 	for _, user := range users {
 		var parSets []gameServer.ParameterSet
@@ -319,11 +332,13 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error) {
 	var playersCount int
 	var query string
+	var args []any
 
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login LIKE '%%%s%%' AND role='%s'", usersTable, input.FilterValue, gameServer.RoleUser)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login LIKE $1 AND role=$2", usersTable)
+			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	case "group_name":
 		{
@@ -332,20 +347,23 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE '%%%s%%' AND role='%s'`,
-				groupsTable, userGroupsTable, usersTable, input.FilterValue, gameServer.RoleUser)
+				 WHERE gt.name LIKE $1 AND role=$2`,
+				groupsTable, userGroupsTable, usersTable)
+			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE '%%%s%%' AND role='%s'", usersTable, gameServer.RoleUser, input.FilterValue)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE $1 AND role=$2", usersTable)
+			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE role='%s'", usersTable, gameServer.RoleUser)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE role=$1", usersTable)
+			args = []any{gameServer.RoleUser}
 		}
 	}
 
-	row := u.db.QueryRow(query)
+	row := u.db.QueryRow(query, args...)
 	if err := row.Scan(&playersCount); err != nil {
 		return 0, err
 	}

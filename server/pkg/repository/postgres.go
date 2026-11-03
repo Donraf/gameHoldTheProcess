@@ -30,6 +30,10 @@ const (
 	parSetAliasedColumns   = "pst.id, pst.a, pst.b, pst.noise_mean, pst.noise_stdev, pst.false_warning_prob, pst.missing_danger_prob, pst.scoring_config, pst.hint_cost, pst.false_alarm_threshold, pst.rules_text, pst.created_at"
 )
 
+func likePattern(value string) string {
+	return "%" + value + "%"
+}
+
 func NewPostgresDB(cfg Config) (*sqlx.DB, error) {
 	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode))
