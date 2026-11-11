@@ -76,6 +76,7 @@ const AdminUser = () => {
   const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
 
   const [snackErrTexts, setSnackErrTexts] = React.useState([]);
+  const [refreshTick, setRefreshTick] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
 
   const roleNameArr = [
@@ -137,7 +138,7 @@ const AdminUser = () => {
     filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [searchParams, filterData]);
+  }, [searchParams, filterData, refreshTick]);
 
   useEffect(() => {
     snackErrTexts.map((text) =>
@@ -210,7 +211,7 @@ const AdminUser = () => {
         setAge("");
         setRole(USER_ROLE_USER);
         setSelectedGroup("");
-        setSearchParams({ group_name: qGroupName, page: qPage, sort_by: sortBy, sort_dir: sortDir });
+        setRefreshTick((tick) => tick + 1);
       },
       (e) => {
         setAdding(false);
@@ -238,6 +239,7 @@ const AdminUser = () => {
           preventDuplicate: true,
         });
         setSearchParams({ group_name: qGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
+        setRefreshTick((tick) => tick + 1);
       },
       (e) => {
         const serverError = e.response?.data?.error;
@@ -346,7 +348,7 @@ const AdminUser = () => {
           preventDuplicate: true,
         });
         handleClose();
-        setSearchParams({ group_name: qGroupName, page: qPage, sort_by: sortBy, sort_dir: sortDir });
+        setRefreshTick((tick) => tick + 1);
       },
       (e) => {
         setUpdating(false);
