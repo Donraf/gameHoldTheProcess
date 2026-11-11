@@ -71,7 +71,12 @@ func (u *UserService) RefreshToken(accessToken string) (string, error) {
 		return "", err
 	}
 
-	token := createToken(claims.UserId, claims.Login, claims.Role)
+	user, err := u.repo.GetOneUser(claims.UserId)
+	if err != nil {
+		return "", err
+	}
+
+	token := createToken(user.Id, user.Login, user.Role)
 
 	return token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 }
@@ -118,6 +123,21 @@ func generatePasswordHash(password string) string {
 }
 
 func (u *UserService) DeleteUser(id int) error {
+	user, err := u.repo.GetOneUser(id)
+	if err != nil {
+		return err
+	}
+
+	if user.Role == gameServer.RoleAdmin {
+		admins, err := u.repo.CountUsersByRole(gameServer.RoleAdmin)
+		if err != nil {
+			return err
+		}
+		if admins <= 1 {
+			return gameServer.ErrLastAdmin
+		}
+	}
+
 	return u.repo.DeleteUser(id)
 }
 

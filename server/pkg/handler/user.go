@@ -321,8 +321,17 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		return
 	}
 
+	if ctxUserId := c.GetInt(userCtx); ctxUserId != 0 && ctxUserId == id {
+		newErrorResponse(c, http.StatusForbidden, "cannot delete your own account")
+		return
+	}
+
 	err = h.services.User.DeleteUser(id)
 	if err != nil {
+		if errors.Is(err, gameServer.ErrLastAdmin) {
+			newErrorResponse(c, http.StatusConflict, "cannot delete the last administrator")
+			return
+		}
 		internalErrorResponse(c, err)
 		return
 	}

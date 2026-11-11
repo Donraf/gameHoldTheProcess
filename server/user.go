@@ -18,6 +18,8 @@ func ValidRole(role string) bool {
 
 var ErrDuplicateLogin = errors.New("login already taken")
 
+var ErrLastAdmin = errors.New("cannot delete the last administrator")
+
 type User struct {
 	Id              int     `json:"user_id" db:"user_id"`
 	Login           string  `json:"login" binding:"required"`
@@ -113,6 +115,9 @@ func (i *UpdateUserInput) Validate() error {
 	}
 	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
 		return errors.New("current parameter set id is non-positive")
+	}
+	if i.Role != nil && !ValidRole(*i.Role) {
+		return errors.New("invalid role")
 	}
 	return nil
 }

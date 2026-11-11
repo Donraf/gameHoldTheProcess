@@ -85,6 +85,14 @@ func (u *UserPostgres) DeleteUser(id int) error {
 	return err
 }
 
+func (u *UserPostgres) CountUsersByRole(role string) (int, error) {
+	var count int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE role=$1", usersTable)
+	err := u.db.QueryRow(query, role).Scan(&count)
+
+	return count, err
+}
+
 func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) error {
 	setValues := make([]string, 0)
 	args := make([]any, 0)

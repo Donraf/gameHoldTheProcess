@@ -1481,20 +1481,41 @@ func TestHandler_deleteUser(t *testing.T) {
 	tests := []struct {
 		name                string
 		paramId             string
+		ctxUserId           int
 		mockBehavior        mockBehavior
 		expectedStatusCode  int
 		expectedRequestBody string
 		isError             bool
 	}{
 		{
-			name:    "ok",
-			paramId: "1",
+			name:      "ok",
+			paramId:   "1",
+			ctxUserId: 2,
 			mockBehavior: func(r *service.MockUser, id string) {
 				idInt, _ := strconv.Atoi(id)
 				r.EXPECT().DeleteUser(idInt).Return(nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "cannot delete own account",
+			paramId:            "1",
+			ctxUserId:          1,
+			mockBehavior:       func(r *service.MockUser, id string) {},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "cannot delete last administrator",
+			paramId:    "2",
+			ctxUserId:  1,
+			mockBehavior: func(r *service.MockUser, id string) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().DeleteUser(idInt).Return(gameServer.ErrLastAdmin)
+			},
+			expectedStatusCode: 409,
+			isError:            true,
 		},
 		{
 			name:               "incorrect parameter id - negative value",
@@ -1539,7 +1560,13 @@ func TestHandler_deleteUser(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.DELETE("/:id", handler.deleteUser)
+			r.DELETE("/:id", func(c *gin.Context) {
+				if tt.ctxUserId != 0 {
+					c.Set(userCtx, tt.ctxUserId)
+					c.Set(userCtxRole, gameServer.RoleAdmin)
+				}
+				handler.deleteUser(c)
+			})
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("DELETE", fmt.Sprintf("/%s", tt.paramId), nil)
@@ -1586,6 +1613,14 @@ func TestHandler_updateUser(t *testing.T) {
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:            "invalid role rejected",
+			paramId:         "1",
+			inputBody:       `{"role": "Superuser"}`,
+			mockBehavior:    func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
 		},
 		{
 			name:      "internal server error",

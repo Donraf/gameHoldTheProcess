@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER, USER_GENDER_FEMALE, USER_GENDER_MALE } from "../utils/constants";
 import {
   Autocomplete,
@@ -10,12 +10,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControlLabel,
   MenuItem,
   Pagination,
   Paper,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -27,6 +25,7 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
+import { Context } from "../index";
 import { createUser, deleteUser, fetchUsers, getAllGroups, getUsersPageCount, updateUser } from "../http/userAPI";
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
@@ -35,6 +34,7 @@ import { useSnackbar } from "notistack";
 import { useSearchParams } from "react-router-dom";
 
 const AdminUser = () => {
+  const { user: userStore } = useContext(Context);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -49,10 +49,13 @@ const AdminUser = () => {
 
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRole, setUpdateRole] = useState(USER_ROLE_USER);
+  const [editUser, setEditUser] = useState(null);
 
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
   const [open, setOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [currentId, setCurrentId] = React.useState(0);
   const [pageCount, setPageCount] = React.useState(1);
 
@@ -192,21 +195,38 @@ const AdminUser = () => {
         setSearchParams({ group_name: qGroupName, page: 1 });
       },
       (e) => {
-        let additionalText = "";
-        if (e.message.includes("Нарушение ограничений")) additionalText = "\n" + e.message;
-        enqueueSnackbar("Ошибка при удалении пользователя" + additionalText, {
+        const serverError = e.response?.data?.error;
+        enqueueSnackbar("Ошибка при удалении пользователя" + (serverError ? `: ${serverError}` : ""), {
           variant: "error",
-          autoHideDuration: 3000,
+          autoHideDuration: 4000,
           preventDuplicate: true,
         });
       }
     );
   };
 
+  const handleDeleteOpen = (user) => {
+    setDeleteTarget(user);
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteTarget(null);
+    setDeleteOpen(false);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget != null) {
+      deleteUserUi(deleteTarget.user_id);
+    }
+    handleDeleteClose();
+  };
+
   const updateUserUi = (id) => {
     let snackErrors = [];
-    if (updatePassword === "") {
-      snackErrors.push("Введите информацию, которую нужно изменить");
+    const roleChanged = editUser != null && updateRole !== editUser.role;
+    if (updatePassword === "" && !roleChanged) {
+      snackErrors.push("Нечего изменять: задайте новый пароль или новую роль");
     }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
@@ -217,7 +237,7 @@ const AdminUser = () => {
     if (updatePassword) {
       updateInfo.password = updatePassword;
     }
-    if (updateRole) {
+    if (roleChanged) {
       updateInfo.role = updateRole;
     }
     updateUser(id, updateInfo).then(
@@ -227,12 +247,12 @@ const AdminUser = () => {
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setUpdatePassword("");
-        setUpdateRole(USER_ROLE_USER);
+        handleClose();
         setSearchParams({ group_name: qGroupName, page: qPage });
       },
-      (_) => {
-        enqueueSnackbar("Ошибка при обновлении пользователя", {
+      (e) => {
+        const serverError = e.response?.data?.error;
+        enqueueSnackbar("Ошибка при обновлении пользователя" + (serverError ? `: ${serverError}` : ""), {
           variant: "error",
           autoHideDuration: 3000,
           preventDuplicate: true,
@@ -241,13 +261,16 @@ const AdminUser = () => {
     );
   };
 
-  const handleClickOpen = (id) => {
-    setCurrentId(id);
+  const handleClickOpen = (user) => {
+    setCurrentId(user.user_id);
+    setEditUser(user);
+    setUpdateRole(user.role);
     setOpen(true);
   };
 
   const handleClose = () => {
     setCurrentId(0);
+    setEditUser(null);
     setUpdatePassword("");
     setUpdateRole(USER_ROLE_USER);
     setOpen(false);
@@ -428,15 +451,16 @@ const AdminUser = () => {
                       <TableCell sx={{ width: 75 }}>
                         <Stack direction="row" spacing={1}>
                           <ImageButton
+                            disabled={user.user_id === userStore.user.user_id}
                             onClick={() => {
-                              deleteUserUi(user.user_id);
+                              handleDeleteOpen(user);
                             }}
                           >
                             <DeleteIcon />
                           </ImageButton>
                           <ImageButton
                             onClick={() => {
-                              handleClickOpen(user.user_id);
+                              handleClickOpen(user);
                             }}
                           >
                             <EditIcon />
@@ -478,33 +502,65 @@ const AdminUser = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Изменить пользователя</DialogTitle>
         <DialogContent>
-          <DialogContentText>Введите новые данные в поля, которые хотите изменить.</DialogContentText>
+          <DialogContentText>
+            {editUser != null ? `${editUser.login} (${editUser.name}). Введите новые данные в поля, которые хотите изменить.` : ""}
+          </DialogContentText>
           <Stack width={"100%"} direction="column" spacing={2}>
             <TextField
               onChange={(event) => {
                 setUpdatePassword(event.target.value);
               }}
               value={updatePassword}
-              id="outlined-basic"
-              label="Введите пароль пользователя"
+              id="update-password-field"
+              label="Новый пароль (оставьте пустым, чтобы не менять)"
+              type="password"
+              autoComplete="new-password"
               variant="outlined"
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  onChange={(event) => {
-                    event.target.checked ? setUpdateRole(USER_ROLE_ADMIN) : setUpdateRole(USER_ROLE_USER);
-                  }}
-                />
+            <TextField
+              select
+              value={updateRole}
+              onChange={(event) => {
+                setUpdateRole(event.target.value);
+              }}
+              id="update-role-select"
+              label="Роль"
+              helperText={
+                editUser != null && updateRole === editUser.role
+                  ? "Измените роль, иначе она не будет отправлена"
+                  : "Текущая роль: " + (editUser != null ? roleNameMap.get(editUser.role) : "")
               }
-              label="Сделать администратором?"
-            />
+              variant="outlined"
+            >
+              {roleNameArr.map((item) => (
+                <MenuItem key={item[0]} value={item[0]}>
+                  {item[1]}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
           <Button onClick={() => updateUserUi(currentId)} type="submit">
             Изменить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onClose={handleDeleteClose}>
+        <DialogTitle>Удалить пользователя?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {deleteTarget != null
+              ? `Вы уверены, что хотите удалить пользователя "${deleteTarget.login}" (${deleteTarget.name})? Это действие необратимо и удалит все связанные с ним данные.`
+              : ""}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose}>Отмена</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Удалить
           </Button>
         </DialogActions>
       </Dialog>

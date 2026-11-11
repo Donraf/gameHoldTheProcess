@@ -4,7 +4,7 @@ import "./ImageButton.css";
 class ImageButton extends React.Component {
   render() {
     return (
-      <button className="ImageButton" onClick={this.props.onClick}>
+      <button className="ImageButton" disabled={this.props.disabled} onClick={this.props.onClick}>
         {this.props.children}
       </button>
     );

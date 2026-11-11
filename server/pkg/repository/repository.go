@@ -9,6 +9,7 @@ type User interface {
 	CreateUser(user gameServer.RegisterUserInput) (int, error)
 	GetUser(login, password string) (gameServer.User, error)
 	DeleteUser(id int) error
+	CountUsersByRole(role string) (int, error)
 	UpdateUser(id int, input gameServer.UpdateUserInput) error
 	GetAllUsers(input gameServer.GetAllUsersInput) ([]gameServer.User, error)
 	GetOneUser(id int) (gameServer.User, error)
