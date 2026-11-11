@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -49,7 +48,7 @@ func (t *TestPostgres) GetOneTest(id int) (gameServer.Test, error) {
 
 func (t *TestPostgres) CreateTest(input gameServer.CreateTestInput) (int, error) {
 	var id int
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	query := fmt.Sprintf(
 		"INSERT INTO %s (slug, title, description, config, is_active, sort_order, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
 		testsTable,
@@ -95,7 +94,7 @@ func (t *TestPostgres) UpdateTest(id int, input gameServer.UpdateTestInput) erro
 	}
 
 	setValues = append(setValues, fmt.Sprintf("updated_at=$%d", argId))
-	args = append(args, time.Now().UTC().Add(3*time.Hour))
+	args = append(args, gameServer.Now())
 	argId++
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE id=$%d", testsTable, strings.Join(setValues, ", "), argId)
@@ -130,7 +129,7 @@ func (t *TestPostgres) GetCompletedTestIds(userId int) (map[int]bool, error) {
 
 func (t *TestPostgres) CreateTestResult(userId int, input gameServer.SubmitTestResultInput, score *float64) (int, error) {
 	var id int
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	query := fmt.Sprintf(
 		`INSERT INTO %s (user_id, test_id, answers, score, completed_at) VALUES ($1, $2, $3, $4, $5)
 		 ON CONFLICT (user_id, test_id) DO UPDATE SET answers=EXCLUDED.answers, score=EXCLUDED.score, completed_at=EXCLUDED.completed_at

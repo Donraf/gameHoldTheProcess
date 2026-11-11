@@ -4,7 +4,7 @@ export const getRemTime = (time_start, time_limit) => {
   }
 
   let startDate = new Date(time_start);
-  const diffTime = Date.now() - startDate.getTime() + 3 * 60 * 60 * 1000;
+  const diffTime = Date.now() - startDate.getTime();
 
   if (diffTime > time_limit) {
     return millisToMinutesAndSeconds(0);
@@ -19,7 +19,7 @@ export const getRemTimeRaw = (time_start, time_limit) => {
   }
 
   let startDate = new Date(time_start);
-  const diffTime = Date.now() - startDate.getTime() + 3 * 60 * 60 * 1000;
+  const diffTime = Date.now() - startDate.getTime();
 
   if (diffTime > time_limit) {
     return 0;

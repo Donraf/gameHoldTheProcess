@@ -1,0 +1,10 @@
+UPDATE users SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE parameter_sets SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE groups SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE user_parameter_sets SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE user_parameter_sets SET training_start_time = training_start_time + INTERVAL '3 hours' WHERE training_start_time IS NOT NULL;
+UPDATE user_parameter_sets SET game_start_time = game_start_time + INTERVAL '3 hours' WHERE game_start_time IS NOT NULL;
+UPDATE charts SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE points SET created_at = created_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE tests SET created_at = created_at + INTERVAL '3 hours', updated_at = updated_at + INTERVAL '3 hours' WHERE created_at IS NOT NULL;
+UPDATE test_results SET completed_at = completed_at + INTERVAL '3 hours' WHERE completed_at IS NOT NULL;

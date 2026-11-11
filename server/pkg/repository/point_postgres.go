@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -20,7 +19,7 @@ func (p *PointPostgres) CreatePoint(input gameServer.Point) (int, error) {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, created_at, chart_id, check_info) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id", pointsTable)
 
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	row := p.db.QueryRow(query, input.X, input.Y, input.Score, input.IsCrash,
 		input.IsUsefulAiSignal, input.IsDeceptiveAiSignal, input.IsStop, input.IsPause,
 		input.IsCheck, timeNow, input.ChartId, input.CheckInfo)

@@ -46,7 +46,7 @@ func TestHandler_createPoint(t *testing.T) {
 			},
 			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
 				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
 				pm.EXPECT().CreatePoint(point).Return(1, nil)
 			},
@@ -87,7 +87,7 @@ func TestHandler_createPoint(t *testing.T) {
 			ctxUserId: 1,
 			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
 				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
-				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				expired := gameServer.Now().Add(-50 * time.Minute)
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
 			},
 			expectedStatusCode: 403,
@@ -119,7 +119,7 @@ func TestHandler_createPoint(t *testing.T) {
 			},
 			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, point gameServer.Point) {
 				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
 				pm.EXPECT().CreatePoint(point).Return(0, errors.New(""))
 			},

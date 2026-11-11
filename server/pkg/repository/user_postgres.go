@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -41,7 +40,7 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 	}
 
 	var userId int
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	query := fmt.Sprintf("INSERT INTO %s (login, password, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING user_id", usersTable)
 	row := tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, input.Profession, input.ExperienceYears, input.Gender, input.Age, timeNow)
 	if err := row.Scan(&userId); err != nil {
@@ -264,7 +263,7 @@ func (u *UserPostgres) CreateGroup(input gameServer.CreateGroupInput) (int, erro
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (name, creator_id, parameter_set_id, created_at) VALUES ($1, $2, $3, $4) RETURNING id", groupsTable)
 
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	row := u.db.QueryRow(query, input.Name, input.CreatorId, input.ParSetId, timeNow)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -576,7 +575,7 @@ func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSe
 		return err
 	}
 
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
 	_, err = tx.Exec(query, 0, id, input.ParSetId, true, nil, nil, timeNow)
 	if err != nil {
@@ -648,7 +647,7 @@ func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput
 			return err
 		}
 
-		timeNow := time.Now().UTC().Add(3 * time.Hour)
+		timeNow := gameServer.Now()
 		query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
 		_, err = tx.Exec(query, 0, userId, input.ParSetId, true, nil, nil, timeNow)
 		if err != nil {

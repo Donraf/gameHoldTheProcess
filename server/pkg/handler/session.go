@@ -66,7 +66,7 @@ func (h *Handler) sessionGuard(c *gin.Context, userId, parSetId int) (gameServer
 		return ups, false
 	}
 
-	now := gameServer.NowDbClock()
+	now := gameServer.Now()
 	fetched.RemTimeMs = fetched.RemTime(now)
 
 	if fetched.CurrentSessionStart() == nil {
@@ -107,7 +107,7 @@ func (h *Handler) startSession(c *gin.Context) {
 		return
 	}
 
-	now := gameServer.NowDbClock()
+	now := gameServer.Now()
 	startTime := now
 
 	if ups.IsTraining {

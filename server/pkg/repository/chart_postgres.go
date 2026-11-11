@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -20,7 +19,7 @@ func (p *ChartPostgres) CreateChart(chart gameServer.CreateChartInput) (int, err
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (parameter_set_id, user_id, is_training, created_at) VALUES ($1, $2, $3, $4) RETURNING id", chartsTable)
 
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	row := p.db.QueryRow(query, chart.ParameterSetId, chart.UserId, chart.IsTraining, timeNow)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
@@ -145,7 +144,7 @@ func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, e
 		parameterSetsTable,
 	)
 
-	timeNow := time.Now().UTC().Add(3 * time.Hour)
+	timeNow := gameServer.Now()
 	row := p.db.QueryRow(
 		query,
 		input.A,

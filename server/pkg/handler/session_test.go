@@ -53,7 +53,7 @@ func TestHandler_startSession(t *testing.T) {
 			inputBody: `{"par_set_id": 1}`,
 			ctxUserId: 1,
 			mockBehavior: func(r *service.MockUser) {
-				start := gameServer.NowDbClock().Add(-5 * time.Minute)
+				start := gameServer.Now().Add(-5 * time.Minute)
 				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 			},
 			expectedStatusCode: 200,

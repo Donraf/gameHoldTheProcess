@@ -10,7 +10,6 @@ const (
 	trainingLimitPlaceholder = "{{TRAINING_LIMIT_MIN}}"
 	gameLimitPlaceholder     = "{{GAME_LIMIT_MIN}}"
 	sessionEndGrace          = 2 * time.Minute
-	dbClockUtcOffset         = 3 * time.Hour
 )
 
 var (
@@ -27,6 +26,10 @@ func SetTimeLimits(training, game time.Duration) {
 	}
 }
 
+func Now() time.Time {
+	return time.Now().UTC()
+}
+
 func SubstituteTimeLimits(text string) string {
 	return strings.NewReplacer(
 		trainingLimitPlaceholder, strconv.Itoa(int(TrainingTimeLimit.Minutes())),
@@ -38,10 +41,6 @@ func ApplySessionMeta(ps *ParameterSet) {
 	ps.TrainingLimitMin = int(TrainingTimeLimit.Minutes())
 	ps.GameLimitMin = int(GameTimeLimit.Minutes())
 	ps.RulesText = SubstituteTimeLimits(ps.RulesText)
-}
-
-func NowDbClock() time.Time {
-	return time.Now().UTC().Add(dbClockUtcOffset)
 }
 
 func (ups *UserParameterSet) CurrentSessionStart() *time.Time {

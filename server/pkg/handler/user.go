@@ -280,7 +280,7 @@ func (h *Handler) getUserParSet(c *gin.Context) {
 		return
 	}
 
-	ups.RemTimeMs = ups.RemTime(gameServer.NowDbClock())
+	ups.RemTimeMs = ups.RemTime(gameServer.Now())
 
 	c.JSON(http.StatusOK, getUserParSetResponse{
 		UserParameterSet: ups,

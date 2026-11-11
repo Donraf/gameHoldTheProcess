@@ -37,7 +37,7 @@ func TestHandler_createChart(t *testing.T) {
 				UserId:         1,
 			},
 			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				cm.EXPECT().CreateChart(createChartInput).Return(1, nil)
 			},
@@ -67,7 +67,7 @@ func TestHandler_createChart(t *testing.T) {
 			inputBody: `{"par_set_id": 1, "user_id": 1}`,
 			ctxUserId: 1,
 			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
-				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				expired := gameServer.Now().Add(-50 * time.Minute)
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
 			},
 			expectedStatusCode: 403,
@@ -132,7 +132,7 @@ func TestHandler_createChart(t *testing.T) {
 				UserId:         1,
 			},
 			mockBehavior: func(cm *service.MockChart, um *service.MockUser, createChartInput gameServer.CreateChartInput) {
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				cm.EXPECT().CreateChart(createChartInput).Return(0, errors.New(""))
 			},

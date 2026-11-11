@@ -525,7 +525,7 @@ func TestHandler_updateScore(t *testing.T) {
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
 			},
@@ -550,7 +550,7 @@ func TestHandler_updateScore(t *testing.T) {
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(nil)
 			},
@@ -581,7 +581,7 @@ func TestHandler_updateScore(t *testing.T) {
 			inputBody: `{"userId": 1, "parSetId": 1, "score": 100}`,
 			ctxUserId: 1,
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
-				expired := gameServer.NowDbClock().Add(-50 * time.Minute)
+				expired := gameServer.Now().Add(-50 * time.Minute)
 				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
 			},
 			expectedStatusCode: 403,
@@ -605,7 +605,7 @@ func TestHandler_updateScore(t *testing.T) {
 				Score:    100,
 			},
 			mockBehavior: func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {
-				start := gameServer.NowDbClock()
+				start := gameServer.Now()
 				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil)
 				r.EXPECT().UpdateScore(updateScoreInput).Return(errors.New(""))
 			},
