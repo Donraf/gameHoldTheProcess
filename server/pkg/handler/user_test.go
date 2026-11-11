@@ -225,6 +225,60 @@ func TestHandler_registration(t *testing.T) {
 			isError:            true,
 		},
 		{
+			name:               "invalid experience months",
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "experience_months":12, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:      "ok with years and months",
+			inputBody: `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":2, "experience_months":7, "gender":"Мужской", "age":30}`,
+			userInput: func() gameServer.RegisterUserInput {
+				input := validRegisterUserInput()
+				input.Login = "login"
+				input.ExperienceYears = 2
+				input.ExperienceMonths = 7
+				return input
+			}(),
+			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
+				r.EXPECT().CreateUser(userInput).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:      "ok with zero experience",
+			inputBody: `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Специалист", "experience_years":0, "experience_months":0, "gender":"Мужской", "age":30}`,
+			userInput: func() gameServer.RegisterUserInput {
+				input := validRegisterUserInput()
+				input.Login = "login"
+				input.Profession = "Специалист"
+				input.ExperienceYears = 0
+				input.ExperienceMonths = 0
+				return input
+			}(),
+			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
+				r.EXPECT().CreateUser(userInput).Return("token", nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"token":"token"}`,
+		},
+		{
+			name:               "negative experience years rejected",
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":-1, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "negative experience months rejected",
+			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":1, "experience_months":-1, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
 			name:               "empty profession",
 			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"", "experience_years":5, "gender":"Мужской", "age":30}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},

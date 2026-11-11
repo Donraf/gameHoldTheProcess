@@ -27,6 +27,7 @@ type User struct {
 	CurParSetId     int     `json:"cur_par_set_id" db:"cur_par_set_id"`
 	Profession      *string `json:"profession,omitempty" db:"profession"`
 	ExperienceYears *int    `json:"experience_years,omitempty" db:"experience_years"`
+	ExperienceMonths *int   `json:"experience_months,omitempty" db:"experience_months"`
 	Gender          *string `json:"gender,omitempty" db:"gender"`
 	Age             *int    `json:"age,omitempty" db:"age"`
 	CreatedAt       string  `json:"created_at" db:"created_at"`
@@ -55,16 +56,17 @@ type PlayerEvent struct {
 }
 
 type RegisterUserInput struct {
-	Login           string `json:"login" binding:"required"`
-	Password        string `json:"password" binding:"required"`
-	Name            string `json:"name" binding:"required"`
-	Role            string `json:"role" binding:"required"`
-	Profession      string `json:"profession" binding:"required"`
-	ExperienceYears int    `json:"experience_years" binding:"required"`
-	Gender          string `json:"gender" binding:"required"`
-	Age             int    `json:"age" binding:"required"`
-	CurParSetId     *int   `json:"cur_par_set_id"`
-	GroupId         *int   `json:"group_id"`
+	Login            string `json:"login" binding:"required"`
+	Password         string `json:"password" binding:"required"`
+	Name             string `json:"name" binding:"required"`
+	Role             string `json:"role" binding:"required"`
+	Profession       string `json:"profession" binding:"required"`
+	ExperienceYears  int    `json:"experience_years"`
+	ExperienceMonths int    `json:"experience_months"`
+	Gender           string `json:"gender" binding:"required"`
+	Age              int    `json:"age" binding:"required"`
+	CurParSetId      *int   `json:"cur_par_set_id"`
+	GroupId          *int   `json:"group_id"`
 }
 
 func (i *RegisterUserInput) Vaildate() error {
@@ -79,6 +81,9 @@ func (i *RegisterUserInput) Vaildate() error {
 	}
 	if i.ExperienceYears < 0 {
 		return errors.New("experience years is negative")
+	}
+	if i.ExperienceMonths < 0 || i.ExperienceMonths > 11 {
+		return errors.New("experience months is out of range 0-11")
 	}
 	if strings.TrimSpace(i.Gender) == "" {
 		return errors.New("gender is empty")

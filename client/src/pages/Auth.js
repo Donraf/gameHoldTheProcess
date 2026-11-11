@@ -31,6 +31,7 @@ const Auth = observer(() => {
   const [name, setName] = useState("");
   const [profession, setProfession] = useState("");
   const [experienceYears, setExperienceYears] = useState("");
+  const [experienceMonths, setExperienceMonths] = useState("0");
   const [gender, setGender] = useState(USER_GENDER_MALE);
   const [age, setAge] = useState("");
 
@@ -48,6 +49,9 @@ const Auth = observer(() => {
     }
     if (experienceYears === "" || Number(experienceYears) < 0) {
       return "Введите корректный стаж (в годах)";
+    }
+    if (experienceMonths === "" || Number(experienceMonths) < 0 || Number(experienceMonths) > 11) {
+      return "Введите корректный стаж (в месяцах, от 0 до 11)";
     }
     if (age === "" || Number(age) <= 0 || Number(age) > 150) {
       return "Введите корректный возраст";
@@ -81,6 +85,7 @@ const Auth = observer(() => {
         data = await registration(userLogin, password, name, {
           profession: profession.trim(),
           experienceYears: Number(experienceYears),
+          experienceMonths: Number(experienceMonths),
           gender,
           age: Number(age),
         }, groupId);
@@ -171,6 +176,18 @@ const Auth = observer(() => {
                 value={experienceYears}
                 id="experience-field"
                 label="Стаж (лет)"
+                helperText="Можно указать 0 — без стажа"
+                variant="outlined"
+              />
+              <TextField
+                type="number"
+                inputProps={{ min: 0, max: 11 }}
+                onChange={(event) => {
+                  setExperienceMonths(event.target.value);
+                }}
+                value={experienceMonths}
+                id="experience-months-field"
+                label="Стаж (месяцев, 0-11)"
                 variant="outlined"
               />
               <TextField

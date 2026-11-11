@@ -41,8 +41,8 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 
 	var userId int
 	timeNow := gameServer.Now()
-	query := fmt.Sprintf("INSERT INTO %s (login, password, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING user_id", usersTable)
-	row := tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, input.Profession, input.ExperienceYears, input.Gender, input.Age, timeNow)
+	query := fmt.Sprintf("INSERT INTO %s (login, password, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING user_id", usersTable)
+	row := tx.QueryRow(query, input.Login, input.Password, input.Name, input.Role, parSetId, input.Profession, input.ExperienceYears, input.ExperienceMonths, input.Gender, input.Age, timeNow)
 	if err := row.Scan(&userId); err != nil {
 		tx.Rollback()
 		if isUniqueViolation(err) {
@@ -125,13 +125,13 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE login LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE login LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "group_name":
 		{
 			query = fmt.Sprintf(
-				`SELECT ut.user_id, ut.login, ut.name, ut.role, ut.cur_par_set_id, ut.profession, ut.experience_years, ut.gender, ut.age, ut.created_at
+				`SELECT ut.user_id, ut.login, ut.name, ut.role, ut.cur_par_set_id, ut.profession, ut.experience_years, ut.experience_months, ut.gender, ut.age, ut.created_at
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
@@ -141,12 +141,12 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE name LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE name LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
 		}
 	}
 
@@ -158,7 +158,7 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 
 func (u *UserPostgres) GetOneUser(id int) (gameServer.User, error) {
 	var user gameServer.User
-	query := fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, gender, age, created_at FROM %s WHERE user_id=$1", usersTable)
+	query := fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE user_id=$1", usersTable)
 	err := u.db.Get(&user, query, id)
 
 	return user, err

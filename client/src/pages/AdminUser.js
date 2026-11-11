@@ -40,6 +40,7 @@ const AdminUser = () => {
   const [name, setName] = useState("");
   const [profession, setProfession] = useState("");
   const [experienceYears, setExperienceYears] = useState("");
+  const [experienceMonths, setExperienceMonths] = useState("0");
   const [gender, setGender] = useState(USER_GENDER_MALE);
   const [age, setAge] = useState("");
   const [role, setRole] = useState(USER_ROLE_USER);
@@ -129,6 +130,9 @@ const AdminUser = () => {
     if (experienceYears === "" || Number(experienceYears) < 0) {
       snackErrors.push("Введите корректный стаж пользователя");
     }
+    if (experienceMonths === "" || Number(experienceMonths) < 0 || Number(experienceMonths) > 11) {
+      snackErrors.push("Введите корректный стаж пользователя в месяцах (0-11)");
+    }
     if (age === "" || Number(age) <= 0 || Number(age) > 150) {
       snackErrors.push("Введите корректный возраст пользователя");
     }
@@ -145,6 +149,7 @@ const AdminUser = () => {
     createUser(login, password, name, role, {
       profession: profession.trim(),
       experienceYears: Number(experienceYears),
+      experienceMonths: Number(experienceMonths),
       gender,
       age: Number(age),
     }, groupId).then(
@@ -159,6 +164,7 @@ const AdminUser = () => {
         setName("");
         setProfession("");
         setExperienceYears("");
+        setExperienceMonths("0");
         setGender(USER_GENDER_MALE);
         setAge("");
         setRole(USER_ROLE_USER);
@@ -296,6 +302,19 @@ const AdminUser = () => {
             value={experienceYears}
             id="experience-field"
             label="Стаж (лет)"
+            helperText="Можно указать 0 — без стажа"
+            required={true}
+            variant="outlined"
+          />
+          <TextField
+            type="number"
+            inputProps={{ min: 0, max: 11 }}
+            onChange={(event) => {
+              setExperienceMonths(event.target.value);
+            }}
+            value={experienceMonths}
+            id="experience-months-field"
+            label="Стаж (месяцев, 0-11)"
             required={true}
             variant="outlined"
           />
