@@ -202,6 +202,8 @@ type GetAllUsersInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`
 	CurrentPage int    `json:"current_page"`
+	SortBy      string `json:"sort_by"`
+	SortDir     string `json:"sort_dir"`
 }
 
 func (i *GetAllUsersInput) Validate() error {
@@ -209,6 +211,40 @@ func (i *GetAllUsersInput) Validate() error {
 		return errors.New("current page is equal or less than zero")
 	}
 	return nil
+}
+
+// OrderByClause builds a safe ORDER BY fragment. The sort column is resolved
+// through a fixed whitelist, so the requested values are never interpolated raw.
+func (i *GetAllUsersInput) OrderByClause(alias string) string {
+	dir := "ASC"
+	if strings.EqualFold(i.SortDir, "desc") {
+		dir = "DESC"
+	}
+
+	prefix := ""
+	if alias != "" {
+		prefix = alias + "."
+	}
+
+	var expr string
+	switch i.SortBy {
+	case "name":
+		expr = prefix + "name"
+	case "role":
+		expr = prefix + "role"
+	case "profession":
+		expr = prefix + "profession"
+	case "age":
+		expr = "COALESCE(" + prefix + "age, 0)"
+	case "experience":
+		expr = "(COALESCE(" + prefix + "experience_years, 0) * 12 + COALESCE(" + prefix + "experience_months, 0))"
+	case "login":
+		expr = prefix + "login"
+	default:
+		expr = prefix + "login"
+	}
+
+	return expr + " " + dir + ", " + prefix + "user_id ASC"
 }
 
 type UpdateScoreInput struct {

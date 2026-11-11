@@ -169,7 +169,7 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 	switch input.FilterTag {
 	case "login":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE login LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE login LIKE $1 ORDER BY %s OFFSET %v LIMIT 9", usersTable, input.OrderByClause(""), (input.CurrentPage-1)*9)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "group_name":
@@ -179,18 +179,18 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE $1 OFFSET %v LIMIT 9`,
-				groupsTable, userGroupsTable, usersTable, (input.CurrentPage-1)*9)
+				 WHERE gt.name LIKE $1 ORDER BY %s OFFSET %v LIMIT 9`,
+				groupsTable, userGroupsTable, usersTable, input.OrderByClause("ut"), (input.CurrentPage-1)*9)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE name LIKE $1 OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE name LIKE $1 ORDER BY %s OFFSET %v LIMIT 9", usersTable, input.OrderByClause(""), (input.CurrentPage-1)*9)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s OFFSET %v LIMIT 9", usersTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s ORDER BY %s OFFSET %v LIMIT 9", usersTable, input.OrderByClause(""), (input.CurrentPage-1)*9)
 		}
 	}
 

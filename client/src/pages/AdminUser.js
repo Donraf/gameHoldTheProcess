@@ -19,6 +19,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TableSortLabel,
   TableRow,
   TextField,
   Toolbar,
@@ -84,6 +85,28 @@ const AdminUser = () => {
   ];
   const roleNameMap = new Map(roleNameArr);
 
+  const headCells = [
+    { id: "login", label: "Логин" },
+    { id: "role", label: "Роль" },
+    { id: "name", label: "ФИО" },
+    { id: "profession", label: "Профессия" },
+    { id: "experience", label: "Стаж" },
+    { id: "age", label: "Возраст" },
+  ];
+
+  const sortBy = searchParams.get("sort_by") || "login";
+  const sortDir = searchParams.get("sort_dir") === "desc" ? "desc" : "asc";
+
+  const handleRequestSort = (columnId) => {
+    const isAsc = sortBy === columnId && sortDir === "asc";
+    setSearchParams({
+      group_name: qGroupName,
+      page: 1,
+      sort_by: columnId,
+      sort_dir: isAsc ? "desc" : "asc",
+    });
+  };
+
   const fetchGroups = () => {
     getAllGroups().then((data) => {
       setFetchedGroups(data);
@@ -95,15 +118,15 @@ const AdminUser = () => {
     let newPageCount;
     const currentPage = parseInt(qPage) || 1;
     if (qGroupName) {
-      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, currentPage);
+      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, currentPage, sortBy, sortDir);
       newPageCount = await getUsersPageCount("group_name", qGroupName);
     } else {
-      filteredDataFromQuery = await fetchUsers(null, null, currentPage);
+      filteredDataFromQuery = await fetchUsers(null, null, currentPage, sortBy, sortDir);
       newPageCount = await getUsersPageCount();
     }
     setPageCount(newPageCount);
     setFilteredData(filteredDataFromQuery);
-  }, [qGroupName, qPage]);
+  }, [qGroupName, qPage, sortBy, sortDir]);
 
   useEffect(() => {
     fetchGroups();
@@ -187,7 +210,7 @@ const AdminUser = () => {
         setAge("");
         setRole(USER_ROLE_USER);
         setSelectedGroup("");
-        setSearchParams({ group_name: qGroupName, page: qPage });
+        setSearchParams({ group_name: qGroupName, page: qPage, sort_by: sortBy, sort_dir: sortDir });
       },
       (e) => {
         setAdding(false);
@@ -214,7 +237,7 @@ const AdminUser = () => {
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setSearchParams({ group_name: qGroupName, page: 1 });
+        setSearchParams({ group_name: qGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
       },
       (e) => {
         const serverError = e.response?.data?.error;
@@ -323,7 +346,7 @@ const AdminUser = () => {
           preventDuplicate: true,
         });
         handleClose();
-        setSearchParams({ group_name: qGroupName, page: qPage });
+        setSearchParams({ group_name: qGroupName, page: qPage, sort_by: sortBy, sort_dir: sortDir });
       },
       (e) => {
         setUpdating(false);
@@ -516,7 +539,7 @@ const AdminUser = () => {
             onChange={(_, newValue) => {
               const newSelectedGroupName = newValue ? newValue.name : "";
               setSelectedGroupName(newSelectedGroupName);
-              setSearchParams({ group_name: newSelectedGroupName, page: 1 });
+              setSearchParams({ group_name: newSelectedGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
             }}
             sx={{
               flexGrow: 9,
@@ -528,12 +551,21 @@ const AdminUser = () => {
               <TableHead>
                 <TableRow>
                   <TableCell />
-                  <TableCell>Логин</TableCell>
-                  <TableCell>Роль</TableCell>
-                  <TableCell>ФИО</TableCell>
-                  <TableCell>Профессия</TableCell>
-                  <TableCell>Стаж</TableCell>
-                  <TableCell>Возраст</TableCell>
+                  {headCells.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      sortDirection={sortBy === column.id ? sortDir : false}
+                      sx={{ whiteSpace: "nowrap" }}
+                    >
+                      <TableSortLabel
+                        active={sortBy === column.id}
+                        direction={sortBy === column.id ? sortDir : "asc"}
+                        onClick={() => handleRequestSort(column.id)}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -583,7 +615,7 @@ const AdminUser = () => {
               count={pageCount}
               page={parseInt(qPage) || 1}
               onChange={(event, value) => {
-                setSearchParams({ group_name: qGroupName, page: value });
+                setSearchParams({ group_name: qGroupName, page: value, sort_by: sortBy, sort_dir: sortDir });
               }}
               variant="outlined"
               shape="rounded"

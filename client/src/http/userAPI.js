@@ -102,12 +102,14 @@ export const getUserParSet = async (userId, parSetId) => {
   }
 };
 
-export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null) => {
+export const fetchUsers = async (filterTag = null, filterValue = null, currentPage = null, sortBy = null, sortDir = null) => {
   try {
     const { data } = await $authHost.post("api/user/users", {
       filter_tag: filterTag,
       filter_value: String(filterValue),
       current_page: currentPage,
+      sort_by: sortBy,
+      sort_dir: sortDir,
     });
     if (data.data === null || data.data.length === 0) {
       return [];
