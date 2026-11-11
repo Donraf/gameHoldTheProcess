@@ -49,7 +49,16 @@ const AdminUser = () => {
 
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRole, setUpdateRole] = useState(USER_ROLE_USER);
+  const [updateName, setUpdateName] = useState("");
+  const [updateProfession, setUpdateProfession] = useState("");
+  const [updateExperienceYears, setUpdateExperienceYears] = useState("");
+  const [updateExperienceMonths, setUpdateExperienceMonths] = useState("");
+  const [updateGender, setUpdateGender] = useState(USER_GENDER_MALE);
+  const [updateAge, setUpdateAge] = useState("");
   const [editUser, setEditUser] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
@@ -84,11 +93,12 @@ const AdminUser = () => {
   const filterData = useCallback(async () => {
     let filteredDataFromQuery;
     let newPageCount;
+    const currentPage = parseInt(qPage) || 1;
     if (qGroupName) {
-      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, parseInt(qPage));
+      filteredDataFromQuery = await fetchUsers("group_name", qGroupName, currentPage);
       newPageCount = await getUsersPageCount("group_name", qGroupName);
     } else {
-      filteredDataFromQuery = await fetchUsers(null, null, parseInt(qPage));
+      filteredDataFromQuery = await fetchUsers(null, null, currentPage);
       newPageCount = await getUsersPageCount();
     }
     setPageCount(newPageCount);
@@ -117,6 +127,9 @@ const AdminUser = () => {
   }, [snackErrTexts, enqueueSnackbar]);
 
   const addUser = () => {
+    if (adding) {
+      return;
+    }
     let snackErrors = [];
     if (login === "") {
       snackErrors.push("Введите логин пользователя");
@@ -149,6 +162,7 @@ const AdminUser = () => {
       groupId = selectedGroup.id;
     }
 
+    setAdding(true);
     createUser(login, password, name, role, {
       profession: profession.trim(),
       experienceYears: Number(experienceYears),
@@ -157,6 +171,7 @@ const AdminUser = () => {
       age: Number(age),
     }, groupId).then(
       (_) => {
+        setAdding(false);
         enqueueSnackbar("Пользователь добавлен", {
           variant: "success",
           autoHideDuration: 3000,
@@ -174,8 +189,10 @@ const AdminUser = () => {
         setSelectedGroup("");
         setSearchParams({ group_name: qGroupName, page: qPage });
       },
-      (_) => {
-        enqueueSnackbar("Ошибка при добавлении пользователя", {
+      (e) => {
+        setAdding(false);
+        const serverError = e.response?.data?.error;
+        enqueueSnackbar("Ошибка при добавлении пользователя" + (serverError ? `: ${serverError}` : ""), {
           variant: "error",
           autoHideDuration: 3000,
           preventDuplicate: true,
@@ -185,8 +202,13 @@ const AdminUser = () => {
   };
 
   const deleteUserUi = (id) => {
+    if (deleting) {
+      return;
+    }
+    setDeleting(true);
     deleteUser(id).then(
       (_) => {
+        setDeleting(false);
         enqueueSnackbar("Пользователь удален", {
           variant: "success",
           autoHideDuration: 3000,
@@ -223,10 +245,42 @@ const AdminUser = () => {
   };
 
   const updateUserUi = (id) => {
+    if (updating) {
+      return;
+    }
     let snackErrors = [];
+
+    const nameChanged = updateName.trim() !== "" && updateName.trim() !== (editUser?.name ?? "");
+    const professionChanged =
+      updateProfession.trim() !== "" && updateProfession.trim() !== (editUser?.profession ?? "");
+    const yearsChanged =
+      updateExperienceYears !== "" && Number(updateExperienceYears) !== (editUser?.experience_years ?? 0);
+    const monthsChanged =
+      updateExperienceMonths !== "" && Number(updateExperienceMonths) !== (editUser?.experience_months ?? 0);
+    const genderChanged = updateGender !== (editUser?.gender ?? USER_GENDER_MALE);
+    const ageChanged = updateAge !== "" && Number(updateAge) !== (editUser?.age ?? 0);
     const roleChanged = editUser != null && updateRole !== editUser.role;
-    if (updatePassword === "" && !roleChanged) {
-      snackErrors.push("Нечего изменять: задайте новый пароль или новую роль");
+
+    if (yearsChanged && Number(updateExperienceYears) < 0) {
+      snackErrors.push("Введите корректный стаж в годах (не меньше 0)");
+    }
+    if (monthsChanged && (Number(updateExperienceMonths) < 0 || Number(updateExperienceMonths) > 11)) {
+      snackErrors.push("Введите корректный стаж в месяцах (0-11)");
+    }
+    if (ageChanged && (Number(updateAge) <= 0 || Number(updateAge) > 150)) {
+      snackErrors.push("Введите корректный возраст (1-150)");
+    }
+    if (
+      updatePassword === "" &&
+      !roleChanged &&
+      !nameChanged &&
+      !professionChanged &&
+      !yearsChanged &&
+      !monthsChanged &&
+      !genderChanged &&
+      !ageChanged
+    ) {
+      snackErrors.push("Нечего изменять: заполните хотя бы одно поле");
     }
     if (snackErrors.length !== 0) {
       setSnackErrTexts(snackErrors);
@@ -240,8 +294,29 @@ const AdminUser = () => {
     if (roleChanged) {
       updateInfo.role = updateRole;
     }
+    if (nameChanged) {
+      updateInfo.name = updateName.trim();
+    }
+    if (professionChanged) {
+      updateInfo.profession = updateProfession.trim();
+    }
+    if (yearsChanged) {
+      updateInfo.experience_years = Number(updateExperienceYears);
+    }
+    if (monthsChanged) {
+      updateInfo.experience_months = Number(updateExperienceMonths);
+    }
+    if (genderChanged) {
+      updateInfo.gender = updateGender;
+    }
+    if (ageChanged) {
+      updateInfo.age = Number(updateAge);
+    }
+
+    setUpdating(true);
     updateUser(id, updateInfo).then(
       (_) => {
+        setUpdating(false);
         enqueueSnackbar("Пользователь обновлен", {
           variant: "success",
           autoHideDuration: 3000,
@@ -251,6 +326,7 @@ const AdminUser = () => {
         setSearchParams({ group_name: qGroupName, page: qPage });
       },
       (e) => {
+        setUpdating(false);
         const serverError = e.response?.data?.error;
         enqueueSnackbar("Ошибка при обновлении пользователя" + (serverError ? `: ${serverError}` : ""), {
           variant: "error",
@@ -265,6 +341,12 @@ const AdminUser = () => {
     setCurrentId(user.user_id);
     setEditUser(user);
     setUpdateRole(user.role);
+    setUpdateName(user.name ?? "");
+    setUpdateProfession(user.profession ?? "");
+    setUpdateExperienceYears(user.experience_years != null ? String(user.experience_years) : "");
+    setUpdateExperienceMonths(user.experience_months != null ? String(user.experience_months) : "0");
+    setUpdateGender(user.gender ?? USER_GENDER_MALE);
+    setUpdateAge(user.age != null ? String(user.age) : "");
     setOpen(true);
   };
 
@@ -273,6 +355,12 @@ const AdminUser = () => {
     setEditUser(null);
     setUpdatePassword("");
     setUpdateRole(USER_ROLE_USER);
+    setUpdateName("");
+    setUpdateProfession("");
+    setUpdateExperienceYears("");
+    setUpdateExperienceMonths("");
+    setUpdateGender(USER_GENDER_MALE);
+    setUpdateAge("");
     setOpen(false);
   };
 
@@ -409,11 +497,12 @@ const AdminUser = () => {
           <Button
             sx={{ width: "fit-content", height: "40px" }}
             variant="contained"
+            disabled={adding}
             onClick={() => {
               addUser();
             }}
           >
-            Добавить пользователя
+            {adding ? "Добавление..." : "Добавить пользователя"}
           </Button>
 
           <Typography variant="h4" noWrap component="div">
@@ -442,6 +531,9 @@ const AdminUser = () => {
                   <TableCell>Логин</TableCell>
                   <TableCell>Роль</TableCell>
                   <TableCell>ФИО</TableCell>
+                  <TableCell>Профессия</TableCell>
+                  <TableCell>Стаж</TableCell>
+                  <TableCell>Возраст</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -474,6 +566,9 @@ const AdminUser = () => {
                       <TableCell component="th" scope="row">
                         {user.name}
                       </TableCell>
+                      <TableCell>{user.profession ?? ""}</TableCell>
+                      <TableCell>{`${user.experience_years ?? 0} л. ${user.experience_months ?? 0} мес.`}</TableCell>
+                      <TableCell>{user.age ?? ""}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -486,7 +581,7 @@ const AdminUser = () => {
             <Pagination
               sx={{ pt: "16px" }}
               count={pageCount}
-              page={parseInt(qPage)}
+              page={parseInt(qPage) || 1}
               onChange={(event, value) => {
                 setSearchParams({ group_name: qGroupName, page: value });
               }}
@@ -538,12 +633,80 @@ const AdminUser = () => {
                 </MenuItem>
               ))}
             </TextField>
+            <TextField
+              onChange={(event) => {
+                setUpdateName(event.target.value);
+              }}
+              value={updateName}
+              id="update-name-field"
+              label="ФИО"
+              helperText="Пусто — без изменений"
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {
+                setUpdateProfession(event.target.value);
+              }}
+              value={updateProfession}
+              id="update-profession-field"
+              label="Профессия"
+              helperText="Пусто — без изменений"
+              variant="outlined"
+            />
+            <TextField
+              type="number"
+              inputProps={{ min: 0 }}
+              onChange={(event) => {
+                setUpdateExperienceYears(event.target.value);
+              }}
+              value={updateExperienceYears}
+              id="update-experience-years-field"
+              label="Стаж (лет)"
+              helperText="Пусто — без изменений"
+              variant="outlined"
+            />
+            <TextField
+              type="number"
+              inputProps={{ min: 0, max: 11 }}
+              onChange={(event) => {
+                setUpdateExperienceMonths(event.target.value);
+              }}
+              value={updateExperienceMonths}
+              id="update-experience-months-field"
+              label="Стаж (месяцев, 0-11)"
+              variant="outlined"
+            />
+            <TextField
+              select
+              value={updateGender}
+              onChange={(event) => {
+                setUpdateGender(event.target.value);
+              }}
+              id="update-gender-select"
+              label="Пол"
+              variant="outlined"
+            >
+              <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
+              <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
+            </TextField>
+            <TextField
+              type="number"
+              inputProps={{ min: 1, max: 150 }}
+              onChange={(event) => {
+                setUpdateAge(event.target.value);
+              }}
+              value={updateAge}
+              id="update-age-field"
+              label="Возраст"
+              helperText="Пусто — без изменений"
+              variant="outlined"
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Отмена</Button>
-          <Button onClick={() => updateUserUi(currentId)} type="submit">
-            Изменить
+          <Button onClick={() => updateUserUi(currentId)} disabled={updating}>
+            {updating ? "Изменение..." : "Изменить"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -559,8 +722,8 @@ const AdminUser = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteClose}>Отмена</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            Удалить
+          <Button onClick={confirmDelete} color="error" variant="contained" disabled={deleting}>
+            {deleting ? "Удаление..." : "Удалить"}
           </Button>
         </DialogActions>
       </Dialog>

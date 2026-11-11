@@ -1615,6 +1615,40 @@ func TestHandler_updateUser(t *testing.T) {
 			expectedRequestBody: `{"status":"ok"}`,
 		},
 		{
+			name:      "update profile fields ok",
+			paramId:   "1",
+			inputBody: `{"name": "New Name", "profession": "Инженер 2 категории", "experience_years": 3, "experience_months": 6, "age": 25}`,
+			updateUserInput: gameServer.UpdateUserInput{
+				Name:             ptrString("New Name"),
+				Profession:       ptrString("Инженер 2 категории"),
+				ExperienceYears:  ptrInt(3),
+				ExperienceMonths: ptrInt(6),
+				Age:              ptrInt(25),
+			},
+			mockBehavior: func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {
+				idInt, _ := strconv.Atoi(id)
+				r.EXPECT().UpdateUser(idInt, updateUserInput).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "invalid age on update rejected",
+			paramId:            "1",
+			inputBody:          `{"age": 200}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "empty name on update rejected",
+			paramId:            "1",
+			inputBody:          `{"name": "   "}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
 			name:            "invalid role rejected",
 			paramId:         "1",
 			inputBody:       `{"role": "Superuser"}`,

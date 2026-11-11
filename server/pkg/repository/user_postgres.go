@@ -116,6 +116,42 @@ func (u *UserPostgres) UpdateUser(id int, input gameServer.UpdateUserInput) erro
 		argId++
 	}
 
+	if input.Name != nil {
+		setValues = append(setValues, fmt.Sprintf("name=$%d", argId))
+		args = append(args, *input.Name)
+		argId++
+	}
+
+	if input.Profession != nil {
+		setValues = append(setValues, fmt.Sprintf("profession=$%d", argId))
+		args = append(args, *input.Profession)
+		argId++
+	}
+
+	if input.ExperienceYears != nil {
+		setValues = append(setValues, fmt.Sprintf("experience_years=$%d", argId))
+		args = append(args, *input.ExperienceYears)
+		argId++
+	}
+
+	if input.ExperienceMonths != nil {
+		setValues = append(setValues, fmt.Sprintf("experience_months=$%d", argId))
+		args = append(args, *input.ExperienceMonths)
+		argId++
+	}
+
+	if input.Gender != nil {
+		setValues = append(setValues, fmt.Sprintf("gender=$%d", argId))
+		args = append(args, *input.Gender)
+		argId++
+	}
+
+	if input.Age != nil {
+		setValues = append(setValues, fmt.Sprintf("age=$%d", argId))
+		args = append(args, *input.Age)
+		argId++
+	}
+
 	setQuery := strings.Join(setValues, ", ")
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE user_id=$%d", usersTable, setQuery, argId)

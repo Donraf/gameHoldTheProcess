@@ -102,15 +102,27 @@ type LoginInput struct {
 }
 
 type UpdateUserInput struct {
-	Password    *string `json:"password"`
-	Role        *string `json:"role"`
-	CurParSetId *int    `json:"cur_par_set_id"`
+	Password         *string `json:"password"`
+	Role             *string `json:"role"`
+	CurParSetId      *int    `json:"cur_par_set_id"`
+	Name             *string `json:"name"`
+	Profession       *string `json:"profession"`
+	ExperienceYears  *int    `json:"experience_years"`
+	ExperienceMonths *int    `json:"experience_months"`
+	Gender           *string `json:"gender"`
+	Age              *int    `json:"age"`
 }
 
 func (i *UpdateUserInput) Validate() error {
 	if i.Password == nil &&
 		i.Role == nil &&
-		i.CurParSetId == nil {
+		i.CurParSetId == nil &&
+		i.Name == nil &&
+		i.Profession == nil &&
+		i.ExperienceYears == nil &&
+		i.ExperienceMonths == nil &&
+		i.Gender == nil &&
+		i.Age == nil {
 		return errors.New("no values to update")
 	}
 	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
@@ -118,6 +130,24 @@ func (i *UpdateUserInput) Validate() error {
 	}
 	if i.Role != nil && !ValidRole(*i.Role) {
 		return errors.New("invalid role")
+	}
+	if i.Name != nil && strings.TrimSpace(*i.Name) == "" {
+		return errors.New("name is empty")
+	}
+	if i.Profession != nil && strings.TrimSpace(*i.Profession) == "" {
+		return errors.New("profession is empty")
+	}
+	if i.ExperienceYears != nil && *i.ExperienceYears < 0 {
+		return errors.New("experience years is negative")
+	}
+	if i.ExperienceMonths != nil && (*i.ExperienceMonths < 0 || *i.ExperienceMonths > 11) {
+		return errors.New("experience months is out of range 0-11")
+	}
+	if i.Gender != nil && strings.TrimSpace(*i.Gender) == "" {
+		return errors.New("gender is empty")
+	}
+	if i.Age != nil && (*i.Age <= 0 || *i.Age > 150) {
+		return errors.New("age is out of allowed range")
 	}
 	return nil
 }
