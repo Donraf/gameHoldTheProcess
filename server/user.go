@@ -20,6 +20,10 @@ var ErrDuplicateLogin = errors.New("login already taken")
 
 var ErrLastAdmin = errors.New("cannot delete the last administrator")
 
+var ErrDuplicateGroupName = errors.New("group name already taken")
+
+var ErrUserAlreadyInGroup = errors.New("user is already in the group")
+
 type User struct {
 	Id               int     `json:"user_id" db:"user_id"`
 	Login            string  `json:"login" binding:"required"`
@@ -340,7 +344,7 @@ func (i *ChangeGroupParSetInput) Validate() error {
 	return nil
 }
 
-var ErrDuplicateGroupName = errors.New("group name already taken")
+var ErrUserNotInGroup = errors.New("user is not in the group")
 
 type UpdateGroupInput struct {
 	Name string `json:"name"`

@@ -178,6 +178,37 @@ export const deleteGroup = async (id) => {
   }
 };
 
+export const getGroupMembers = async (groupId) => {
+  try {
+    const { data } = await $authHost.get(`api/user/group/${groupId}/members`);
+    if (data.data === null || data.data.length === 0) {
+      return [];
+    }
+    return data.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const addGroupMember = async (groupId, userId) => {
+  try {
+    await $authHost.post(`api/user/group/${groupId}/members/${userId}`);
+  } catch (e) {
+    if (e.response && e.response.status === 409) {
+      throw new Error("Пользователь уже состоит в группе");
+    }
+    throw e;
+  }
+};
+
+export const removeGroupMember = async (groupId, userId) => {
+  try {
+    await $authHost.delete(`api/user/group/${groupId}/members/${userId}`);
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const getAllGroups = async () => {
   try {
     const { data } = await $authHost.get(`api/user/groups`);

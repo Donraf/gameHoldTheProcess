@@ -195,6 +195,18 @@ func (u *UserService) DeleteGroup(id int) error {
 	return u.repo.DeleteGroup(id)
 }
 
+func (u *UserService) GetGroupMembers(groupId int) ([]gameServer.User, error) {
+	return u.repo.GetGroupMembers(groupId)
+}
+
+func (u *UserService) AddUserToGroup(groupId, userId int) error {
+	return u.repo.AddUserToGroup(groupId, userId)
+}
+
+func (u *UserService) RemoveUserFromGroup(groupId, userId int) error {
+	return u.repo.RemoveUserFromGroup(groupId, userId)
+}
+
 func (u *UserService) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error) {
 	return u.repo.GetPlayersStat(input)
 }

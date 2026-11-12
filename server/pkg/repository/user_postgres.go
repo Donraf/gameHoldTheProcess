@@ -353,6 +353,72 @@ func (u *UserPostgres) CreateGroup(input gameServer.CreateGroupInput) (int, erro
 	return id, nil
 }
 
+func (u *UserPostgres) GetGroupMembers(groupId int) ([]gameServer.User, error) {
+	users := make([]gameServer.User, 0)
+	query := fmt.Sprintf(
+		`SELECT ut.user_id, ut.login, ut.name, ut.role, ut.cur_par_set_id, ut.profession, ut.experience_years, ut.experience_months, ut.gender, ut.age, ut.created_at
+		 FROM %s AS ut
+		 JOIN %s AS ugt ON ugt.user_id=ut.user_id
+		 WHERE ugt.group_id=$1
+		 ORDER BY ut.name`, usersTable, userGroupsTable)
+	err := u.db.Select(&users, query, groupId)
+	return users, err
+}
+
+func (u *UserPostgres) AddUserToGroup(groupId, userId int) error {
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	var parSetId int
+	row := tx.QueryRow(fmt.Sprintf("SELECT parameter_set_id FROM %s WHERE id=$1", groupsTable), groupId)
+	if err := row.Scan(&parSetId); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	query := fmt.Sprintf("INSERT INTO %s (user_id, group_id) VALUES ($1, $2)", userGroupsTable)
+	if _, err = tx.Exec(query, userId, groupId); err != nil {
+		tx.Rollback()
+		if isUniqueViolation(err) {
+			return gameServer.ErrUserAlreadyInGroup
+		}
+		return err
+	}
+
+	query = fmt.Sprintf("UPDATE %s SET cur_par_set_id=$1 WHERE user_id=$2", usersTable)
+	if _, err = tx.Exec(query, parSetId, userId); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	timeNow := gameServer.Now()
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+	if _, err = tx.Exec(query, 0, userId, parSetId, true, nil, nil, timeNow); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (u *UserPostgres) RemoveUserFromGroup(groupId, userId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE group_id=$1 AND user_id=$2", userGroupsTable)
+	res, err := u.db.Exec(query, groupId, userId)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return gameServer.ErrUserNotInGroup
+	}
+	return nil
+}
+
 func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error) {
 	var playerStats []gameServer.PlayerStat
 

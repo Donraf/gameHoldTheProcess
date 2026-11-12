@@ -1959,3 +1959,236 @@ func TestHandler_createGroup(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_getGroupMembers(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, groupId int)
+
+	tests := []struct {
+		name                string
+		groupId             string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:    "ok",
+			groupId: "1",
+			mockBehavior: func(r *service.MockUser, groupId int) {
+				r.EXPECT().GetGroupMembers(groupId).Return([]gameServer.User{
+					{Id: 1, Login: "l", Name: "n", Role: gameServer.RoleUser},
+				}, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"data":[{"user_id":1,"login":"l","name":"n","role":"User","cur_par_set_id":0,"created_at":""}]}`,
+		},
+		{
+			name:               "invalid group id",
+			groupId:            "a",
+			mockBehavior:       func(r *service.MockUser, groupId int) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "internal server error",
+			groupId: "1",
+			mockBehavior: func(r *service.MockUser, groupId int) {
+				r.EXPECT().GetGroupMembers(groupId).Return(nil, errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, 1)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.GET("/group/:id/members", handler.getGroupMembers)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/group/"+tt.groupId+"/members", nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_addGroupMember(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, groupId, userId int)
+
+	tests := []struct {
+		name                string
+		groupId             string
+		userId              string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:    "ok",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().AddUserToGroup(groupId, userId).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:    "user already in group",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().AddUserToGroup(groupId, userId).Return(gameServer.ErrUserAlreadyInGroup)
+			},
+			expectedStatusCode: 409,
+			isError:            true,
+		},
+		{
+			name:               "invalid group id",
+			groupId:            "a",
+			userId:             "2",
+			mockBehavior:       func(r *service.MockUser, groupId, userId int) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "invalid user id",
+			groupId:            "1",
+			userId:             "-2",
+			mockBehavior:       func(r *service.MockUser, groupId, userId int) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "internal server error",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().AddUserToGroup(groupId, userId).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, 1, 2)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/group/:id/members/:userId", handler.addGroupMember)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/group/"+tt.groupId+"/members/"+tt.userId, nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_removeGroupMember(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, groupId, userId int)
+
+	tests := []struct {
+		name                string
+		groupId             string
+		userId              string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:    "ok",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().RemoveUserFromGroup(groupId, userId).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:    "user not in group",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().RemoveUserFromGroup(groupId, userId).Return(gameServer.ErrUserNotInGroup)
+			},
+			expectedStatusCode: 404,
+			isError:            true,
+		},
+		{
+			name:               "invalid user id",
+			groupId:            "1",
+			userId:             "a",
+			mockBehavior:       func(r *service.MockUser, groupId, userId int) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:    "internal server error",
+			groupId: "1",
+			userId:  "2",
+			mockBehavior: func(r *service.MockUser, groupId, userId int) {
+				r.EXPECT().RemoveUserFromGroup(groupId, userId).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(userMock, 1, 2)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.DELETE("/group/:id/members/:userId", handler.removeGroupMember)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("DELETE", "/group/"+tt.groupId+"/members/"+tt.userId, nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}

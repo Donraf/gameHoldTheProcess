@@ -27,9 +27,20 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import ImageButton from "../components/ImageButton/ImageButton";
 import { useSnackbar } from "notistack";
 import { getParSets } from "../http/graphAPI";
-import { changeGroupParSet, createGroup, deleteGroup, getAllGroups, updateGroup } from "../http/userAPI";
+import {
+  addGroupMember,
+  changeGroupParSet,
+  createGroup,
+  deleteGroup,
+  fetchUsers,
+  getAllGroups,
+  getGroupMembers,
+  removeGroupMember,
+  updateGroup,
+} from "../http/userAPI";
 import ChangeIconBlack from "../components/icons/ChangeIconBlack";
 import DeleteIcon from "../components/icons/DeleteIcon";
+import ProfileNavIcon from "../components/icons/ProfileNavIcon";
 import { ModalContent } from "../components/ModalContent";
 
 const formatParSetLabel = (parSet) =>
@@ -73,6 +84,15 @@ const ResearcherGroup = () => {
   // Подтверждение удаления группы
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState(null);
+
+  // Модалка состава группы
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [membersGroup, setMembersGroup] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [isMembersLoading, setIsMembersLoading] = useState(false);
+  const [memberSearchText, setMemberSearchText] = useState("");
+  const [memberOptions, setMemberOptions] = useState([]);
+  const [userToAdd, setUserToAdd] = useState(null);
 
   const notifyError = (text) =>
     enqueueSnackbar(text, { variant: "error", autoHideDuration: 5000, preventDuplicate: true });
@@ -163,6 +183,91 @@ const ResearcherGroup = () => {
       () => {
         notifyError("Ошибка при удалении группы");
         setIsDeleteConfirmOpen(false);
+      }
+    );
+  };
+
+  const openMembersModal = (group) => {
+    setMembersGroup(group);
+    setIsMembersModalOpen(true);
+    setUserToAdd(null);
+    setMemberSearchText("");
+    setMemberOptions([]);
+    loadMembers(group.id);
+  };
+
+  const closeMembersModal = () => {
+    setIsMembersModalOpen(false);
+    setMembersGroup(null);
+    setMembers([]);
+    setUserToAdd(null);
+  };
+
+  const loadMembers = async (groupId) => {
+    setIsMembersLoading(true);
+    try {
+      const data = await getGroupMembers(groupId);
+      setMembers(data);
+    } catch (e) {
+      notifyError("Не удалось загрузить состав группы");
+    } finally {
+      setIsMembersLoading(false);
+    }
+  };
+
+  const searchUsersToAdd = async (text) => {
+    try {
+      const users = await fetchUsers("user_name", text, 1);
+      setMemberOptions(users.filter((u) => !members.some((m) => m.user_id === u.user_id)));
+    } catch (e) {
+      notifyError("Не удалось найти пользователей");
+    }
+  };
+
+  useEffect(() => {
+    if (!isMembersModalOpen) {
+      return;
+    }
+    const timer = setTimeout(() => searchUsersToAdd(memberSearchText), 300);
+    return () => clearTimeout(timer);
+  }, [memberSearchText, members, isMembersModalOpen]); // eslint-disable-line react-hooks/exhaustive-deps -- дебаунс поиска
+
+  const addMember = () => {
+    if (!userToAdd) {
+      notifyError("Выберите пользователя");
+      return;
+    }
+    addGroupMember(membersGroup.id, userToAdd.user_id).then(
+      () => {
+        enqueueSnackbar(`Пользователь ${userToAdd.name} добавлен в группу ${membersGroup.name}`, {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        setUserToAdd(null);
+        setMemberSearchText("");
+        loadMembers(membersGroup.id);
+        loadData();
+      },
+      (e) => {
+        notifyError(e.message || "Ошибка при добавлении пользователя");
+      }
+    );
+  };
+
+  const removeMember = (member) => {
+    removeGroupMember(membersGroup.id, member.user_id).then(
+      () => {
+        enqueueSnackbar(`Пользователь ${member.name} удалён из группы ${membersGroup.name}`, {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        loadMembers(membersGroup.id);
+        loadData();
+      },
+      () => {
+        notifyError("Ошибка при удалении пользователя из группы");
       }
     );
   };
@@ -286,8 +391,11 @@ const ResearcherGroup = () => {
                     const parSet = parSetById(group.parameter_set_id);
                     return (
                       <TableRow key={group.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                        <TableCell sx={{ width: 110 }}>
+                        <TableCell sx={{ width: 150 }}>
                           <Stack direction="row" spacing={1}>
+                            <ImageButton onClick={() => openMembersModal(group)}>
+                              <ProfileNavIcon />
+                            </ImageButton>
                             <ImageButton onClick={() => openChangeModal(group)}>
                               <ChangeIconBlack />
                             </ImageButton>
@@ -404,6 +512,91 @@ const ResearcherGroup = () => {
             >
               Создать
             </Button>
+          </ModalContent>
+        </Modal>
+
+        <Modal
+          sx={{
+            position: "fixed",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          open={isMembersModalOpen}
+          onClose={closeMembersModal}
+        >
+          <ModalContent sx={{ width: 800 }}>
+            <Typography variant="h4" noWrap component="div">
+              Состав группы {membersGroup?.name}
+            </Typography>
+
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Autocomplete
+                sx={{ flexGrow: 1 }}
+                options={memberOptions}
+                getOptionLabel={(option) => `${option.name} (${option.login})`}
+                filterOptions={(options) => options}
+                renderInput={(params) => (
+                  <TextField {...params} label="Найти пользователя по имени" />
+                )}
+                inputValue={memberSearchText}
+                onInputChange={(_, newValue) => setMemberSearchText(newValue)}
+                value={userToAdd}
+                onChange={(_, newValue) => setUserToAdd(newValue)}
+                noOptionsText="Пользователи не найдены"
+              />
+              <Button
+                sx={{ height: "40px", whiteSpace: "nowrap" }}
+                variant="contained"
+                onClick={addMember}
+                disabled={!userToAdd}
+              >
+                Добавить
+              </Button>
+            </Stack>
+
+            {isMembersLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : members.length === 0 ? (
+              <Typography align="center" sx={{ py: 4 }}>
+                В группе пока нет участников
+              </Typography>
+            ) : (
+              <TableContainer component={Paper}>
+                <Table aria-label="members table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell />
+                      <TableCell>ID</TableCell>
+                      <TableCell>Имя</TableCell>
+                      <TableCell>Логин</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {members.map((member) => (
+                      <TableRow
+                        key={member.user_id}
+                        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      >
+                        <TableCell sx={{ width: 60 }}>
+                          <ImageButton onClick={() => removeMember(member)}>
+                            <DeleteIcon />
+                          </ImageButton>
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {member.user_id}
+                        </TableCell>
+                        <TableCell>{member.name}</TableCell>
+                        <TableCell>{member.login}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </ModalContent>
         </Modal>
 

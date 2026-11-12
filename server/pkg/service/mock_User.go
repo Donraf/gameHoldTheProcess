@@ -20,6 +20,53 @@ func (_m *MockUser) EXPECT() *MockUser_Expecter {
 	return &MockUser_Expecter{mock: &_m.Mock}
 }
 
+// AddUserToGroup provides a mock function with given fields: groupId, userId
+func (_m *MockUser) AddUserToGroup(groupId int, userId int) error {
+	ret := _m.Called(groupId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddUserToGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int, int) error); ok {
+		r0 = rf(groupId, userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_AddUserToGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddUserToGroup'
+type MockUser_AddUserToGroup_Call struct {
+	*mock.Call
+}
+
+// AddUserToGroup is a helper method to define mock.On call
+//   - groupId int
+//   - userId int
+func (_e *MockUser_Expecter) AddUserToGroup(groupId interface{}, userId interface{}) *MockUser_AddUserToGroup_Call {
+	return &MockUser_AddUserToGroup_Call{Call: _e.mock.On("AddUserToGroup", groupId, userId)}
+}
+
+func (_c *MockUser_AddUserToGroup_Call) Run(run func(groupId int, userId int)) *MockUser_AddUserToGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *MockUser_AddUserToGroup_Call) Return(_a0 error) *MockUser_AddUserToGroup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_AddUserToGroup_Call) RunAndReturn(run func(int, int) error) *MockUser_AddUserToGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ChangeGroupParSet provides a mock function with given fields: input
 func (_m *MockUser) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
 	ret := _m.Called(input)
@@ -438,6 +485,64 @@ func (_c *MockUser_GetAllUsers_Call) Return(_a0 []gameServer.User, _a1 error) *M
 }
 
 func (_c *MockUser_GetAllUsers_Call) RunAndReturn(run func(gameServer.GetAllUsersInput) ([]gameServer.User, error)) *MockUser_GetAllUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGroupMembers provides a mock function with given fields: groupId
+func (_m *MockUser) GetGroupMembers(groupId int) ([]gameServer.User, error) {
+	ret := _m.Called(groupId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroupMembers")
+	}
+
+	var r0 []gameServer.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) ([]gameServer.User, error)); ok {
+		return rf(groupId)
+	}
+	if rf, ok := ret.Get(0).(func(int) []gameServer.User); ok {
+		r0 = rf(groupId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]gameServer.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(groupId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUser_GetGroupMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroupMembers'
+type MockUser_GetGroupMembers_Call struct {
+	*mock.Call
+}
+
+// GetGroupMembers is a helper method to define mock.On call
+//   - groupId int
+func (_e *MockUser_Expecter) GetGroupMembers(groupId interface{}) *MockUser_GetGroupMembers_Call {
+	return &MockUser_GetGroupMembers_Call{Call: _e.mock.On("GetGroupMembers", groupId)}
+}
+
+func (_c *MockUser_GetGroupMembers_Call) Run(run func(groupId int)) *MockUser_GetGroupMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return _c
+}
+
+func (_c *MockUser_GetGroupMembers_Call) Return(_a0 []gameServer.User, _a1 error) *MockUser_GetGroupMembers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUser_GetGroupMembers_Call) RunAndReturn(run func(int) ([]gameServer.User, error)) *MockUser_GetGroupMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1062,6 +1167,53 @@ func (_c *MockUser_RefreshToken_Call) Return(_a0 string, _a1 error) *MockUser_Re
 }
 
 func (_c *MockUser_RefreshToken_Call) RunAndReturn(run func(string) (string, error)) *MockUser_RefreshToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveUserFromGroup provides a mock function with given fields: groupId, userId
+func (_m *MockUser) RemoveUserFromGroup(groupId int, userId int) error {
+	ret := _m.Called(groupId, userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveUserFromGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int, int) error); ok {
+		r0 = rf(groupId, userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_RemoveUserFromGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveUserFromGroup'
+type MockUser_RemoveUserFromGroup_Call struct {
+	*mock.Call
+}
+
+// RemoveUserFromGroup is a helper method to define mock.On call
+//   - groupId int
+//   - userId int
+func (_e *MockUser_Expecter) RemoveUserFromGroup(groupId interface{}, userId interface{}) *MockUser_RemoveUserFromGroup_Call {
+	return &MockUser_RemoveUserFromGroup_Call{Call: _e.mock.On("RemoveUserFromGroup", groupId, userId)}
+}
+
+func (_c *MockUser_RemoveUserFromGroup_Call) Run(run func(groupId int, userId int)) *MockUser_RemoveUserFromGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *MockUser_RemoveUserFromGroup_Call) Return(_a0 error) *MockUser_RemoveUserFromGroup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_RemoveUserFromGroup_Call) RunAndReturn(run func(int, int) error) *MockUser_RemoveUserFromGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }

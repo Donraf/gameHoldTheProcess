@@ -460,6 +460,84 @@ func (h *Handler) deleteGroup(c *gin.Context) {
 	})
 }
 
+type getGroupMembersResponse struct {
+	Data []gameServer.User `json:"data"`
+}
+
+func (h *Handler) getGroupMembers(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	members, err := h.services.User.GetGroupMembers(id)
+	if err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, getGroupMembersResponse{
+		Data: members,
+	})
+}
+
+func (h *Handler) addGroupMember(c *gin.Context) {
+	groupId, userId, ok := parseGroupMemberParams(c)
+	if !ok {
+		return
+	}
+
+	if err := h.services.User.AddUserToGroup(groupId, userId); err != nil {
+		if errors.Is(err, gameServer.ErrUserAlreadyInGroup) {
+			newErrorResponse(c, http.StatusConflict, "user is already in the group")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
+func (h *Handler) removeGroupMember(c *gin.Context) {
+	groupId, userId, ok := parseGroupMemberParams(c)
+	if !ok {
+		return
+	}
+
+	if err := h.services.User.RemoveUserFromGroup(groupId, userId); err != nil {
+		if errors.Is(err, gameServer.ErrUserNotInGroup) {
+			newErrorResponse(c, http.StatusNotFound, "user is not in the group")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
+func parseGroupMemberParams(c *gin.Context) (int, int, bool) {
+	groupId, err := strconv.Atoi(c.Param("id"))
+	if err != nil || groupId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return 0, 0, false
+	}
+
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil || userId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter userId")
+		return 0, 0, false
+	}
+
+	return groupId, userId, true
+}
+
 type getPlayersStatResponse struct {
 	Data []gameServer.PlayerStat `json:"data"`
 }
