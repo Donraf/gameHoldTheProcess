@@ -10,7 +10,7 @@ import (
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/repository"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 )
 
 type TokenClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	UserId int    `json:"user_id"`
 	Login  string `json:"login"`
 	Role   string `json:"role"`
@@ -83,9 +83,9 @@ func (u *UserService) RefreshToken(accessToken string) (string, error) {
 
 func createToken(id int, login, role string) *jwt.Token {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 		id,
 		login,
@@ -101,14 +101,14 @@ func (u *UserService) ParseToken(accessToken string) (*TokenClaims, error) {
 		}
 
 		return []byte(os.Getenv("JWT_SIGNING_KEY")), nil
-	})
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
 		return nil, err
 	}
 
 	claims, ok := token.Claims.(*TokenClaims)
-	if !ok {
+	if !ok || !token.Valid {
 		return nil, errors.New("invalid token claims type")
 	}
 
