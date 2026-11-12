@@ -6,6 +6,7 @@ import (
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type UserPostgres struct {
@@ -355,24 +356,49 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 	}
 
 	err := u.db.Select(&users, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return playerStats, nil
+	}
+
+	userIds := make([]int, len(users))
+	for i, user := range users {
+		userIds[i] = user.Id
+	}
+
+	type parSetRow struct {
+		gameServer.ParameterSet
+		UserId int `db:"user_id"`
+	}
+
+	var rows []parSetRow
+	query = fmt.Sprintf(
+		"SELECT upst.user_id, %s FROM %s AS pst JOIN %s AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id = ANY($1)",
+		parSetAliasedColumns, parameterSetsTable, userParameterSetsTable)
+	err = u.db.Select(&rows, query, pq.Array(userIds))
+	if err != nil {
+		return nil, err
+	}
+
+	parSetsByUser := make(map[int][]gameServer.ParameterSet, len(users))
+	for _, row := range rows {
+		parSetsByUser[row.UserId] = append(parSetsByUser[row.UserId], row.ParameterSet)
+	}
 
 	for _, user := range users {
-		var parSets []gameServer.ParameterSet
-		query = fmt.Sprintf("SELECT %s FROM %s AS pst JOIN %s AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id=$1", parSetAliasedColumns, parameterSetsTable, userParameterSetsTable)
-		err := u.db.Select(&parSets, query, user.Id)
-		if err != nil {
-			return nil, err
-		}
 		playerStats = append(playerStats, gameServer.PlayerStat{
 			Id:          user.Id,
 			Name:        user.Name,
 			Login:       user.Login,
 			CurParSetId: user.CurParSetId,
-			ParSets:     parSets,
+			ParSets:     parSetsByUser[user.Id],
 		})
 	}
 
-	return playerStats, err
+	return playerStats, nil
 }
 
 func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error) {
