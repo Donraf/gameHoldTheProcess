@@ -13,9 +13,9 @@ const AppRouter = observer(() => {
     <TestGate>
       <Routes>
         {user.isAuth &&
-          authRoutes.map(({ path, Component }) => <Route key={path} path={path} element={Component} exact />)}
+          authRoutes.map(({ path, Component }) => <Route key={path} path={path} element={Component} />)}
         {publicRoutes.map(({ path, Component }) => (
-          <Route key={path} path={path} element={Component} exact />
+          <Route key={path} path={path} element={Component} />
         ))}
         <Route path="*" element={<Forbidden />} />
       </Routes>
