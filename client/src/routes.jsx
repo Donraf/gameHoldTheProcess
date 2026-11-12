@@ -76,7 +76,7 @@ export const authRoutes = [
   {
     path: RESEARCHER_GROUP_ROUTE,
     Component: <ResearcherGroup />,
-    roles: ADMIN_AND_RESEARCHER,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: ONBOARDING_TESTS_ROUTE,
