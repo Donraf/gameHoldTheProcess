@@ -29,7 +29,7 @@ func (s *ChartService) GetChartsPageCount(input gameServer.GetChartsPageCountInp
 		return 0, err
 	}
 
-	pageCount := int(math.Ceil(float64(chartsCount) / defaultPageLimit))
+	pageCount := int(math.Ceil(float64(chartsCount) / gameServer.DefaultPageLimit))
 	return pageCount, nil
 }
 
@@ -63,7 +63,7 @@ func (s *ChartService) GetParSetsPageCount() (int, error) {
 		return 0, err
 	}
 
-	pageCount := int(math.Ceil(float64(parSetsCount) / defaultPageLimit))
+	pageCount := int(math.Ceil(float64(parSetsCount) / gameServer.DefaultPageLimit))
 	return pageCount, nil
 }
 

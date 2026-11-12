@@ -14,9 +14,7 @@ import (
 )
 
 const (
-	tokenTTL              = 6 * time.Hour
-	defaultPageLimit      = 9
-	playerEventsPageLimit = 20
+	tokenTTL = 6 * time.Hour
 	// Виды событий в игре
 	eventCrash             = "Взрыв"
 	eventUsefulAiSignal    = "Верный совет ИИ"
@@ -162,7 +160,7 @@ func (u *UserService) GetUsersPageCount(input gameServer.GetUsersPageCountInput)
 		return 0, err
 	}
 
-	pageCount := int(math.Ceil(float64(usersCount) / defaultPageLimit))
+	pageCount := int(math.Ceil(float64(usersCount) / gameServer.DefaultPageLimit))
 	return pageCount, nil
 }
 
@@ -199,7 +197,7 @@ func (u *UserService) GetPlayersPageCount(input gameServer.GetPlayersPageCountIn
 		return 0, err
 	}
 
-	pageCount := int(math.Ceil(float64(playersCount) / defaultPageLimit))
+	pageCount := int(math.Ceil(float64(playersCount) / gameServer.DefaultPageLimit))
 	return pageCount, nil
 }
 
@@ -250,7 +248,7 @@ func (u *UserService) GetPlayersEventsPageCount(input gameServer.GetPlayersEvent
 		return 0, err
 	}
 
-	pageCount := int(math.Ceil(float64(eventsCount) / playerEventsPageLimit))
+	pageCount := int(math.Ceil(float64(eventsCount) / gameServer.PlayerEventsPageLimit))
 	return pageCount, nil
 }
 

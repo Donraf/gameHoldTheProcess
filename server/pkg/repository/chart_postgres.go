@@ -79,22 +79,22 @@ func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]game
 	switch input.FilterTag {
 	case "chart_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE id=$1 OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE id=$1 OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{input.FilterValue}
 		}
 	case "user_login":
 		{
-			query = fmt.Sprintf("SELECT ct.id, ct.created_at, ct.parameter_set_id, ct.user_id, ct.is_training FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1 OFFSET %v LIMIT 9", usersTable, chartsTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT ct.id, ct.created_at, ct.parameter_set_id, ct.user_id, ct.is_training FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1 OFFSET %v LIMIT %v", usersTable, chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_id":
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE user_id=$1 OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE user_id=$1 OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{input.FilterValue}
 		}
 	default:
 		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s OFFSET %v LIMIT 9", chartsTable, (input.CurrentPage-1)*9)
+			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 		}
 	}
 
@@ -117,7 +117,7 @@ func (p *ChartPostgres) GetAllParSets(input gameServer.GetAllParSetsInput) ([]ga
 	case -1:
 		query = fmt.Sprintf("SELECT %s FROM %s", parSetColumns, parameterSetsTable)
 	default:
-		query = fmt.Sprintf("SELECT %s FROM %s OFFSET %v LIMIT 9", parSetColumns, parameterSetsTable, (input.CurrentPage-1)*9)
+		query = fmt.Sprintf("SELECT %s FROM %s OFFSET %v LIMIT %v", parSetColumns, parameterSetsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 	}
 
 	err := p.db.Select(&parSets, query)
