@@ -9,6 +9,6 @@ export const PLAYER_VIDEO_GUIDE = {
 };
 
 export function getPlayerVideoGuideUrl() {
-  const publicUrl = process.env.PUBLIC_URL || "";
-  return `${publicUrl}/media/${PLAYER_VIDEO_GUIDE.filename}`;
+  const baseUrl = import.meta.env.BASE_URL || "/";
+  return `${baseUrl}media/${PLAYER_VIDEO_GUIDE.filename}`;
 }

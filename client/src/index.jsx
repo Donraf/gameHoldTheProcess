@@ -4,10 +4,10 @@ import App from "./App";
 import UserStore from "./store/UserStore";
 import NavBarStore from "./store/NavBarStore";
 import { SnackbarProvider } from "notistack";
-import { createTheme, ThemeOptions, ThemeProvider } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material";
 import ChartStore from "./store/ChartStore";
 
-export const themeOptions: ThemeOptions = {
+export const themeOptions = {
   palette: {
     mode: "light",
     primary: {

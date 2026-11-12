@@ -1,4 +1,5 @@
 import { getRemTime, getRemTimeRaw, millisToMinutesAndSeconds } from "./getTimeDiff";
+import { vi } from "vitest";
 
 describe("millisToMinutesAndSeconds", () => {
   it("formats zero", () => {
@@ -28,12 +29,12 @@ describe("getRemTimeRaw", () => {
 
   it("returns the remaining time for an active session", () => {
     const elapsed = 5 * 60 * 1000;
-    jest.spyOn(Date, "now").mockReturnValue(1_000_000_000_000);
+    const spy = vi.spyOn(Date, "now").mockReturnValue(1_000_000_000_000);
     const start = new Date(Date.now() - elapsed).toISOString();
 
     expect(getRemTimeRaw(start, limit)).toBe(limit - elapsed);
 
-    Date.now.mockRestore();
+    spy.mockRestore();
   });
 });
 
