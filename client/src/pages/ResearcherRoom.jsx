@@ -1,10 +1,8 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Autocomplete,
   Box,
-  Button,
   CssBaseline,
-  Modal,
   Pagination,
   Stack,
   TextField,
@@ -12,47 +10,31 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import { useSnackbar } from "notistack";
-import AddIcon from "../components/icons/AddIcon";
-import { COLORS } from "../utils/constants";
-import { createGroup, getAllGroups, getPlayersPageCount, getPlayersStat } from "../http/userAPI";
-import { ModalContent } from "../components/ModalContent";
-import { Context } from "..";
+import { getAllGroups, getPlayersPageCount, getPlayersStat } from "../http/userAPI";
 import PlayersGrid from "../components/PlayersGrid";
-import { getParSets } from "../http/graphAPI";
 import { useSearchParams } from "react-router-dom";
 
 const ResearcherRoom = () => {
-  const { user } = useContext(Context);
-  
   const [searchParams, setSearchParams] = useSearchParams();
   var qGroupName = searchParams.get("group_name");
+  var qNoGroup = searchParams.get("no_group");
   var qPage = searchParams.get("page");
+
+  const NO_GROUP_OPTION = { id: -1, name: "Без группы" };
 
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [pageCount, setPageCount] = useState(1);
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
-  const [name, setName] = useState("");
-  const [fetchedParSets, setFetchedParSets] = useState([]);
-  const [selectedParSetId, setSelectedParSetId] = useState(-1);
-
-  const [isCreateGroupModalOpened, setIsCreateGroupModalOpened] = React.useState(false);
-  const handleOpenCreateGroupModal = () => setIsCreateGroupModalOpened(true);
-  const handleCloseCreateGroupModal = () => {
-    setIsCreateGroupModalOpened(false);
-    setSelectedParSetId(-1);
-    setName("");
-  };
-
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
-  const { enqueueSnackbar } = useSnackbar();
 
   const filterData = useCallback(async () => {
     let filteredDataFromQuery;
     let newPageCount;
-    if (qGroupName) {
+    if (qNoGroup) {
+      filteredDataFromQuery = await getPlayersStat("no_group", "", parseInt(qPage));
+      newPageCount = await getPlayersPageCount("no_group", "");
+    } else if (qGroupName) {
       filteredDataFromQuery = await getPlayersStat("group_name", qGroupName, parseInt(qPage));
       newPageCount = await getPlayersPageCount("group_name", qGroupName);
     } else {
@@ -61,11 +43,10 @@ const ResearcherRoom = () => {
     }
     setPageCount(newPageCount);
     setFilteredData(filteredDataFromQuery);
-  }, [qGroupName, qPage]);
+  }, [qGroupName, qNoGroup, qPage]);
 
   useEffect(() => {
     fetchGroups();
-    fetchParSets();
   }, []);
 
   useEffect(() => {
@@ -75,56 +56,9 @@ const ResearcherRoom = () => {
     });
   }, [searchParams, filterData]);
 
-  useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts, enqueueSnackbar]);
-
-  const tryCreateGroup = () => {
-    let snackErrors = [];
-    if (name === "") {
-      snackErrors.push("Введите наименование группы");
-    }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
-      return;
-    }
-
-    createGroup(name, user.user.user_id, selectedParSetId).then(
-      (_) => {
-        enqueueSnackbar("Группа добавлена", {
-          variant: "success",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
-        setName("");
-        setSelectedParSetId(-1);
-        fetchGroups();
-      },
-      (_) => {
-        enqueueSnackbar("Ошибка при добавлении группы", {
-          variant: "error",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
-      }
-    );
-  };
-
   const fetchGroups = () => {
     getAllGroups().then((data) => {
       setFetchedGroups(data);
-    });
-  };
-
-  const fetchParSets = () => {
-    getParSets(-1).then((data) => {
-      setFetchedParSets(data);
     });
   };
 
@@ -134,101 +68,30 @@ const ResearcherRoom = () => {
       <NavBarDrawer />
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
-        <Modal
-          sx={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          open={isCreateGroupModalOpened}
-          onClose={handleCloseCreateGroupModal}
-        >
-          <ModalContent sx={{ width: 800 }}>
-            <Typography variant="h4" noWrap component="div">
-              Добавление новой группы
-            </Typography>
-            <TextField
-              onChange={(event) => {
-                setName(event.target.value);
-              }}
-              value={name}
-              id="outlined-basic"
-              label="Введите наименование группы"
-              required={true}
-              variant="outlined"
-            />
-            <Autocomplete
-              options={fetchedParSets}
-              getOptionLabel={(parSet) =>
-                "ID: " +
-                parSet.id +
-                " | a: " +
-                parSet.a +
-                " | b: " +
-                parSet.b +
-                " | мат. ож.: " +
-                parSet.noise_mean +
-                " | ср. откл.: " +
-                parSet.noise_stdev +
-                " | вер. лож. трев: " +
-                parSet.false_warning_prob +
-                " | вер. проп.: " +
-                parSet.missing_danger_prob
-              }
-              renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
-              value={fetchedParSets.find((parSet) => parSet.id === selectedParSetId) || null}
-              onChange={(_, newValue) => {
-                const newSelectedParSetId = newValue ? newValue.id : -1;
-                setSelectedParSetId(newSelectedParSetId);
-              }}
-            />
-            <Button
-              sx={{ width: "fit-content", height: "40px" }}
-              variant="contained"
-              onClick={() => {
-                tryCreateGroup();
-              }}
-            >
-              Добавить группу
-            </Button>
-          </ModalContent>
-        </Modal>
         <Stack width={"100%"} direction="column" spacing={2}>
           <Typography variant="h4" noWrap component="div">
             Выбрать группу участников
           </Typography>
-          <Stack direction="row" gap={1}>
-            <Autocomplete
-              options={fetchedGroups}
-              getOptionLabel={(group) => group.name}
-              renderInput={(params) => <TextField {...params} label="Выберите группу" />}
-              value={fetchedGroups.find((group) => group.name === selectedGroupName) || null}
-              onChange={(_, newValue) => {
+          <Autocomplete
+            options={[NO_GROUP_OPTION, ...fetchedGroups]}
+            getOptionLabel={(group) => group.name}
+            renderInput={(params) => <TextField {...params} label="Выберите группу" />}
+            value={
+              qNoGroup
+                ? NO_GROUP_OPTION
+                : fetchedGroups.find((group) => group.name === selectedGroupName) || null
+            }
+            onChange={(_, newValue) => {
+              if (newValue && newValue.id === NO_GROUP_OPTION.id) {
+                setSelectedGroupName("");
+                setSearchParams({ no_group: "1", page: 1 });
+              } else {
                 const newSelectedGroupName = newValue ? newValue.name : "";
                 setSelectedGroupName(newSelectedGroupName);
-                setSearchParams({ group_name: newSelectedGroupName, page: 1})
-              }}
-              sx={{
-                flexGrow: 9,
-              }}
-            />
-            <Button
-              variant="outlined"
-              sx={{
-                color: "#FFFFFF",
-                backgroundColor: COLORS.mainTheme,
-                flexGrow: 1,
-              }}
-              onClick={() => {
-                handleOpenCreateGroupModal();
-              }}
-              startIcon={<AddIcon />}
-            >
-              Добавить группу
-            </Button>
-          </Stack>
+                setSearchParams({ group_name: newSelectedGroupName, page: 1 });
+              }
+            }}
+          />
           <PlayersGrid players={filteredData} />
           {isDataFetched ? (
             <Pagination
@@ -236,7 +99,11 @@ const ResearcherRoom = () => {
               count={pageCount}
               page={parseInt(qPage)}
               onChange={(event, value) => {
-                setSearchParams({ group_name: qGroupName, page: value});
+                if (qNoGroup) {
+                  setSearchParams({ no_group: "1", page: value });
+                } else {
+                  setSearchParams({ group_name: qGroupName, page: value });
+                }
               }}
               variant="outlined"
               shape="rounded"

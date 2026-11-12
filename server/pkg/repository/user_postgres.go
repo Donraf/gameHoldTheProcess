@@ -445,6 +445,17 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 				groupsTable, userGroupsTable, usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{input.FilterValue, gameServer.RoleUser}
 		}
+	case "no_group":
+		{
+			query = fmt.Sprintf(
+				`SELECT ut.user_id, ut.login, ut.name, ut.role, ut.cur_par_set_id, ut.created_at
+				 FROM %s AS ut
+				 WHERE ut.role=$1 AND NOT EXISTS (SELECT 1 FROM %s AS ugt WHERE ugt.user_id=ut.user_id)
+				 ORDER BY name
+				 OFFSET %v LIMIT %v`,
+				usersTable, userGroupsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
+			args = []any{gameServer.RoleUser}
+		}
 	case "user_name":
 		{
 			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT %v", usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
@@ -524,6 +535,15 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 				 WHERE gt.name LIKE $1 AND role=$2`,
 				groupsTable, userGroupsTable, usersTable)
 			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
+		}
+	case "no_group":
+		{
+			query = fmt.Sprintf(
+				`SELECT COUNT(*)
+				 FROM %s AS ut
+				 WHERE ut.role=$1 AND NOT EXISTS (SELECT 1 FROM %s AS ugt WHERE ugt.user_id=ut.user_id)`,
+				usersTable, userGroupsTable)
+			args = []any{gameServer.RoleUser}
 		}
 	case "user_name":
 		{
