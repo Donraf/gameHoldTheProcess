@@ -1,7 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"net/http"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -27,7 +33,7 @@ func main() {
 	)
 
 	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("error when loading env variables: %s", err.Error())
+		logrus.Warn("no .env file found, falling back to environment variables")
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -48,13 +54,35 @@ func main() {
 	handlers := handler.NewHandler(services)
 
 	srv := new(gameServer.Server)
-	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		logrus.Fatalf("error when trying to run the server: %s", err.Error())
+	go func() {
+		if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logrus.Fatalf("error when trying to run the server: %s", err.Error())
+		}
+	}()
+	logrus.Infof("server started on port %s", viper.GetString("port"))
+
+	quit, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	<-quit.Done()
+	logrus.Info("shutting down the server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logrus.Errorf("error when shutting down the server: %s", err.Error())
 	}
+	if err := db.Close(); err != nil {
+		logrus.Errorf("error when closing the database connection: %s", err.Error())
+	}
+	logrus.Info("server stopped")
 }
 
 func initConfig() error {
 	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
+	// Allow overriding any config value via environment variables,
+	// e.g. db.host -> DB_HOST (useful for containers).
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 	return viper.ReadInConfig()
 }
