@@ -159,7 +159,7 @@ func (u *UserService) GetOneUser(id int) (gameServer.User, error) {
 func (u *UserService) GetUsersPageCount(input gameServer.GetUsersPageCountInput) (int, error) {
 	usersCount, err := u.repo.GetUsersCount(input)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	pageCount := int(math.Ceil(float64(usersCount) / defaultPageLimit))
@@ -196,7 +196,7 @@ func (u *UserService) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]ga
 func (u *UserService) GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error) {
 	playersCount, err := u.repo.GetPlayersPageCount(input)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	pageCount := int(math.Ceil(float64(playersCount) / defaultPageLimit))
@@ -247,7 +247,7 @@ func (u *UserService) GetPlayersEvents(input gameServer.GetPlayersEventsInput) (
 func (u *UserService) GetPlayersEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error) {
 	eventsCount, err := u.repo.GetPlayersPointsWithEventsPageCount(input)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	pageCount := int(math.Ceil(float64(eventsCount) / playerEventsPageLimit))

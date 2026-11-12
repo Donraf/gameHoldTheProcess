@@ -26,7 +26,7 @@ func (s *ChartService) GetOneChart(id int) (gameServer.Chart, error) {
 func (s *ChartService) GetChartsPageCount(input gameServer.GetChartsPageCountInput) (int, error) {
 	chartsCount, err := s.repo.GetChartsCount(input)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	pageCount := int(math.Ceil(float64(chartsCount) / defaultPageLimit))
@@ -39,7 +39,7 @@ func (s *ChartService) GetChartsCount(input gameServer.GetChartsCountInput) (int
 		FilterValue: input.FilterValue,
 	})
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	return chartsCount, nil
@@ -60,7 +60,7 @@ func (s *ChartService) GetAllParSets(input gameServer.GetAllParSetsInput) ([]gam
 func (s *ChartService) GetParSetsPageCount() (int, error) {
 	parSetsCount, err := s.repo.GetParSetsCount()
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	pageCount := int(math.Ceil(float64(parSetsCount) / defaultPageLimit))
