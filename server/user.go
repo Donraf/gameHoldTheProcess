@@ -21,18 +21,18 @@ var ErrDuplicateLogin = errors.New("login already taken")
 var ErrLastAdmin = errors.New("cannot delete the last administrator")
 
 type User struct {
-	Id              int     `json:"user_id" db:"user_id"`
-	Login           string  `json:"login" binding:"required"`
-	Password        string  `json:"-" binding:"required"`
-	Name            string  `json:"name" binding:"required" db:"name"`
-	Role            string  `json:"role" binding:"required"`
-	CurParSetId     int     `json:"cur_par_set_id" db:"cur_par_set_id"`
-	Profession      *string `json:"profession,omitempty" db:"profession"`
-	ExperienceYears *int    `json:"experience_years,omitempty" db:"experience_years"`
-	ExperienceMonths *int   `json:"experience_months,omitempty" db:"experience_months"`
-	Gender          *string `json:"gender,omitempty" db:"gender"`
-	Age             *int    `json:"age,omitempty" db:"age"`
-	CreatedAt       string  `json:"created_at" db:"created_at"`
+	Id               int     `json:"user_id" db:"user_id"`
+	Login            string  `json:"login" binding:"required"`
+	Password         string  `json:"-" binding:"required"`
+	Name             string  `json:"name" binding:"required" db:"name"`
+	Role             string  `json:"role" binding:"required"`
+	CurParSetId      int     `json:"cur_par_set_id" db:"cur_par_set_id"`
+	Profession       *string `json:"profession,omitempty" db:"profession"`
+	ExperienceYears  *int    `json:"experience_years,omitempty" db:"experience_years"`
+	ExperienceMonths *int    `json:"experience_months,omitempty" db:"experience_months"`
+	Gender           *string `json:"gender,omitempty" db:"gender"`
+	Age              *int    `json:"age,omitempty" db:"age"`
+	CreatedAt        string  `json:"created_at" db:"created_at"`
 }
 
 type Group struct {

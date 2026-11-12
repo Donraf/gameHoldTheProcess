@@ -67,14 +67,14 @@ func (i *GetAllParSetsInput) Validate() error {
 type CreateParSetInput struct {
 	A                   float32         `json:"a" db:"a"`
 	B                   float32         `json:"b" db:"b"`
-	NoiseMean             float32         `json:"noise_mean" db:"noise_mean"`
-	NoiseStdev            float32         `json:"noise_stdev" db:"noise_stdev"`
-	FalseWarningProb      float32         `json:"false_warning_prob" db:"false_warning_prob"`
-	MissingDangerProb     float32         `json:"missing_danger_prob" db:"missing_danger_prob"`
-	ScoringConfig         json.RawMessage `json:"scoring_config" db:"scoring_config"`
-	HintCost              float32         `json:"hint_cost" db:"hint_cost"`
-	FalseAlarmThreshold   float32         `json:"false_alarm_threshold" db:"false_alarm_threshold"`
-	RulesText             string          `json:"rules_text" db:"rules_text"`
+	NoiseMean           float32         `json:"noise_mean" db:"noise_mean"`
+	NoiseStdev          float32         `json:"noise_stdev" db:"noise_stdev"`
+	FalseWarningProb    float32         `json:"false_warning_prob" db:"false_warning_prob"`
+	MissingDangerProb   float32         `json:"missing_danger_prob" db:"missing_danger_prob"`
+	ScoringConfig       json.RawMessage `json:"scoring_config" db:"scoring_config"`
+	HintCost            float32         `json:"hint_cost" db:"hint_cost"`
+	FalseAlarmThreshold float32         `json:"false_alarm_threshold" db:"false_alarm_threshold"`
+	RulesText           string          `json:"rules_text" db:"rules_text"`
 }
 
 func DefaultScoringConfigJSON() json.RawMessage {
@@ -173,17 +173,17 @@ type ParameterSet struct {
 	Id                  int             `json:"id" db:"id"`
 	A                   float32         `json:"a" db:"a"`
 	B                   float32         `json:"b" db:"b"`
-	NoiseMean             float32         `json:"noise_mean" db:"noise_mean"`
-	NoiseStDev            float32         `json:"noise_stdev" db:"noise_stdev"`
-	FalseWarningProb      float32         `json:"false_warning_prob" db:"false_warning_prob"`
-	MissingDangerProb     float32         `json:"missing_danger_prob" db:"missing_danger_prob"`
-	ScoringConfig         json.RawMessage `json:"scoring_config" db:"scoring_config"`
-	HintCost              float32         `json:"hint_cost" db:"hint_cost"`
-	FalseAlarmThreshold   float32         `json:"false_alarm_threshold" db:"false_alarm_threshold"`
-	RulesText             string          `json:"rules_text" db:"rules_text"`
-	CreatedAt             string          `json:"created_at" db:"created_at"`
-	TrainingLimitMin      int             `json:"training_limit_min"`
-	GameLimitMin          int             `json:"game_limit_min"`
+	NoiseMean           float32         `json:"noise_mean" db:"noise_mean"`
+	NoiseStDev          float32         `json:"noise_stdev" db:"noise_stdev"`
+	FalseWarningProb    float32         `json:"false_warning_prob" db:"false_warning_prob"`
+	MissingDangerProb   float32         `json:"missing_danger_prob" db:"missing_danger_prob"`
+	ScoringConfig       json.RawMessage `json:"scoring_config" db:"scoring_config"`
+	HintCost            float32         `json:"hint_cost" db:"hint_cost"`
+	FalseAlarmThreshold float32         `json:"false_alarm_threshold" db:"false_alarm_threshold"`
+	RulesText           string          `json:"rules_text" db:"rules_text"`
+	CreatedAt           string          `json:"created_at" db:"created_at"`
+	TrainingLimitMin    int             `json:"training_limit_min"`
+	GameLimitMin        int             `json:"game_limit_min"`
 }
 
 type UserParameterSet struct {
