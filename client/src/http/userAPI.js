@@ -149,10 +149,9 @@ export const updateUser = async (id, updateInfo) => {
   }
 };
 
-export const createGroup = async (name, userId, parSetId) => {
+export const createGroup = async (name, parSetId) => {
   try {
     const { data } = await $authHost.post("api/user/group", {
-      creator_id: userId,
       name: name,
       par_set_id: parSetId,
     });

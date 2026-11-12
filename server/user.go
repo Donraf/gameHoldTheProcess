@@ -266,7 +266,7 @@ func (i *UpdateScoreInput) Vaildate() error {
 }
 
 type CreateGroupInput struct {
-	CreatorId int    `json:"creator_id" binding:"required"`
+	CreatorId int    `json:"-"`
 	Name      string `json:"name" binding:"required"`
 	ParSetId  int    `json:"par_set_id" binding:"required"`
 }

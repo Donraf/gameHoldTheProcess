@@ -1853,7 +1853,21 @@ func TestHandler_createGroup(t *testing.T) {
 	}{
 		{
 			name:      "ok",
-			inputBody: `{"creator_id": 1, "name": "n", "par_set_id": 1}`,
+			inputBody: `{"name": "n", "par_set_id": 1}`,
+			createGroupInput: gameServer.CreateGroupInput{
+				CreatorId: 1,
+				Name:      "n",
+				ParSetId:  1,
+			},
+			mockBehavior: func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {
+				r.EXPECT().CreateGroup(createGroupInput).Return(1, nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"id":1}`,
+		},
+		{
+			name:      "creator id from body is ignored",
+			inputBody: `{"creator_id": 42, "name": "n", "par_set_id": 1}`,
 			createGroupInput: gameServer.CreateGroupInput{
 				CreatorId: 1,
 				Name:      "n",
@@ -1867,7 +1881,7 @@ func TestHandler_createGroup(t *testing.T) {
 		},
 		{
 			name:      "internal server error",
-			inputBody: `{"creator_id": 1, "name": "n", "par_set_id": 1}`,
+			inputBody: `{"name": "n", "par_set_id": 1}`,
 			createGroupInput: gameServer.CreateGroupInput{
 				CreatorId: 1,
 				Name:      "n",
@@ -1880,36 +1894,36 @@ func TestHandler_createGroup(t *testing.T) {
 			isError:            true,
 		},
 		{
-			name:               "incorrect creator id - wrong type",
-			inputBody:          `{"creator_id": "1", "name": "n"}`,
+			name:               "incorrect parameter set id - wrong type",
+			inputBody:          `{"name": "n", "par_set_id": "1"}`,
 			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
-			name:               "incorrect creator id - zero value",
-			inputBody:          `{"creator_id": 0, "name": "n"}`,
+			name:               "incorrect parameter set id - zero value",
+			inputBody:          `{"name": "n", "par_set_id": 0}`,
 			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
-			name:               "incorrect creator id - negative value",
-			inputBody:          `{"creator_id": -1, "name": "n"}`,
+			name:               "incorrect parameter set id - negative value",
+			inputBody:          `{"name": "n", "par_set_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect name - wrong type",
-			inputBody:          `{"creator_id": 1, "name": 1}`,
+			inputBody:          `{"name": 1, "par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect name - empty value",
-			inputBody:          `{"creator_id": 1, "name": ""}`,
+			inputBody:          `{"name": "", "par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, createGroupInput gameServer.CreateGroupInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1926,7 +1940,10 @@ func TestHandler_createGroup(t *testing.T) {
 
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.POST("/group", handler.createGroup)
+			r.POST("/group", func(c *gin.Context) {
+				c.Set(userCtx, 1)
+				c.Next()
+			}, handler.createGroup)
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/group", bytes.NewBufferString(tt.inputBody))

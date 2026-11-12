@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dateFormat from "dateformat";
 import {
   Autocomplete,
@@ -31,7 +31,6 @@ import { changeGroupParSet, createGroup, deleteGroup, getAllGroups, updateGroup 
 import ChangeIconBlack from "../components/icons/ChangeIconBlack";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import { ModalContent } from "../components/ModalContent";
-import { Context } from "../index";
 
 const formatParSetLabel = (parSet) =>
   "ID: " +
@@ -50,7 +49,6 @@ const formatParSetLabel = (parSet) =>
   parSet.missing_danger_prob;
 
 const ResearcherGroup = () => {
-  const { user } = useContext(Context);
   const { enqueueSnackbar } = useSnackbar();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -212,7 +210,7 @@ const ResearcherGroup = () => {
       notifyError("Выберите набор параметров");
       return;
     }
-    createGroup(name, user.user.user_id, newGroupParSetId).then(
+    createGroup(name, newGroupParSetId).then(
       () => {
         enqueueSnackbar(`Группа ${name} создана`, {
           variant: "success",
