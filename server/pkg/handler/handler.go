@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"time"
+
 	"example.com/gameHoldTheProcessServer/pkg/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,17 +18,21 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+	router.Use(gin.Recovery())
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
 	config.AllowHeaders = []string{"Authorization", "Content-Type", "Accept", "Access-Control-Allow-Origin"}
 	router.Use(cors.New(config))
+
+	// Protects the login endpoint against brute-force password guessing.
+	loginLimiter := newRateLimiter(30, time.Minute)
 
 	api := router.Group("/api")
 	{
 		user := api.Group("/user")
 		{
 			user.POST("/registration", h.registration)
-			user.POST("/login", h.login)
+			user.POST("/login", rateLimitMiddleware(loginLimiter), h.login)
 			user.GET("/groups", h.getAllGroups)
 			userAuth := user.Group("", h.checkUserAuth)
 			{
