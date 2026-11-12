@@ -1789,16 +1789,18 @@ func TestHandler_getAllGroups(t *testing.T) {
 			mockBehavior: func(r *service.MockUser) {
 				r.EXPECT().GetAllGroups().Return([]gameServer.Group{
 					{
-						Id:        1,
-						Name:      "n",
-						CreatedAt: "2023-10-01T00:00:00Z",
-						CreatorId: 1,
+						Id:           1,
+						Name:         "n",
+						CreatedAt:    "2023-10-01T00:00:00Z",
+						CreatorId:    1,
+						CreatorName:  "admin",
+						MembersCount: 3,
 					},
 				},
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1,"parameter_set_id":0}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1,"creator_name":"admin","members_count":3,"parameter_set_id":0}]}`,
 		},
 		{
 			name: "internal server error",

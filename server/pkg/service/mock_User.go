@@ -178,6 +178,52 @@ func (_c *MockUser_CreateUser_Call) RunAndReturn(run func(gameServer.RegisterUse
 	return _c
 }
 
+// DeleteGroup provides a mock function with given fields: id
+func (_m *MockUser) DeleteGroup(id int) error {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_DeleteGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGroup'
+type MockUser_DeleteGroup_Call struct {
+	*mock.Call
+}
+
+// DeleteGroup is a helper method to define mock.On call
+//   - id int
+func (_e *MockUser_Expecter) DeleteGroup(id interface{}) *MockUser_DeleteGroup_Call {
+	return &MockUser_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup", id)}
+}
+
+func (_c *MockUser_DeleteGroup_Call) Run(run func(id int)) *MockUser_DeleteGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return _c
+}
+
+func (_c *MockUser_DeleteGroup_Call) Return(_a0 error) *MockUser_DeleteGroup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_DeleteGroup_Call) RunAndReturn(run func(int) error) *MockUser_DeleteGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteUser provides a mock function with given fields: id
 func (_m *MockUser) DeleteUser(id int) error {
 	ret := _m.Called(id)
@@ -1016,6 +1062,53 @@ func (_c *MockUser_RefreshToken_Call) Return(_a0 string, _a1 error) *MockUser_Re
 }
 
 func (_c *MockUser_RefreshToken_Call) RunAndReturn(run func(string) (string, error)) *MockUser_RefreshToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateGroup provides a mock function with given fields: id, input
+func (_m *MockUser) UpdateGroup(id int, input gameServer.UpdateGroupInput) error {
+	ret := _m.Called(id, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int, gameServer.UpdateGroupInput) error); ok {
+		r0 = rf(id, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_UpdateGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateGroup'
+type MockUser_UpdateGroup_Call struct {
+	*mock.Call
+}
+
+// UpdateGroup is a helper method to define mock.On call
+//   - id int
+//   - input gameServer.UpdateGroupInput
+func (_e *MockUser_Expecter) UpdateGroup(id interface{}, input interface{}) *MockUser_UpdateGroup_Call {
+	return &MockUser_UpdateGroup_Call{Call: _e.mock.On("UpdateGroup", id, input)}
+}
+
+func (_c *MockUser_UpdateGroup_Call) Run(run func(id int, input gameServer.UpdateGroupInput)) *MockUser_UpdateGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(gameServer.UpdateGroupInput))
+	})
+	return _c
+}
+
+func (_c *MockUser_UpdateGroup_Call) Return(_a0 error) *MockUser_UpdateGroup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_UpdateGroup_Call) RunAndReturn(run func(int, gameServer.UpdateGroupInput) error) *MockUser_UpdateGroup_Call {
 	_c.Call.Return(run)
 	return _c
 }

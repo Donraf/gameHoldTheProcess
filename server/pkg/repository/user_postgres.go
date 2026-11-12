@@ -297,11 +297,47 @@ func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
 
 func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 	var groups []gameServer.Group
-	query := fmt.Sprintf("SELECT id, name, created_at, creator_id, parameter_set_id FROM %s", groupsTable)
+	query := fmt.Sprintf(
+		`SELECT gt.id, gt.name, gt.created_at, gt.creator_id, gt.parameter_set_id,
+			COALESCE(ut.name, '') AS creator_name,
+			(SELECT COUNT(*) FROM %s AS ugt WHERE ugt.group_id = gt.id) AS members_count
+		 FROM %s AS gt
+		 LEFT JOIN %s AS ut ON ut.user_id = gt.creator_id`,
+		userGroupsTable, groupsTable, usersTable)
 
 	err := u.db.Select(&groups, query)
 
 	return groups, err
+}
+
+func (u *UserPostgres) UpdateGroup(id int, input gameServer.UpdateGroupInput) error {
+	query := fmt.Sprintf("UPDATE %s SET name=$1 WHERE id=$2", groupsTable)
+	_, err := u.db.Exec(query, input.Name, id)
+	if err != nil && isUniqueViolation(err) {
+		return gameServer.ErrDuplicateGroupName
+	}
+	return err
+}
+
+func (u *UserPostgres) DeleteGroup(id int) error {
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("DELETE FROM %s WHERE group_id=$1", userGroupsTable)
+	if _, err = tx.Exec(query, id); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	query = fmt.Sprintf("DELETE FROM %s WHERE id=$1", groupsTable)
+	if _, err = tx.Exec(query, id); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (u *UserPostgres) CreateGroup(input gameServer.CreateGroupInput) (int, error) {

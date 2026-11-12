@@ -42,6 +42,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/score", h.updateScore)
 				userAuth.POST("/session/start", h.startSession)
 				userAuth.POST("/group", h.createGroup)
+				userAuth.PUT("/group/:id", h.checkAdminRole, h.updateGroup)
+				userAuth.DELETE("/group/:id", h.checkAdminRole, h.deleteGroup)
 				userAuth.GET("/auth", h.check)
 				userAuth.GET("/parSet/:id", h.getParSet)
 				userAuth.GET("/score/:userId/:parSetId", h.getScore)

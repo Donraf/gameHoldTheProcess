@@ -162,6 +162,23 @@ export const createGroup = async (name, userId, parSetId) => {
   }
 };
 
+export const updateGroup = async (id, name) => {
+  try {
+    const { data } = await $authHost.put(`api/user/group/${id}`, { name });
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const deleteGroup = async (id) => {
+  try {
+    await $authHost.delete(`api/user/group/${id}`);
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const getAllGroups = async () => {
   try {
     const { data } = await $authHost.get(`api/user/groups`);

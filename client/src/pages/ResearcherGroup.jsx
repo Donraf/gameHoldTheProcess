@@ -27,8 +27,9 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import ImageButton from "../components/ImageButton/ImageButton";
 import { useSnackbar } from "notistack";
 import { getParSets } from "../http/graphAPI";
-import { changeGroupParSet, createGroup, getAllGroups } from "../http/userAPI";
+import { changeGroupParSet, createGroup, deleteGroup, getAllGroups, updateGroup } from "../http/userAPI";
 import ChangeIconBlack from "../components/icons/ChangeIconBlack";
+import DeleteIcon from "../components/icons/DeleteIcon";
 import { ModalContent } from "../components/ModalContent";
 import { Context } from "../index";
 
@@ -61,6 +62,7 @@ const ResearcherGroup = () => {
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [chosenGroup, setChosenGroup] = useState(null);
   const [selectedParSetId, setSelectedParSetId] = useState(-1);
+  const [editedName, setEditedName] = useState("");
 
   // Модалка создания группы
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -69,6 +71,10 @@ const ResearcherGroup = () => {
 
   // Подтверждение массового изменения
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  // Подтверждение удаления группы
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState(null);
 
   const notifyError = (text) =>
     enqueueSnackbar(text, { variant: "error", autoHideDuration: 5000, preventDuplicate: true });
@@ -103,6 +109,7 @@ const ResearcherGroup = () => {
   const openChangeModal = (group) => {
     setChosenGroup(group);
     setSelectedParSetId(group.parameter_set_id);
+    setEditedName(group.name);
     setIsChangeModalOpen(true);
   };
 
@@ -110,6 +117,56 @@ const ResearcherGroup = () => {
     setIsChangeModalOpen(false);
     setChosenGroup(null);
     setSelectedParSetId(-1);
+    setEditedName("");
+  };
+
+  const renameGroup = () => {
+    const name = editedName.trim();
+    if (name === "") {
+      notifyError("Введите название группы");
+      return;
+    }
+    if (name === chosenGroup.name) {
+      return;
+    }
+    updateGroup(chosenGroup.id, name).then(
+      () => {
+        enqueueSnackbar(`Группа переименована в ${name}`, {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        closeChangeModal();
+        loadData();
+      },
+      () => {
+        notifyError("Ошибка при переименовании группы");
+      }
+    );
+  };
+
+  const openDeleteConfirm = (group) => {
+    setGroupToDelete(group);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const removeGroup = () => {
+    deleteGroup(groupToDelete.id).then(
+      () => {
+        enqueueSnackbar(`Группа ${groupToDelete.name} удалена`, {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        setIsDeleteConfirmOpen(false);
+        setGroupToDelete(null);
+        loadData();
+      },
+      () => {
+        notifyError("Ошибка при удалении группы");
+        setIsDeleteConfirmOpen(false);
+      }
+    );
   };
 
   const handleApplyClick = () => {
@@ -208,19 +265,21 @@ const ResearcherGroup = () => {
                   <TableCell>ID группы</TableCell>
                   <TableCell>Наименование</TableCell>
                   <TableCell>Набор параметров</TableCell>
+                  <TableCell>Создатель</TableCell>
+                  <TableCell>Участников</TableCell>
                   <TableCell>Время создания</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                       <CircularProgress />
                     </TableCell>
                   </TableRow>
                 ) : filteredGroups.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                       Группы не найдены
                     </TableCell>
                   </TableRow>
@@ -229,10 +288,13 @@ const ResearcherGroup = () => {
                     const parSet = parSetById(group.parameter_set_id);
                     return (
                       <TableRow key={group.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                        <TableCell sx={{ width: 75 }}>
+                        <TableCell sx={{ width: 110 }}>
                           <Stack direction="row" spacing={1}>
                             <ImageButton onClick={() => openChangeModal(group)}>
                               <ChangeIconBlack />
+                            </ImageButton>
+                            <ImageButton onClick={() => openDeleteConfirm(group)}>
+                              <DeleteIcon />
                             </ImageButton>
                           </Stack>
                         </TableCell>
@@ -243,6 +305,8 @@ const ResearcherGroup = () => {
                         <TableCell>
                           {parSet ? formatParSetLabel(parSet) : "ID: " + group.parameter_set_id}
                         </TableCell>
+                        <TableCell>{group.creator_name || "ID: " + group.creator_id}</TableCell>
+                        <TableCell>{group.members_count}</TableCell>
                         <TableCell>{dateFormat(group.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
                       </TableRow>
                     );
@@ -268,6 +332,23 @@ const ResearcherGroup = () => {
             <Typography variant="h4" noWrap component="div">
               Изменение группы {chosenGroup?.name}
             </Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                sx={{ flexGrow: 1 }}
+                label="Название группы"
+                variant="outlined"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+              />
+              <Button
+                sx={{ height: "40px", whiteSpace: "nowrap" }}
+                variant="outlined"
+                onClick={renameGroup}
+                disabled={editedName.trim() === "" || editedName.trim() === chosenGroup?.name}
+              >
+                Сохранить название
+              </Button>
+            </Stack>
             <Autocomplete
               options={parSets}
               getOptionLabel={formatParSetLabel}
@@ -333,13 +414,29 @@ const ResearcherGroup = () => {
           <DialogContent>
             <Typography>
               Назначить группе «{chosenGroup?.name}» набор параметров ID: {selectedParSetId}? Изменение
-              применится ко всем участникам группы.
+              затронет {chosenGroup?.members_count ?? 0} участников группы.
             </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setIsConfirmOpen(false)}>Отмена</Button>
             <Button variant="contained" onClick={applyParSetChange}>
               Применить
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={isDeleteConfirmOpen} onClose={() => setIsDeleteConfirmOpen(false)}>
+          <DialogTitle>Подтверждение удаления</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Удалить группу «{groupToDelete?.name}»? Участники ({groupToDelete?.members_count ?? 0})
+              останутся без группы.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsDeleteConfirmOpen(false)}>Отмена</Button>
+            <Button variant="contained" color="error" onClick={removeGroup}>
+              Удалить
             </Button>
           </DialogActions>
         </Dialog>

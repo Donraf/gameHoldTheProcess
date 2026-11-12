@@ -36,11 +36,13 @@ type User struct {
 }
 
 type Group struct {
-	Id        int    `json:"id" db:"id"`
-	Name      string `json:"name" db:"name"`
-	CreatedAt string `json:"created_at" db:"created_at"`
-	CreatorId int    `json:"creator_id" db:"creator_id"`
-	ParSetId  int    `json:"parameter_set_id" db:"parameter_set_id"`
+	Id           int    `json:"id" db:"id"`
+	Name         string `json:"name" db:"name"`
+	CreatedAt    string `json:"created_at" db:"created_at"`
+	CreatorId    int    `json:"creator_id" db:"creator_id"`
+	CreatorName  string `json:"creator_name" db:"creator_name"`
+	MembersCount int    `json:"members_count" db:"members_count"`
+	ParSetId     int    `json:"parameter_set_id" db:"parameter_set_id"`
 }
 
 type PlayerStat struct {
@@ -334,6 +336,19 @@ func (i *ChangeGroupParSetInput) Validate() error {
 	}
 	if i.ParSetId <= 0 {
 		return errors.New("parameter set id is non-positive")
+	}
+	return nil
+}
+
+var ErrDuplicateGroupName = errors.New("group name already taken")
+
+type UpdateGroupInput struct {
+	Name string `json:"name"`
+}
+
+func (i *UpdateGroupInput) Validate() error {
+	if strings.TrimSpace(i.Name) == "" {
+		return errors.New("name is empty")
 	}
 	return nil
 }

@@ -408,6 +408,55 @@ func (h *Handler) createGroup(c *gin.Context) {
 	})
 }
 
+func (h *Handler) updateGroup(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	var input gameServer.UpdateGroupInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.User.UpdateGroup(id, input); err != nil {
+		if errors.Is(err, gameServer.ErrDuplicateGroupName) {
+			newErrorResponse(c, http.StatusConflict, "group name already exists")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
+func (h *Handler) deleteGroup(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	if err := h.services.User.DeleteGroup(id); err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
 type getPlayersStatResponse struct {
 	Data []gameServer.PlayerStat `json:"data"`
 }

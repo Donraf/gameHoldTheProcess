@@ -21,6 +21,8 @@ type User interface {
 	UpdateScore(input gameServer.UpdateScoreInput) error
 	GetAllGroups() ([]gameServer.Group, error)
 	CreateGroup(input gameServer.CreateGroupInput) (int, error)
+	UpdateGroup(id int, input gameServer.UpdateGroupInput) error
+	DeleteGroup(id int) error
 	GetPlayersStat(input gameServer.GetPlayersStatInput) ([]gameServer.PlayerStat, error)
 	GetPlayersPageCount(input gameServer.GetPlayersPageCountInput) (int, error)
 	GetPlayersEvents(input gameServer.GetPlayersEventsInput) ([]gameServer.PlayerEvent, error)
