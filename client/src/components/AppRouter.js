@@ -13,7 +13,9 @@ const AppRouter = observer(() => {
     <TestGate>
       <Routes>
         {user.isAuth &&
-          authRoutes.map(({ path, Component }) => <Route key={path} path={path} element={Component} />)}
+          authRoutes
+            .filter(({ roles }) => !roles || roles.includes(user.user.role))
+            .map(({ path, Component }) => <Route key={path} path={path} element={Component} />)}
         {publicRoutes.map(({ path, Component }) => (
           <Route key={path} path={path} element={Component} />
         ))}

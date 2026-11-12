@@ -12,6 +12,9 @@ import {
   RESEARCHER_ROOM_ROUTE,
   RESEARCHER_USER_ROUTE,
   USER_PROFILE_ROUTE,
+  USER_ROLE_ADMIN,
+  USER_ROLE_RESEARCHER,
+  USER_ROLE_USER,
 } from "./utils/constants";
 import Admin from "./pages/Admin";
 import Home from "./pages/Home";
@@ -26,46 +29,59 @@ import ResearcherGroup from "./pages/ResearcherGroup";
 import AdminTests from "./pages/AdminTests";
 import OnboardingTests from "./pages/OnboardingTests";
 
+const ADMIN_AND_RESEARCHER = [USER_ROLE_ADMIN, USER_ROLE_RESEARCHER];
+const ALL_ROLES = [USER_ROLE_USER, USER_ROLE_ADMIN, USER_ROLE_RESEARCHER];
+
 export const authRoutes = [
   {
     path: ADMIN_ROUTE,
     Component: <Admin />,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: ADMIN_USER_ROUTE,
     Component: <AdminUser />,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: ADMIN_GRAPH_ROUTE,
     Component: <AdminGraph />,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: ADMIN_PARSET_ROUTE,
     Component: <AdminParset />,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: ADMIN_TESTS_ROUTE,
     Component: <AdminTests />,
+    roles: [USER_ROLE_ADMIN],
   },
   {
     path: USER_PROFILE_ROUTE,
     Component: <UserProfile />,
+    roles: ALL_ROLES,
   },
   {
     path: RESEARCHER_ROOM_ROUTE,
     Component: <ResearcherRoom />,
+    roles: ADMIN_AND_RESEARCHER,
   },
   {
     path: RESEARCHER_USER_ROUTE,
     Component: <ResearcherUser />,
+    roles: ADMIN_AND_RESEARCHER,
   },
   {
     path: RESEARCHER_GROUP_ROUTE,
     Component: <ResearcherGroup />,
+    roles: ADMIN_AND_RESEARCHER,
   },
   {
     path: ONBOARDING_TESTS_ROUTE,
     Component: <OnboardingTests />,
+    roles: [USER_ROLE_USER],
   },
 ];
 
