@@ -430,8 +430,8 @@ func (h *Handler) createGroup(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(userCtx)
-	input.CreatorId = userId.(int)
+	userId := c.GetInt(userCtx)
+	input.CreatorId = userId
 
 	if err := input.Validate(); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())

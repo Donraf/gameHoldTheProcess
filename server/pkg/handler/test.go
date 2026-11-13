@@ -28,8 +28,8 @@ func (h *Handler) getTestSessionStatus(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(userCtx)
-	status, err := h.services.Test.GetSessionStatus(userId.(int))
+	userId := c.GetInt(userCtx)
+	status, err := h.services.Test.GetSessionStatus(userId)
 	if err != nil {
 		internalErrorResponse(c, err)
 		return
@@ -54,8 +54,8 @@ func (h *Handler) submitTestResult(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(userCtx)
-	id, err := h.services.Test.SubmitResult(userId.(int), input)
+	userId := c.GetInt(userCtx)
+	id, err := h.services.Test.SubmitResult(userId, input)
 	if err != nil {
 		internalErrorResponse(c, err)
 		return
@@ -149,8 +149,8 @@ func (h *Handler) getUserTestResults(c *gin.Context) {
 		return
 	}
 
-	userId, _ := c.Get(userCtx)
-	results, err := h.services.Test.GetUserResults(userId.(int))
+	userId := c.GetInt(userCtx)
+	results, err := h.services.Test.GetUserResults(userId)
 	if err != nil {
 		internalErrorResponse(c, err)
 		return
