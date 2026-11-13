@@ -1,8 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import dateFormat from "dateformat";
 import {
   Box,
+  Button,
   CssBaseline,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Pagination,
   Paper,
   Stack,
@@ -22,59 +28,86 @@ import DeleteIcon from "../components/icons/DeleteIcon";
 import { useSnackbar } from "notistack";
 import { deleteGraph, fetchGraphs, getGraphsPageCount } from "../http/graphAPI";
 
+const FILTER_OPTIONS = [
+  { value: "user_name", label: "ФИО игрока" },
+  { value: "user_login", label: "Логин игрока" },
+  { value: "user_id", label: "ID игрока" },
+];
+
+const DEBOUNCE_MS = 400;
+
 const AdminGraph = () => {
-  const [updateTrigger, setUpdateTrigger] = useState(false);
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [filterTag, setFilterTag] = useState("user_name");
   const [filterInput, setFilterInput] = useState("");
+  const [debouncedFilter, setDebouncedFilter] = useState({ tag: "user_name", value: "" });
   const [filteredData, setFilteredData] = useState(null);
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const { enqueueSnackbar } = useSnackbar();
 
-  const filterData = useCallback(
-    async (updatePage) => {
-      let filteredDataFromQuery;
-      let newPageCount;
-      if (filterInput) {
-        filteredDataFromQuery = await fetchGraphs("chart_id", filterInput, page);
-        newPageCount = await getGraphsPageCount("chart_id", filterInput);
-      } else {
-        filteredDataFromQuery = await fetchGraphs(null, null, page);
-        newPageCount = await getGraphsPageCount();
+  // Дебаунс: запрос уходит не на каждый символ, а после паузы во вводе.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilter({ tag: filterTag, value: filterInput.trim() });
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [filterTag, filterInput]);
+
+  // При смене фильтра возвращаемся на первую страницу.
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedFilter]);
+
+  useEffect(() => {
+    const load = async () => {
+      setIsDataFetched(false);
+      try {
+        const tag = debouncedFilter.value === "" ? null : debouncedFilter.tag;
+        const value = debouncedFilter.value === "" ? null : debouncedFilter.value;
+        const [charts, newPageCount] = await Promise.all([
+          fetchGraphs(tag, value, page, true),
+          getGraphsPageCount(tag, value),
+        ]);
+        setFilteredData(charts);
+        setPageCount(newPageCount);
+      } catch (e) {
+        enqueueSnackbar("Ошибка при загрузке списка игр", {
+          variant: "error",
+          autoHideDuration: 4000,
+          preventDuplicate: true,
+        });
+      } finally {
+        setIsDataFetched(true);
       }
-      setPageCount(newPageCount);
-      if (updatePage) setPage(1);
-      setFilteredData(filteredDataFromQuery);
-    },
-    [filterInput, page]
-  );
+    };
+    load();
+  }, [page, debouncedFilter, enqueueSnackbar]);
 
-  useEffect(() => {
-    setIsDataFetched(false);
-    filterData(false).then(() => {
-      setIsDataFetched(true);
-    });
-  }, [page, filterData]);
+  const confirmDelete = () => {
+    if (deleting || deleteTarget == null) {
+      return;
+    }
 
-  useEffect(() => {
-    setIsDataFetched(false);
-    filterData(true).then(() => {
-      setIsDataFetched(true);
-    });
-  }, [updateTrigger, filterData]);
-
-  const deleteGraphUi = (id) => {
-    deleteGraph(id).then(
-      (_) => {
+    setDeleting(true);
+    deleteGraph(deleteTarget.id).then(
+      () => {
+        setDeleting(false);
+        setDeleteTarget(null);
         enqueueSnackbar("Игра удалена", {
           variant: "success",
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setUpdateTrigger(!updateTrigger);
+        setFilteredData((prev) => (prev === null ? prev : prev.filter((graph) => graph.id !== deleteTarget.id)));
       },
       (e) => {
+        setDeleting(false);
+        setDeleteTarget(null);
         let additionalText = "";
         if (e.message.includes("Нарушение ограничений")) additionalText = "\n" + e.message;
         enqueueSnackbar("Ошибка при удалении игры" + additionalText, {
@@ -86,6 +119,8 @@ const AdminGraph = () => {
     );
   };
 
+  const filterLabel = FILTER_OPTIONS.find((option) => option.value === filterTag)?.label ?? "";
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -94,53 +129,77 @@ const AdminGraph = () => {
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
           <Typography variant="h4" noWrap component="div">
-            Изменение пройденной игры
+            Пройденные игры
           </Typography>
-          <TextField
-            onChange={(event) => {
-              setFilterInput(event.target.value);
-              setUpdateTrigger(!updateTrigger);
-            }}
-            value={filterInput}
-            id="outlined-basic"
-            label="Введите идентификатор игры"
-            variant="outlined"
-          />
+          <Stack direction="row" spacing={2}>
+            <TextField
+              select
+              sx={{ minWidth: 220 }}
+              label="Фильтр"
+              value={filterTag}
+              onChange={(event) => setFilterTag(event.target.value)}
+            >
+              {FILTER_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              fullWidth
+              onChange={(event) => setFilterInput(event.target.value)}
+              value={filterInput}
+              label={`Введите ${filterLabel.toLowerCase()}`}
+              variant="outlined"
+            />
+          </Stack>
 
           <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table sx={{ minWidth: 900 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell />
-                  <TableCell>Логин игрока</TableCell>
-                  <TableCell>ID игрока</TableCell>
                   <TableCell>ID игры</TableCell>
+                  <TableCell>Логин игрока</TableCell>
+                  <TableCell>ФИО игрока</TableCell>
+                  <TableCell>ID игрока</TableCell>
+                  <TableCell>Набор параметров</TableCell>
+                  <TableCell>Тип</TableCell>
                   <TableCell>Время добавления</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isDataFetched ? (
-                  filteredData.map((graph) => (
-                    <TableRow key={graph.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell sx={{ width: 75 }}>
-                        <Stack direction="row" spacing={1}>
-                          <ImageButton
-                            onClick={() => {
-                              deleteGraphUi(graph.id);
-                            }}
-                          >
+                {isDataFetched && filteredData !== null ? (
+                  filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                        Игры не найдены
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredData.map((graph) => (
+                      <TableRow key={graph.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                        <TableCell sx={{ width: 75 }}>
+                          <ImageButton onClick={() => setDeleteTarget(graph)}>
                             <DeleteIcon />
                           </ImageButton>
-                        </Stack>
-                      </TableCell>
-                      <TableCell component="th" scope="row">
-                        {graph.user_id}
-                      </TableCell>
-                      <TableCell>{graph.user_id}</TableCell>
-                      <TableCell>{graph.id}</TableCell>
-                      <TableCell>{dateFormat(graph.updatedAt, "yyyy-mm-dd HH:MM:ss")}</TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {graph.id}
+                        </TableCell>
+                        <TableCell>{graph.user_login || "—"}</TableCell>
+                        <TableCell>{graph.user_name || "—"}</TableCell>
+                        <TableCell>{graph.user_id}</TableCell>
+                        <TableCell>
+                          {graph.par_set_name?.trim()
+                            ? `${graph.par_set_name} (№${graph.parameter_set_id})`
+                            : `№${graph.parameter_set_id}`}
+                        </TableCell>
+                        <TableCell>{graph.is_training ? "Тренировка" : "Игра"}</TableCell>
+                        <TableCell>{dateFormat(graph.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
+                      </TableRow>
+                    ))
+                  )
                 ) : (
                   <></>
                 )}
@@ -162,6 +221,23 @@ const AdminGraph = () => {
             <></>
           )}
         </Stack>
+
+        <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>
+          <DialogTitle>Удалить игру?</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Удалить игру №{deleteTarget?.id}
+              {deleteTarget?.user_name ? ` игрока ${deleteTarget.user_name}` : ""}? Все точки и события
+              этой сессии будут удалены безвозвратно.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteTarget(null)}>Отмена</Button>
+            <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? "Удаление..." : "Удалить"}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );

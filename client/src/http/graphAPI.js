@@ -60,7 +60,7 @@ export const getGraphsCount = async (filterTag = null, filterValue = null) => {
   }
 };
 
-export const fetchGraphs = async (filterTag = null, filterValue = null, currentPage = null) => {
+export const fetchGraphs = async (filterTag = null, filterValue = null, currentPage = null, sortDesc = false) => {
   try {
     if (currentPage === null || currentPage <= 0) {
       currentPage = 1;
@@ -69,6 +69,7 @@ export const fetchGraphs = async (filterTag = null, filterValue = null, currentP
       filter_tag: filterTag,
       filter_value: String(filterValue),
       current_page: currentPage,
+      sort_desc: sortDesc,
     });
     if (data.data === null || data.data.length === 0) {
       return [];

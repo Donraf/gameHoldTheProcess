@@ -200,7 +200,7 @@ func TestHandler_getOneChart(t *testing.T) {
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}}`,
+			expectedRequestBody: `{"data":{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}}`,
 		},
 		{
 			name:               "incorrect parameter id - negative value",
@@ -555,7 +555,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}]}`,
 		},
 		{
 			name:      "internal server error",
@@ -590,7 +590,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}]}`,
 		},
 		{
 			name:      "empty filter value",
@@ -611,7 +611,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}]}`,
 		},
 		{
 			name:      "empty filter tag and value",
@@ -632,7 +632,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}]}`,
 		},
 		{
 			name:               "incorrect filter tag - wrong type",
@@ -688,7 +688,7 @@ func TestHandler_getAllCharts(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"parameter_set_id":1,"user_id":1,"created_at":"2023-10-01T00:00:00Z","is_training":false,"user_login":"","user_name":"","par_set_name":""}]}`,
 		},
 	}
 

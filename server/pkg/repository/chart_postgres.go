@@ -39,29 +39,22 @@ func (p *ChartPostgres) GetOneChart(id int) (gameServer.Chart, error) {
 
 func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput) (int, error) {
 	var chartsCount int
-	var query string
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s AS ct JOIN %s AS ut ON ut.user_id=ct.user_id", chartsTable, usersTable)
 	var args []any
 
 	switch input.FilterTag {
 	case "chart_id":
-		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE id=$1", chartsTable)
-			args = []any{input.FilterValue}
-		}
+		query += " WHERE ct.id=$1"
+		args = []any{input.FilterValue}
 	case "user_login":
-		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1", usersTable, chartsTable)
-			args = []any{likePattern(input.FilterValue)}
-		}
+		query += " WHERE ut.login LIKE $1"
+		args = []any{likePattern(input.FilterValue)}
+	case "user_name":
+		query += " WHERE ut.name LIKE $1"
+		args = []any{likePattern(input.FilterValue)}
 	case "user_id":
-		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE user_id=$1", chartsTable)
-			args = []any{input.FilterValue}
-		}
-	default:
-		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s", chartsTable)
-		}
+		query += " WHERE ct.user_id=$1"
+		args = []any{input.FilterValue}
 	}
 
 	row := p.db.QueryRow(query, args...)
@@ -74,30 +67,34 @@ func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput)
 
 func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]gameServer.Chart, error) {
 	var charts []gameServer.Chart
-	var query string
+	query := fmt.Sprintf(
+		"SELECT ct.id, ct.created_at, ct.parameter_set_id, ct.user_id, ct.is_training, ut.login AS user_login, ut.name AS user_name, COALESCE(pst.name, '') AS par_set_name FROM %s AS ct JOIN %s AS ut ON ut.user_id=ct.user_id LEFT JOIN %s AS pst ON pst.id=ct.parameter_set_id",
+		chartsTable,
+		usersTable,
+		parameterSetsTable,
+	)
 	var args []any
 
 	switch input.FilterTag {
 	case "chart_id":
-		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE id=$1 OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
-			args = []any{input.FilterValue}
-		}
+		query += " WHERE ct.id=$1"
+		args = []any{input.FilterValue}
 	case "user_login":
-		{
-			query = fmt.Sprintf("SELECT ct.id, ct.created_at, ct.parameter_set_id, ct.user_id, ct.is_training FROM %s AS ut JOIN %s AS ct ON ut.user_id=ct.user_id WHERE ut.login LIKE $1 OFFSET %v LIMIT %v", usersTable, chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
-			args = []any{likePattern(input.FilterValue)}
-		}
+		query += " WHERE ut.login LIKE $1"
+		args = []any{likePattern(input.FilterValue)}
+	case "user_name":
+		query += " WHERE ut.name LIKE $1"
+		args = []any{likePattern(input.FilterValue)}
 	case "user_id":
-		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s WHERE user_id=$1 OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
-			args = []any{input.FilterValue}
-		}
-	default:
-		{
-			query = fmt.Sprintf("SELECT id, created_at, parameter_set_id, user_id, is_training FROM %s OFFSET %v LIMIT %v", chartsTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
-		}
+		query += " WHERE ct.user_id=$1"
+		args = []any{input.FilterValue}
 	}
+
+	order := "ASC"
+	if input.SortDesc {
+		order = "DESC"
+	}
+	query += fmt.Sprintf(" ORDER BY ct.id %s OFFSET %v LIMIT %v", order, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 
 	err := p.db.Select(&charts, query, args...)
 

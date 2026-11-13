@@ -15,6 +15,9 @@ type Chart struct {
 	UserId         int    `json:"user_id" binding:"required" db:"user_id"`
 	CreatedAt      string `json:"created_at" binding:"required" db:"created_at"`
 	IsTraining     bool   `json:"is_training" db:"is_training"`
+	UserLogin      string `json:"user_login" db:"user_login"`
+	UserName       string `json:"user_name" db:"user_name"`
+	ParSetName     string `json:"par_set_name" db:"par_set_name"`
 }
 
 type CreateChartInput struct {
@@ -47,6 +50,7 @@ type GetAllChartsInput struct {
 	FilterTag   string `json:"filter_tag"`
 	FilterValue string `json:"filter_value"`
 	CurrentPage int    `json:"current_page"`
+	SortDesc    bool   `json:"sort_desc"`
 }
 
 func (i *GetAllChartsInput) Validate() error {
