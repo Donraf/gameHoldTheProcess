@@ -26,6 +26,7 @@ const (
 	groupsTable            = "groups"
 	userGroupsTable        = "user_groups"
 	statisticsTable        = "statistics"
+	statisticsDirtyTable   = "statistics_dirty"
 	testsTable             = "tests"
 	testResultsTable       = "test_results"
 	parSetColumns          = "id, name, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, scoring_config, hint_cost, false_alarm_threshold, rules_text, created_at"

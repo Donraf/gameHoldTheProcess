@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -11,22 +10,19 @@ import (
 )
 
 // StatisticsScheduler откладывает пересчёт статистики игроков:
-// конец игры помечает пару (игрок, набор параметров) как «грязную»,
-// фоновый воркер раз в interval пересчитывает накопившиеся пары —
-// строго по одной, чтобы не нагружать базу.
+// конец игры помечает пару (игрок, набор параметров) как «грязную»
+// в таблице statistics_dirty, фоновый воркер раз в interval пересчитывает
+// накопившиеся пары — строго по одной, чтобы не нагружать базу.
+// Очередь хранится в БД, поэтому переживает рестарты сервера.
 type StatisticsScheduler struct {
 	stats    *StatisticsService
 	interval time.Duration
-
-	mu    sync.Mutex
-	dirty map[gameServer.ComputeStatisticsInput]struct{}
 }
 
 func NewStatisticsScheduler(stats *StatisticsService, interval time.Duration) *StatisticsScheduler {
 	return &StatisticsScheduler{
 		stats:    stats,
 		interval: interval,
-		dirty:    make(map[gameServer.ComputeStatisticsInput]struct{}),
 	}
 }
 
@@ -37,9 +33,10 @@ func (s *StatisticsScheduler) MarkDirty(userId, parSetId int) {
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.dirty[gameServer.ComputeStatisticsInput{UserId: userId, ParSetId: parSetId}] = struct{}{}
+	if err := s.stats.MarkStatisticsDirty(userId, parSetId); err != nil {
+		logrus.Errorf("statistics scheduler: failed to mark statistics dirty for user %d, par set %d: %s",
+			userId, parSetId, err.Error())
+	}
 }
 
 // Run запускает цикл пересчёта до отмены ctx.
@@ -58,17 +55,22 @@ func (s *StatisticsScheduler) Run(ctx context.Context) {
 }
 
 func (s *StatisticsScheduler) processDirty() {
-	s.mu.Lock()
-	batch := s.dirty
-	s.dirty = make(map[gameServer.ComputeStatisticsInput]struct{}, len(batch))
-	s.mu.Unlock()
+	batch, err := s.stats.GetStatisticsDirty()
+	if err != nil {
+		logrus.Errorf("statistics scheduler: failed to get dirty statistics: %s", err.Error())
+		return
+	}
 
-	for input := range batch {
+	for _, input := range batch {
 		if err := s.computeOne(input); err != nil {
 			logrus.Errorf("statistics scheduler: failed to compute statistics for user %d, par set %d: %s",
 				input.UserId, input.ParSetId, err.Error())
-			// Не удалось — вернём в очередь, чтобы попробовать на следующем тике.
-			s.MarkDirty(input.UserId, input.ParSetId)
+			// Пара остаётся в таблице — повторим на следующем тике.
+			continue
+		}
+		if err := s.stats.ClearStatisticsDirty(input); err != nil {
+			logrus.Errorf("statistics scheduler: failed to clear dirty mark for user %d, par set %d: %s",
+				input.UserId, input.ParSetId, err.Error())
 		}
 	}
 }

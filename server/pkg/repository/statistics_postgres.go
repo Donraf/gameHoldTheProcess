@@ -250,6 +250,28 @@ func (p *StatisticsPostgres) GetStatistics(userId, parSetId int) (gameServer.Sta
 	return stats, err
 }
 
+func (p *StatisticsPostgres) MarkStatisticsDirty(userId, parSetId int) error {
+	query := fmt.Sprintf(
+		"INSERT INTO %s (user_id, parameter_set_id, marked_at) VALUES ($1, $2, $3) ON CONFLICT (user_id, parameter_set_id) DO NOTHING",
+		statisticsDirtyTable,
+	)
+	_, err := p.db.Exec(query, userId, parSetId, gameServer.Now())
+	return err
+}
+
+func (p *StatisticsPostgres) GetStatisticsDirty() ([]gameServer.ComputeStatisticsInput, error) {
+	var dirty []gameServer.ComputeStatisticsInput
+	query := fmt.Sprintf("SELECT user_id, parameter_set_id AS id FROM %s ORDER BY marked_at", statisticsDirtyTable)
+	err := p.db.Select(&dirty, query)
+	return dirty, err
+}
+
+func (p *StatisticsPostgres) ClearStatisticsDirty(input gameServer.ComputeStatisticsInput) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND parameter_set_id=$2", statisticsDirtyTable)
+	_, err := p.db.Exec(query, input.UserId, input.ParSetId)
+	return err
+}
+
 func (p *StatisticsPostgres) GetTotalScore(input gameServer.ComputeStatisticsInput) (int, error) {
 	var totalScore int
 

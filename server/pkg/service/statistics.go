@@ -141,6 +141,18 @@ func (s *StatisticsService) GetStatistics(userId, parSetId int) (gameServer.Stat
 	return s.repo.GetStatistics(userId, parSetId)
 }
 
+func (s *StatisticsService) MarkStatisticsDirty(userId, parSetId int) error {
+	return s.repo.MarkStatisticsDirty(userId, parSetId)
+}
+
+func (s *StatisticsService) GetStatisticsDirty() ([]gameServer.ComputeStatisticsInput, error) {
+	return s.repo.GetStatisticsDirty()
+}
+
+func (s *StatisticsService) ClearStatisticsDirty(input gameServer.ComputeStatisticsInput) error {
+	return s.repo.ClearStatisticsDirty(input)
+}
+
 func computeChoiceStatsAnikin(points []gameServer.Point) (jsonChoiceStats string, err error) {
 	var pointsWithChoices []gameServer.ChoiceStats
 	for _, point := range points {

@@ -71,6 +71,9 @@ type Statistics interface {
 	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
 	GetTotalScore(input gameServer.ComputeStatisticsInput) (int, error)
 	GetAllEvents(input gameServer.ComputeStatisticsInput) ([]gameServer.Point, error)
+	MarkStatisticsDirty(userId, parSetId int) error
+	GetStatisticsDirty() ([]gameServer.ComputeStatisticsInput, error)
+	ClearStatisticsDirty(input gameServer.ComputeStatisticsInput) error
 }
 
 type Test interface {
