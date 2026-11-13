@@ -186,6 +186,10 @@ func computeChoiceStatsAnikin(points []gameServer.Point) (jsonChoiceStats string
 	} else if len(pointsWithChoices) > 0 {
 		chunkSize = len(pointsWithChoices) / 3
 	}
+	if chunkSize < 1 {
+		// Защита от деления на ноль: при единственной точке решений len/2 == 0.
+		chunkSize = 1
+	}
 	numOfChunks := len(pointsWithChoices) / chunkSize
 	curChunkNum := 0
 
@@ -369,6 +373,10 @@ func computeChoiceStatsVengerCharts(points []gameServer.Point) (jsonChoiceStats 
 		chunkSize = len(pointsWithChoices) / 2
 	} else if len(pointsWithChoices) > 0 {
 		chunkSize = len(pointsWithChoices) / 3
+	}
+	if chunkSize < 1 {
+		// Защита от деления на ноль: при единственной точке решений len/2 == 0.
+		chunkSize = 1
 	}
 	numOfChunks := len(pointsWithChoices) / chunkSize
 	curChunkNum := 0

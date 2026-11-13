@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -63,11 +64,24 @@ func (s *StatisticsScheduler) processDirty() {
 	s.mu.Unlock()
 
 	for input := range batch {
-		if _, err := s.stats.ComputeStatistics(input); err != nil {
+		if err := s.computeOne(input); err != nil {
 			logrus.Errorf("statistics scheduler: failed to compute statistics for user %d, par set %d: %s",
 				input.UserId, input.ParSetId, err.Error())
 			// Не удалось — вернём в очередь, чтобы попробовать на следующем тике.
 			s.MarkDirty(input.UserId, input.ParSetId)
 		}
 	}
+}
+
+// computeOne пересчитывает одну пару; паника превращается в ошибку,
+// чтобы фоновая goroutine не уронила весь сервер.
+func (s *StatisticsScheduler) computeOne(input gameServer.ComputeStatisticsInput) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic during statistics computation: %v", r)
+		}
+	}()
+
+	_, err = s.stats.ComputeStatistics(input)
+	return err
 }
