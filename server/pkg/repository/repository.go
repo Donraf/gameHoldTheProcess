@@ -57,7 +57,6 @@ type Point interface {
 	GetOnePoint(id int) (gameServer.Point, error)
 	GetAllPointsById(id int) ([]gameServer.Point, error)
 	DeletePoint(id int) error
-	GetAllPointsForCSV() ([]gameServer.PointForCSV, error)
 }
 
 type Statistics interface {

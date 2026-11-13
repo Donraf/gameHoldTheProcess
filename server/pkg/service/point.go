@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/repository"
 )
@@ -33,17 +31,4 @@ func (s *PointService) GetAllPointsById(id int) ([]gameServer.Point, error) {
 
 func (s *PointService) DeletePoint(id int) error {
 	return s.repo.DeletePoint(id)
-}
-
-func (s *PointService) GetCsvOfPoints() (string, error) {
-	points, err := s.repo.GetAllPointsForCSV()
-	if err != nil {
-		return "", err
-	}
-	csv := "parameter_set_id, user_id, chart_id, point_id, x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, check_info\r\n"
-	for _, p := range points {
-		csv += fmt.Sprintf("%v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v, %v\r\n", p.ParameterSetId, p.UserId, p.ChartId, p.Id, p.X, p.Y, p.Score,
-			p.IsCrash, p.IsUsefulAiSignal, p.IsDeceptiveAiSignal, p.IsStop, p.IsPause, p.IsCheck, p.CheckInfo)
-	}
-	return csv, nil
 }

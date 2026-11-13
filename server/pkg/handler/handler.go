@@ -95,7 +95,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			point.POST("/", h.createPoint)
 			point.POST("/batch", h.createPoints)
-			point.GET("/csv", h.checkResearcherRole, h.getAllPointsInCsv)
 			point.GET("/chart_id/:chart_id", h.getAllPointsById)
 			point.GET("/:id", h.getOnePoint)
 			point.DELETE("/:id", h.checkAdminRole, h.deletePoint)

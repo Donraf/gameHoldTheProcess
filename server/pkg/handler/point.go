@@ -181,18 +181,6 @@ func (h *Handler) getAllPointsById(c *gin.Context) {
 	})
 }
 
-func (h *Handler) getAllPointsInCsv(c *gin.Context) {
-	csv, err := h.services.Point.GetCsvOfPoints()
-	if err != nil {
-		internalErrorResponse(c, err)
-		return
-	}
-
-	c.Writer.Header().Set("Content-Type", "text/csv")
-	c.Writer.Header().Set("Content-Disposition", "attachment; filename=\"points.csv\"")
-	c.Writer.Write([]byte(csv))
-}
-
 func (h *Handler) deletePoint(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {

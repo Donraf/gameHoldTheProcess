@@ -162,24 +162,6 @@ func (p *Point) Validate() error {
 	return nil
 }
 
-type PointForCSV struct {
-	Id                  int     `json:"id" db:"id"`
-	X                   float32 `json:"x" db:"x"`
-	Y                   float32 `json:"y" db:"y"`
-	Score               float32 `json:"score" db:"score"`
-	IsCrash             bool    `json:"is_crash" db:"is_crash"`
-	IsUsefulAiSignal    bool    `json:"is_useful_ai_signal" db:"is_useful_ai_signal"`
-	IsDeceptiveAiSignal bool    `json:"is_deceptive_ai_signal" db:"is_deceptive_ai_signal"`
-	IsStop              bool    `json:"is_stop" db:"is_stop"`
-	IsPause             bool    `json:"is_pause" db:"is_pause"`
-	IsCheck             bool    `json:"is_check" db:"is_check"`
-	ChartId             int     `json:"chart_id" db:"chart_id"`
-	CheckInfo           *string `json:"check_info" db:"check_info"`
-	UserId              int     `json:"user_id" db:"user_id"`
-	ParameterSetId      int     `json:"parameter_set_id" db:"parameter_set_id"`
-	IsTraining          bool    `json:"is_training" db:"is_training"`
-}
-
 type ParameterSet struct {
 	Id                  int             `json:"id" db:"id"`
 	Name                string          `json:"name" db:"name"`
