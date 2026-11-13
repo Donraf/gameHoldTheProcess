@@ -27,7 +27,7 @@ var ErrUserAlreadyInGroup = errors.New("user is already in the group")
 type User struct {
 	Id               int     `json:"user_id" db:"user_id"`
 	Login            string  `json:"login" binding:"required"`
-	Password         string  `json:"-" binding:"required"`
+	Password         string  `json:"-" binding:"required" db:"password"`
 	Name             string  `json:"name" binding:"required" db:"name"`
 	Role             string  `json:"role" binding:"required"`
 	CurParSetId      int     `json:"cur_par_set_id" db:"cur_par_set_id"`

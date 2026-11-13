@@ -72,12 +72,19 @@ func (u *UserPostgres) CreateUser(input gameServer.RegisterUserInput) (int, erro
 	return userId, tx.Commit()
 }
 
-func (u *UserPostgres) GetUser(login, password string) (gameServer.User, error) {
+func (u *UserPostgres) GetUserByLogin(login string) (gameServer.User, error) {
 	var user gameServer.User
-	query := fmt.Sprintf("SELECT user_id, login, name, role FROM %s WHERE login=$1 AND password=$2", usersTable)
-	err := u.db.Get(&user, query, login, password)
+	query := fmt.Sprintf("SELECT user_id, login, password, name, role FROM %s WHERE login=$1", usersTable)
+	err := u.db.Get(&user, query, login)
 
 	return user, err
+}
+
+func (u *UserPostgres) UpdateUserPassword(userId int, passwordHash string) error {
+	query := fmt.Sprintf("UPDATE %s SET password=$1 WHERE user_id=$2", usersTable)
+	_, err := u.db.Exec(query, passwordHash, userId)
+
+	return err
 }
 
 func (u *UserPostgres) DeleteUser(id int) error {

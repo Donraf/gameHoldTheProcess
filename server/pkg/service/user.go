@@ -2,15 +2,20 @@ package service
 
 import (
 	"crypto/sha1"
+	"crypto/subtle"
+	"database/sql"
 	"errors"
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/repository"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -41,7 +46,12 @@ func NewUserService(repo repository.User) *UserService {
 }
 
 func (u *UserService) CreateUser(user gameServer.RegisterUserInput) (string, error) {
-	user.Password = generatePasswordHash(user.Password)
+	passwordHash, err := generatePasswordHash(user.Password)
+	if err != nil {
+		return "", err
+	}
+	user.Password = passwordHash
+
 	userId, err := u.repo.CreateUser(user)
 	if err != nil {
 		return "", err
@@ -53,9 +63,25 @@ func (u *UserService) CreateUser(user gameServer.RegisterUserInput) (string, err
 }
 
 func (u *UserService) GenerateToken(login, password string) (string, error) {
-	user, err := u.repo.GetUser(login, generatePasswordHash(password))
+	user, err := u.repo.GetUserByLogin(login)
 	if err != nil {
 		return "", err
+	}
+
+	ok, needsRehash := verifyPassword(user.Password, password)
+	if !ok {
+		return "", sql.ErrNoRows
+	}
+
+	// Мягкая миграция с legacy SHA-1 на bcrypt: при успешном входе
+	// по старому хешу перезаписываем его bcrypt-хешом, пока пароль
+	// известен в открытом виде. Ошибка перезаписи не блокирует вход.
+	if needsRehash {
+		if newHash, err := generatePasswordHash(password); err == nil {
+			if err := u.repo.UpdateUserPassword(user.Id, newHash); err != nil {
+				logrus.Errorf("failed to rehash password for user %d: %s", user.Id, err.Error())
+			}
+		}
 	}
 
 	token := createToken(user.Id, user.Login, user.Role)
@@ -113,11 +139,29 @@ func (u *UserService) ParseToken(accessToken string) (*TokenClaims, error) {
 	return claims, nil
 }
 
-func generatePasswordHash(password string) string {
+func generatePasswordHash(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
+// verifyPassword проверяет пароль против хеша из БД.
+// Возвращает ok=true при совпадении и needsRehash=true, если хеш
+// в устаревшем формате (legacy SHA-1 + соль) и его надо заменить на bcrypt.
+func verifyPassword(storedHash, password string) (ok bool, needsRehash bool) {
+	if strings.HasPrefix(storedHash, "$2a$") || strings.HasPrefix(storedHash, "$2b$") || strings.HasPrefix(storedHash, "$2y$") {
+		return bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password)) == nil, false
+	}
+
+	// Legacy: SHA-1 + статическая соль. Оставлено только для миграции
+	// существующих пользователей; удалить после перевода всех на bcrypt.
 	hash := sha1.New()
 	hash.Write([]byte(password))
+	legacyHash := fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("PASSWORD_SALT"))))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(os.Getenv("PASSWORD_SALT"))))
+	return subtle.ConstantTimeCompare([]byte(storedHash), []byte(legacyHash)) == 1, true
 }
 
 func (u *UserService) DeleteUser(id int) error {
@@ -141,7 +185,11 @@ func (u *UserService) DeleteUser(id int) error {
 
 func (u *UserService) UpdateUser(id int, input gameServer.UpdateUserInput) error {
 	if input.Password != nil {
-		*input.Password = generatePasswordHash(*input.Password)
+		passwordHash, err := generatePasswordHash(*input.Password)
+		if err != nil {
+			return err
+		}
+		*input.Password = passwordHash
 	}
 	return u.repo.UpdateUser(id, input)
 }
