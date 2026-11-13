@@ -318,20 +318,6 @@ export class ChartData {
     this.restart();
   }
 
-  getCrashProb() {
-    if (this.parSet === null) {
-      return 0;
-    }
-    var cdf = require("@stdlib/stats-base-dists-normal-cdf");
-    let a = this.parSet.a;
-    let b = this.parSet.b;
-    let noise_mean = this.parSet.noise_mean;
-    let noise_stdev = this.parSet.noise_stdev;
-    let knownPart = a * this.points[this.points.length - this.checkDangerNum - 1].y + b * this.U;
-    let crashProb = (1 - cdf(this.criticalValue - knownPart, parseFloat(noise_mean), parseFloat(noise_stdev))) * 100;
-    return crashProb;
-  }
-
   LOW_RISK_LEVEL = "Низкий уровень риска"
   MODERATE_RISK_LEVEL = "Средний уровень риска"
   HIGH_RISK_LEVEL = "Высокий уровень риска"

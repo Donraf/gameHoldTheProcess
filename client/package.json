@@ -7,7 +7,6 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.4.1",
-    "@stdlib/stats-base-dists-normal-cdf": "^0.2.2",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "dateformat": "^5.0.3",
