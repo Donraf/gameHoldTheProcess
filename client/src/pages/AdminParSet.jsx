@@ -35,6 +35,7 @@ import {
   DEFAULT_SCORING_CONFIG,
 } from "../features/game/constants/parSetDefaults";
 import { isValidLocalizedNumber, parseLocalizedJson, parseLocalizedNumber } from "../utils/parseLocalizedNumber";
+import { parSetLabel } from "../utils/parSet";
 import { Chart } from "react-chartjs-2";
 
 const options = {
@@ -61,6 +62,7 @@ const options = {
 const PREVIEW_LENGTH = 80;
 
 const emptyForm = {
+  name: "",
   a: "",
   b: "",
   noiseMean: "",
@@ -75,6 +77,7 @@ const emptyForm = {
 
 function formFromParSet(parSet) {
   return {
+    name: parSet.name ?? "",
     a: String(parSet.a),
     b: String(parSet.b),
     noiseMean: String(parSet.noise_mean),
@@ -102,6 +105,9 @@ function formatScoringConfig(scoringConfig) {
 }
 
 function validateForm(form) {
+  if (form.name.trim() === "") {
+    return "Введите название набора параметров";
+  }
   if (form.a === "" || !isValidLocalizedNumber(form.a) || parseLocalizedNumber(form.a) < 0) {
     return "Коэффициент a должен быть неотрицательным числом";
   }
@@ -151,6 +157,7 @@ function validateForm(form) {
 
 function buildPayload(form) {
   return {
+    name: form.name.trim(),
     a: parseLocalizedNumber(form.a),
     b: parseLocalizedNumber(form.b),
     noise_mean: parseLocalizedNumber(form.noiseMean),
@@ -178,6 +185,7 @@ const ParSetFields = ({ values, onChange }) => {
 
   return (
     <Stack width="100%" direction="column" spacing={2}>
+      {field("name", "Название набора", { required: true })}
       {field("a", "Коэффициент a", { required: true })}
       {field("b", "Коэффициент b", { required: true })}
       {field("noiseMean", "Математическое ожидание помехи", { required: true })}
@@ -430,6 +438,7 @@ const AdminParset = () => {
                 <TableRow>
                   <TableCell />
                   <TableCell>ID</TableCell>
+                  <TableCell>Название</TableCell>
                   <TableCell>Коэффициент a</TableCell>
                   <TableCell>Коэффициент b</TableCell>
                   <TableCell>Математическое ожидание помехи</TableCell>
@@ -447,7 +456,7 @@ const AdminParset = () => {
                 {isDataFetched && filteredData !== null ? (
                   filteredData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={13} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={14} align="center" sx={{ py: 6 }}>
                         Наборы параметров не найдены
                       </TableCell>
                     </TableRow>
@@ -467,6 +476,7 @@ const AdminParset = () => {
                         <TableCell component="th" scope="row">
                           {parSet.id}
                         </TableCell>
+                        <TableCell>{parSet.name?.trim() || "—"}</TableCell>
                         <TableCell>{parSet.a}</TableCell>
                         <TableCell>{parSet.b}</TableCell>
                         <TableCell>{parSet.noise_mean}</TableCell>
@@ -481,7 +491,7 @@ const AdminParset = () => {
                             monospace
                             onOpen={() =>
                               setViewContent({
-                                title: `Бонусы и штрафы — набор №${parSet.id}`,
+                                title: `Бонусы и штрафы — ${parSetLabel(parSet)}`,
                                 content: formatScoringConfig(parSet.scoring_config),
                                 monospace: true,
                               })
@@ -493,7 +503,7 @@ const AdminParset = () => {
                             text={parSet.rules_text?.trim() ? parSet.rules_text : "Стандартные правила"}
                             onOpen={() =>
                               setViewContent({
-                                title: `Правила игры — набор №${parSet.id}`,
+                                title: `Правила игры — ${parSetLabel(parSet)}`,
                                 content: parSet.rules_text?.trim() ? parSet.rules_text : "Стандартные правила",
                                 monospace: false,
                               })
@@ -527,7 +537,7 @@ const AdminParset = () => {
         </Stack>
 
         <Dialog open={editTarget !== null} onClose={closeEditDialog} maxWidth="md" fullWidth>
-          <DialogTitle>Изменение набора параметров №{editTarget?.id}</DialogTitle>
+          <DialogTitle>Изменение набора параметров {parSetLabel(editTarget)}</DialogTitle>
           <DialogContent>
             <Box sx={{ pt: 1 }}>
               <ParSetFields
@@ -548,7 +558,7 @@ const AdminParset = () => {
           <DialogTitle>Удалить набор параметров?</DialogTitle>
           <DialogContent>
             <Typography>
-              Удалить набор параметров №{deleteTarget?.id}? Если набор используется пользователями,
+              Удалить набор параметров {parSetLabel(deleteTarget)}? Если набор используется пользователями,
               группами или в сыгранных играх, удаление будет отклонено.
             </Typography>
           </DialogContent>

@@ -40,6 +40,7 @@ import StatisticsIcon from "./icons/StatisticsIcon";
 import RadioCheckedIcon from "./icons/RadioCheckedIcon";
 import RadioUncheckedIcon from "./icons/RadioUncheckedIcon";
 import { computeStatistics, getStatistics } from "../http/statisticsAPI";
+import { parSetLabel } from "../utils/parSet";
 import { Context } from "..";
 
 ChartJS.register(
@@ -233,7 +234,15 @@ export default function PlayerCard({ player }) {
               Текущий набор параметров:
             </Typography>
             <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-              №{player ? player.cur_par_set_id : ""}
+              {player
+                ? isDataFetched && filteredData !== null
+                  ? parSetLabel(
+                      filteredData.find((set) => set.id === player.cur_par_set_id) ?? {
+                        id: player.cur_par_set_id,
+                      }
+                    )
+                  : `№${player.cur_par_set_id}`
+                : ""}
             </Typography>
           </Stack>
 
@@ -393,6 +402,7 @@ export default function PlayerCard({ player }) {
                 <TableRow>
                   <TableCell />
                   <TableCell>ID</TableCell>
+                  <TableCell>Название</TableCell>
                   <TableCell>Коэф. a</TableCell>
                   <TableCell>Коэф. b</TableCell>
                   <TableCell>Мат. ожидание помехи</TableCell>
@@ -425,6 +435,7 @@ export default function PlayerCard({ player }) {
                       <TableCell component="th" scope="row">
                         {parSet.id}
                       </TableCell>
+                      <TableCell>{parSet.name?.trim() || "—"}</TableCell>
                       <TableCell>{parSet.a}</TableCell>
                       <TableCell>{parSet.b}</TableCell>
                       <TableCell>{parSet.noise_mean}</TableCell>

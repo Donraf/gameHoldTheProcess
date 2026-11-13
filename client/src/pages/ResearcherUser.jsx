@@ -23,6 +23,7 @@ import { useLocation } from "react-router-dom";
 import { computeStatistics, getStatistics } from "../http/statisticsAPI";
 import { Context } from "..";
 import { COLORS, USER_ROLE_ADMIN } from "../utils/constants";
+import { parSetLabel } from "../utils/parSet";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
 import ResUserCharts from "../components/ResUserCharts";
 import ResUserVengerTable from "../components/ResUserVengerTable";
@@ -111,7 +112,7 @@ const ResearcherUser = () => {
           </Typography>
           <Autocomplete
             options={location.state.player.par_sets}
-            getOptionLabel={(parSet) => parSet.id.toString()}
+            getOptionLabel={(parSet) => parSetLabel(parSet)}
             renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
             value={location.state.player.par_sets.find((parSet) => parSet.id === selectedParSetId) || null}
             onChange={(_, newValue) => {

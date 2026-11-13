@@ -141,13 +141,14 @@ func (p *ChartPostgres) GetParSetsCount() (int, error) {
 func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, error) {
 	var id int
 	query := fmt.Sprintf(
-		"INSERT INTO %s (a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, scoring_config, hint_cost, false_alarm_threshold, rules_text, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
+		"INSERT INTO %s (name, a, b, noise_mean, noise_stdev, false_warning_prob, missing_danger_prob, scoring_config, hint_cost, false_alarm_threshold, rules_text, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id",
 		parameterSetsTable,
 	)
 
 	timeNow := gameServer.Now()
 	row := p.db.QueryRow(
 		query,
+		input.Name,
 		input.A,
 		input.B,
 		input.NoiseMean,
@@ -169,11 +170,12 @@ func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, e
 
 func (p *ChartPostgres) UpdateParSet(id int, input gameServer.CreateParSetInput) error {
 	query := fmt.Sprintf(
-		"UPDATE %s SET a=$1, b=$2, noise_mean=$3, noise_stdev=$4, false_warning_prob=$5, missing_danger_prob=$6, scoring_config=$7, hint_cost=$8, false_alarm_threshold=$9, rules_text=$10 WHERE id=$11",
+		"UPDATE %s SET name=$1, a=$2, b=$3, noise_mean=$4, noise_stdev=$5, false_warning_prob=$6, missing_danger_prob=$7, scoring_config=$8, hint_cost=$9, false_alarm_threshold=$10, rules_text=$11 WHERE id=$12",
 		parameterSetsTable,
 	)
 	res, err := p.db.Exec(
 		query,
+		input.Name,
 		input.A,
 		input.B,
 		input.NoiseMean,

@@ -3,6 +3,7 @@ package gameServer
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -67,6 +68,7 @@ func (i *GetAllParSetsInput) Validate() error {
 }
 
 type CreateParSetInput struct {
+	Name                string          `json:"name" db:"name"`
 	A                   float32         `json:"a" db:"a"`
 	B                   float32         `json:"b" db:"b"`
 	NoiseMean           float32         `json:"noise_mean" db:"noise_mean"`
@@ -97,6 +99,9 @@ func (i *CreateParSetInput) ApplyDefaults() {
 
 func (i *CreateParSetInput) Validate() error {
 	i.ApplyDefaults()
+	if strings.TrimSpace(i.Name) == "" {
+		return errors.New("parameter set name is empty")
+	}
 	if i.A < 0 {
 		return errors.New("coefficient a is less than zero")
 	}
@@ -173,6 +178,7 @@ type PointForCSV struct {
 
 type ParameterSet struct {
 	Id                  int             `json:"id" db:"id"`
+	Name                string          `json:"name" db:"name"`
 	A                   float32         `json:"a" db:"a"`
 	B                   float32         `json:"b" db:"b"`
 	NoiseMean           float32         `json:"noise_mean" db:"noise_mean"`

@@ -42,10 +42,12 @@ import ChangeIconBlack from "../components/icons/ChangeIconBlack";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import ProfileNavIcon from "../components/icons/ProfileNavIcon";
 import { ModalContent } from "../components/ModalContent";
+import { parSetLabel } from "../utils/parSet";
 
 const formatParSetLabel = (parSet) =>
-  "ID: " +
-  parSet.id +
+  parSetLabel(parSet) +
+  " | a: " +
+  parSet.a +
   " | a: " +
   parSet.a +
   " | b: " +
