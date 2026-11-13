@@ -1,4 +1,5 @@
 import { COLORS } from "./constants";
+import { makeAutoObservable, observable } from "mobx";
 import {
   DEFAULT_FALSE_ALARM_THRESHOLD,
   DEFAULT_HINT_COST,
@@ -63,6 +64,15 @@ export class ChartData {
     this.wasFakeAlert = false;
     this.parSet = parSet;
     this.falseAlarmThreshold = DEFAULT_FALSE_ALARM_THRESHOLD;
+    // Делаем состояние наблюдаемым: ререндер графика и счёта больше не зависит
+    // от случайных setState снаружи. points/data/fullData — observable.ref,
+    // чтобы MobX не проксировал тысячи точек и не мешал Chart.js.
+    makeAutoObservable(this, {
+      points: observable.ref,
+      data: observable.ref,
+      fullData: observable.ref,
+      parSet: observable.ref,
+    });
     this.restart();
   }
 
