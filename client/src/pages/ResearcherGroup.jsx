@@ -411,7 +411,10 @@ const ResearcherGroup = () => {
                         <TableCell>
                           {parSet ? formatParSetLabel(parSet) : "ID: " + group.parameter_set_id}
                         </TableCell>
-                        <TableCell>{group.creator_name || "ID: " + group.creator_id}</TableCell>
+                        <TableCell>
+                          {group.creator_name ||
+                            (group.creator_id ? "ID: " + group.creator_id : "Удалён")}
+                        </TableCell>
                         <TableCell>{group.members_count}</TableCell>
                         <TableCell>{dateFormat(group.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
                       </TableRow>

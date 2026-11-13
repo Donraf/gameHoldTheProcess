@@ -16,6 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func ptrInt(v int) *int {
+	return &v
+}
+
 func validRegisterUserInput() gameServer.RegisterUserInput {
 	return gameServer.RegisterUserInput{
 		Login:           "l",
@@ -1792,7 +1796,7 @@ func TestHandler_getAllGroups(t *testing.T) {
 						Id:           1,
 						Name:         "n",
 						CreatedAt:    "2023-10-01T00:00:00Z",
-						CreatorId:    1,
+						CreatorId:    ptrInt(1),
 						CreatorName:  "admin",
 						MembersCount: 3,
 					},

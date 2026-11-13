@@ -43,7 +43,7 @@ type Group struct {
 	Id           int    `json:"id" db:"id"`
 	Name         string `json:"name" db:"name"`
 	CreatedAt    string `json:"created_at" db:"created_at"`
-	CreatorId    int    `json:"creator_id" db:"creator_id"`
+	CreatorId    *int   `json:"creator_id" db:"creator_id"`
 	CreatorName  string `json:"creator_name" db:"creator_name"`
 	MembersCount int    `json:"members_count" db:"members_count"`
 	ParSetId     int    `json:"parameter_set_id" db:"parameter_set_id"`
