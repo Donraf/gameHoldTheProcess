@@ -23,7 +23,7 @@ func ptrInt(v int) *int {
 func validRegisterUserInput() gameServer.RegisterUserInput {
 	return gameServer.RegisterUserInput{
 		Login:           "l",
-		Password:        "p",
+		Password:        "password1",
 		Role:            "User",
 		Name:            "n",
 		Profession:      "Инженер",
@@ -33,7 +33,7 @@ func validRegisterUserInput() gameServer.RegisterUserInput {
 	}
 }
 
-const validRegisterUserBody = `{"login": "l", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`
+const validRegisterUserBody = `{"login": "l", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`
 
 func TestHandler_registration(t *testing.T) {
 	type mockBehavior func(r *service.MockUser, userInput gameServer.RegisterUserInput)
@@ -80,7 +80,7 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "role is forced to User on public registration",
-			inputBody: `{"login": "l", "password": "p", "role": "ADMIN", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "l", "password": "password1", "role": "ADMIN", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Role = gameServer.RoleUser
@@ -104,21 +104,21 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:               "no login",
-			inputBody:          `{"password": "p", "role": "User", "name":"n"}`,
+			inputBody:          `{"password": "password1", "role": "User", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "empty login",
-			inputBody:          `{"login": "", "password": "p", "role": "User", "name":"n"}`,
+			inputBody:          `{"login": "", "password": "password1", "role": "User", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect login",
-			inputBody:          `{"login": 1, "password": "p", "role": "User", "name":"n"}`,
+			inputBody:          `{"login": 1, "password": "password1", "role": "User", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -145,99 +145,106 @@ func TestHandler_registration(t *testing.T) {
 			isError:            true,
 		},
 		{
+			name:               "short password",
+			inputBody:          `{"login": "l", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
 			name:               "no role",
-			inputBody:          `{"login": "l", "password": "p", "name":"n"}`,
+			inputBody:          `{"login": "l", "password": "password1", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "empty role",
-			inputBody:          `{"login": "login", "password": "p", "role": "", "name":"n"}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "", "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect role",
-			inputBody:          `{"login": "login", "password": "p", "role": 1, "name":"n"}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": 1, "name":"n"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "no name",
-			inputBody:          `{"login": "l", "password": "p", "role": "User"}`,
+			inputBody:          `{"login": "l", "password": "password1", "role": "User"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "empty name",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":""}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":""}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect name",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":1}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":1}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect current parameter set id - wrong type",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": "hello"}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": "hello"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect current parameter set id - negative value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": -1}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect current parameter set id - zero value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": 0}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "cur_par_set_id": 0}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - wrong type",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": "hello"}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": "hello"}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - negative value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": -1}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect group id - zero value",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": 0}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id": 0}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "invalid experience months",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "experience_months":12, "gender":"Мужской", "age":30}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "experience_months":12, "gender":"Мужской", "age":30}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:      "ok with years and months",
-			inputBody: `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":2, "experience_months":7, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":2, "experience_months":7, "gender":"Мужской", "age":30}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Login = "login"
@@ -253,7 +260,7 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "ok with zero experience",
-			inputBody: `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Специалист", "experience_years":0, "experience_months":0, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Специалист", "experience_years":0, "experience_months":0, "gender":"Мужской", "age":30}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Login = "login"
@@ -270,28 +277,28 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:               "negative experience years rejected",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":-1, "gender":"Мужской", "age":30}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":-1, "gender":"Мужской", "age":30}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "negative experience months rejected",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":1, "experience_months":-1, "gender":"Мужской", "age":30}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":1, "experience_months":-1, "gender":"Мужской", "age":30}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "empty profession",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"", "experience_years":5, "gender":"Мужской", "age":30}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"", "experience_years":5, "gender":"Мужской", "age":30}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "invalid age",
-			inputBody:          `{"login": "login", "password": "p", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":0}`,
+			inputBody:          `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":0}`,
 			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -332,7 +339,7 @@ func TestHandler_createUser(t *testing.T) {
 	type mockBehavior func(r *service.MockUser, userInput gameServer.RegisterUserInput)
 
 	adminBody := func(role string) string {
-		return fmt.Sprintf(`{"login": "l", "password": "p", "role": "%s", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`, role)
+		return fmt.Sprintf(`{"login": "l", "password": "password1", "role": "%s", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`, role)
 	}
 
 	inputWithRole := func(role string) gameServer.RegisterUserInput {
@@ -427,10 +434,10 @@ func TestHandler_login(t *testing.T) {
 	}{
 		{
 			name:      "ok",
-			inputBody: `{"login": "l", "password": "p"}`,
+			inputBody: `{"login": "l", "password": "password1"}`,
 			loginInput: gameServer.LoginInput{
 				Login:    "l",
-				Password: "p",
+				Password: "password1",
 			},
 			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
 				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("token", nil)
@@ -440,17 +447,17 @@ func TestHandler_login(t *testing.T) {
 		},
 		{
 			name:               "broken json input syntax",
-			inputBody:          `{"login": "l", "password": "p"`,
+			inputBody:          `{"login": "l", "password": "password1"`,
 			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:      "redundant fields",
-			inputBody: `{"login": "l", "password": "p", "abc123": "abc123"}`,
+			inputBody: `{"login": "l", "password": "password1", "abc123": "abc123"}`,
 			loginInput: gameServer.LoginInput{
 				Login:    "l",
-				Password: "p",
+				Password: "password1",
 			},
 			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
 				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("token", nil)
@@ -460,10 +467,10 @@ func TestHandler_login(t *testing.T) {
 		},
 		{
 			name:      "internal server error",
-			inputBody: `{"login": "l", "password": "p"}`,
+			inputBody: `{"login": "l", "password": "password1"}`,
 			loginInput: gameServer.LoginInput{
 				Login:    "l",
-				Password: "p",
+				Password: "password1",
 			},
 			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
 				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", errors.New("db connection lost"))
@@ -474,10 +481,10 @@ func TestHandler_login(t *testing.T) {
 		},
 		{
 			name:      "wrong credentials returns unauthorized without details",
-			inputBody: `{"login": "l", "password": "p"}`,
+			inputBody: `{"login": "l", "password": "password1"}`,
 			loginInput: gameServer.LoginInput{
 				Login:    "l",
-				Password: "p",
+				Password: "password1",
 			},
 			mockBehavior: func(r *service.MockUser, loginInput gameServer.LoginInput) {
 				r.EXPECT().GenerateToken(loginInput.Login, loginInput.Password).Return("", sql.ErrNoRows)
@@ -488,21 +495,21 @@ func TestHandler_login(t *testing.T) {
 		},
 		{
 			name:               "no login",
-			inputBody:          `{"password": "p"}`,
+			inputBody:          `{"password": "password1"}`,
 			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "empty login",
-			inputBody:          `{"login": "", "password": "p"}`,
+			inputBody:          `{"login": "", "password": "password1"}`,
 			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
 			name:               "incorrect login",
-			inputBody:          `{"login": 1, "password": "p"}`,
+			inputBody:          `{"login": 1, "password": "password1"}`,
 			mockBehavior:       func(r *service.MockUser, loginInput gameServer.LoginInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -592,7 +599,7 @@ func TestHandler_updateScore(t *testing.T) {
 		},
 		{
 			name:               "broken json input syntax",
-			inputBody:          `{"login": "l", "password": "p"`,
+			inputBody:          `{"login": "l", "password": "password1"`,
 			ctxUserId:          1,
 			mockBehavior:       func(r *service.MockUser, updateScoreInput gameServer.UpdateScoreInput) {},
 			expectedStatusCode: 400,
@@ -865,7 +872,7 @@ func TestHandler_getOneUser(t *testing.T) {
 				r.EXPECT().GetOneUser(idInt).Return(gameServer.User{
 					Id:          1,
 					Login:       "l",
-					Password:    "p",
+					Password:    "password1",
 					Name:        "n",
 					Role:        "User",
 					CurParSetId: 1,
@@ -1318,7 +1325,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 					{
 						Id:          1,
 						Login:       "l",
-						Password:    "p",
+						Password:    "password1",
 						Name:        "n",
 						Role:        "User",
 						CurParSetId: 1,
@@ -1356,7 +1363,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 					{
 						Id:          1,
 						Login:       "l",
-						Password:    "p",
+						Password:    "password1",
 						Name:        "n",
 						Role:        "User",
 						CurParSetId: 1,
@@ -1380,7 +1387,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 					{
 						Id:          1,
 						Login:       "l",
-						Password:    "p",
+						Password:    "password1",
 						Name:        "n",
 						Role:        "User",
 						CurParSetId: 1,
@@ -1404,7 +1411,7 @@ func TestHandler_getAllUsers(t *testing.T) {
 					{
 						Id:          1,
 						Login:       "l",
-						Password:    "p",
+						Password:    "password1",
 						Name:        "n",
 						Role:        "User",
 						CurParSetId: 1,
@@ -1605,9 +1612,9 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:      "ok",
 			paramId:   "1",
-			inputBody: `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			inputBody: `{"password": "password1", "role": "User", "cur_par_set_id": 1}`,
 			updateUserInput: gameServer.UpdateUserInput{
-				Password:    ptrString("p"),
+				Password:    ptrString("password1"),
 				Role:        ptrString("User"),
 				CurParSetId: ptrInt(1),
 			},
@@ -1617,6 +1624,14 @@ func TestHandler_updateUser(t *testing.T) {
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "short password rejected",
+			paramId:            "1",
+			inputBody:          `{"password": "short"}`,
+			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
+			expectedStatusCode: 400,
+			isError:            true,
 		},
 		{
 			name:      "update profile fields ok",
@@ -1663,9 +1678,9 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:      "internal server error",
 			paramId:   "1",
-			inputBody: `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			inputBody: `{"password": "password1", "role": "User", "cur_par_set_id": 1}`,
 			updateUserInput: gameServer.UpdateUserInput{
-				Password:    ptrString("p"),
+				Password:    ptrString("password1"),
 				Role:        ptrString("User"),
 				CurParSetId: ptrInt(1),
 			},
@@ -1688,7 +1703,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect parameter id - negative value",
 			paramId:            "-1",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1696,7 +1711,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect parameter id - zero value",
 			paramId:            "0",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1704,7 +1719,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect parameter id - not a number",
 			paramId:            "abc",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 1}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1720,7 +1735,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect field role - wrong type",
 			paramId:            "1",
-			inputBody:          `{"password": "p", "role": 1, "cur_par_set_id": 1}`,
+			inputBody:          `{"password": "password1", "role": 1, "cur_par_set_id": 1}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1728,7 +1743,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect field current parameter set id - wrong type",
 			paramId:            "1",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": "1"}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": "1"}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1736,7 +1751,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect field current parameter set id - zero value",
 			paramId:            "1",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": 0}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": 0}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,
@@ -1744,7 +1759,7 @@ func TestHandler_updateUser(t *testing.T) {
 		{
 			name:               "incorrect field current parameter set id - negative value",
 			paramId:            "1",
-			inputBody:          `{"password": "p", "role": "User", "cur_par_set_id": -1}`,
+			inputBody:          `{"password": "password1", "role": "User", "cur_par_set_id": -1}`,
 			mockBehavior:       func(r *service.MockUser, id string, updateUserInput gameServer.UpdateUserInput) {},
 			expectedStatusCode: 400,
 			isError:            true,

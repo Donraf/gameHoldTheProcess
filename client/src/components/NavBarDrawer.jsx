@@ -44,7 +44,7 @@ export default function NavBarDrawer() {
     navItems = navItems.concat([
       { name: "Начать игру", route: HOME_ROUTE, icon: <StartGameNavIcon /> },
       {
-        name: "Настройки",
+        name: "Профиль",
         route: USER_PROFILE_ROUTE,
         icon: <ProfileNavIcon />,
       },
@@ -65,7 +65,7 @@ export default function NavBarDrawer() {
       },
       { name: "Начать игру", route: HOME_ROUTE, icon: <StartGameNavIcon /> },
       {
-        name: "Настройки",
+        name: "Профиль",
         route: USER_PROFILE_ROUTE,
         icon: <ProfileNavIcon />,
       },
@@ -80,7 +80,7 @@ export default function NavBarDrawer() {
         icon: <AdminNavIcon />,
       },
       {
-        name: "Настройки",
+        name: "Профиль",
         route: USER_PROFILE_ROUTE,
         icon: <ProfileNavIcon />,
       },

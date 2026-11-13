@@ -78,6 +78,9 @@ type RegisterUserInput struct {
 }
 
 func (i *RegisterUserInput) Vaildate() error {
+	if len(i.Password) < MinPasswordLength {
+		return errors.New("password is too short")
+	}
 	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
 		return errors.New("current parameter set id is non-positive")
 	}
@@ -119,6 +122,8 @@ type UpdateUserInput struct {
 	Age              *int    `json:"age"`
 }
 
+const MinPasswordLength = 6
+
 func (i *UpdateUserInput) Validate() error {
 	if i.Password == nil &&
 		i.Role == nil &&
@@ -130,6 +135,9 @@ func (i *UpdateUserInput) Validate() error {
 		i.Gender == nil &&
 		i.Age == nil {
 		return errors.New("no values to update")
+	}
+	if i.Password != nil && len(*i.Password) < MinPasswordLength {
+		return errors.New("password is too short")
 	}
 	if i.CurParSetId != nil && *i.CurParSetId <= 0 {
 		return errors.New("current parameter set id is non-positive")

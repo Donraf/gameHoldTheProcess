@@ -149,6 +149,15 @@ export const updateUser = async (id, updateInfo) => {
   }
 };
 
+export const updateProfile = async (updateInfo) => {
+  try {
+    const { data } = await $authHost.put(`api/user/profile`, updateInfo);
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const createGroup = async (name, parSetId) => {
   try {
     const { data } = await $authHost.post("api/user/group", {

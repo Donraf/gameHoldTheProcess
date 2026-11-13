@@ -1,64 +1,163 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Box, Button, CssBaseline, Stack, TextField, Toolbar, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CssBaseline,
+  Divider,
+  MenuItem,
+  Stack,
+  TextField,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 
 import NavBarDrawer from "../components/NavBarDrawer";
 import { Context } from "../index";
 import { observer } from "mobx-react-lite";
-import { updateUser } from "../http/userAPI";
+import { fetchUser, updateProfile } from "../http/userAPI";
 import { useSnackbar } from "notistack";
+import { MIN_PASSWORD_LENGTH, USER_GENDER_OPTIONS } from "../utils/constants";
+
+const emptyInfo = {
+  name: "",
+  profession: "",
+  experienceYears: "",
+  experienceMonths: "",
+  gender: "",
+  age: "",
+};
+
+function infoFromUser(userData) {
+  return {
+    name: userData.name ?? "",
+    profession: userData.profession ?? "",
+    experienceYears: userData.experience_years != null ? String(userData.experience_years) : "",
+    experienceMonths: userData.experience_months != null ? String(userData.experience_months) : "",
+    gender: userData.gender ?? "",
+    age: userData.age != null ? String(userData.age) : "",
+  };
+}
 
 const UserProfile = observer(() => {
   const { user } = useContext(Context);
 
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRepeatPassword, setUpdateRepeatPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
-  const [updateTrigger, setUpdateTrigger] = useState(false);
+  const [info, setInfo] = useState(emptyInfo);
+  const [infoLoaded, setInfoLoaded] = useState(false);
+  const [infoSaving, setInfoSaving] = useState(false);
 
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
+  const notifyError = (text) =>
+    enqueueSnackbar(text, { variant: "error", autoHideDuration: 4000, preventDuplicate: true });
+  const notifySuccess = (text) =>
+    enqueueSnackbar(text, { variant: "success", autoHideDuration: 3000, preventDuplicate: true });
 
   useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts, enqueueSnackbar]);
-
-  const updateUserUi = () => {
-    let snackErrors = [];
-    if (updatePassword === "") {
-      snackErrors.push("Введите новый пароль");
-    } else if (updatePassword !== updateRepeatPassword) {
-      snackErrors.push("Введенные пароли не совпадают");
+    if (!user.isAuth) {
+      return;
     }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
+    fetchUser(user.user.user_id).then(
+      (response) => {
+        setInfo(infoFromUser(response.data ?? response));
+        setInfoLoaded(true);
+      },
+      () => {
+        notifyError("Ошибка при загрузке данных профиля");
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.isAuth]);
+
+  const setInfoField = (key) => (event) => {
+    setInfo((prev) => ({ ...prev, [key]: event.target.value }));
+  };
+
+  const validateInfo = () => {
+    if (info.name.trim() === "") {
+      return "Введите ФИО";
+    }
+    if (info.profession.trim() === "") {
+      return "Введите профессию";
+    }
+    const years = Number(info.experienceYears);
+    if (info.experienceYears === "" || !Number.isInteger(years) || years < 0) {
+      return "Стаж (лет) должен быть целым неотрицательным числом";
+    }
+    const months = Number(info.experienceMonths);
+    if (info.experienceMonths === "" || !Number.isInteger(months) || months < 0 || months > 11) {
+      return "Стаж (месяцев) должен быть целым числом от 0 до 11";
+    }
+    if (!USER_GENDER_OPTIONS.includes(info.gender)) {
+      return "Выберите пол";
+    }
+    const age = Number(info.age);
+    if (info.age === "" || !Number.isInteger(age) || age <= 0 || age > 150) {
+      return "Возраст должен быть целым числом от 1 до 150";
+    }
+    return null;
+  };
+
+  const saveInfo = () => {
+    const validationError = validateInfo();
+    if (validationError) {
+      notifyError(validationError);
+      return;
+    }
+    if (infoSaving) {
       return;
     }
 
-    let updateInfo = {};
-    updateInfo.password = updatePassword;
-    updateUser(user.user.user_id, updateInfo).then(
-      (_) => {
-        enqueueSnackbar("Пароль обновлен", {
-          variant: "success",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
+    setInfoSaving(true);
+    updateProfile({
+      name: info.name.trim(),
+      profession: info.profession.trim(),
+      experience_years: Number(info.experienceYears),
+      experience_months: Number(info.experienceMonths),
+      gender: info.gender,
+      age: Number(info.age),
+    }).then(
+      () => {
+        setInfoSaving(false);
+        notifySuccess("Данные профиля обновлены");
+      },
+      () => {
+        setInfoSaving(false);
+        notifyError("Ошибка при обновлении данных профиля");
+      }
+    );
+  };
+
+  const updateUserUi = () => {
+    if (updatePassword === "") {
+      notifyError("Введите новый пароль");
+      return;
+    }
+    if (updatePassword.length < MIN_PASSWORD_LENGTH) {
+      notifyError(`Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`);
+      return;
+    }
+    if (updatePassword !== updateRepeatPassword) {
+      notifyError("Введенные пароли не совпадают");
+      return;
+    }
+    if (passwordSaving) {
+      return;
+    }
+
+    setPasswordSaving(true);
+    updateProfile({ password: updatePassword }).then(
+      () => {
+        setPasswordSaving(false);
+        notifySuccess("Пароль обновлен");
         setUpdatePassword("");
         setUpdateRepeatPassword("");
-        setUpdateTrigger(!updateTrigger);
       },
-      (_) => {
-        enqueueSnackbar("Ошибка при обновлении пароля", {
-          variant: "error",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
+      () => {
+        setPasswordSaving(false);
+        notifyError("Ошибка при обновлении пароля");
       }
     );
   };
@@ -70,37 +169,118 @@ const UserProfile = observer(() => {
       {user.isAuth ? (
         <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
           <Toolbar />
-          <Stack width={"100%"} direction="column" spacing={1}>
-            <Typography variant="h4" component="div">
-              Изменение пароля
-            </Typography>
-            <TextField
-              onChange={(event) => {
-                setUpdatePassword(event.target.value);
-              }}
-              value={updatePassword}
-              id="outlined-basic"
-              label="Введите новый пароль"
-              variant="outlined"
-            />
-            <TextField
-              onChange={(event) => {
-                setUpdateRepeatPassword(event.target.value);
-              }}
-              value={updateRepeatPassword}
-              id="outlined-basic"
-              label="Повторите новый пароль"
-              variant="outlined"
-            />
-            <Button
-              sx={{ width: "fit-content", height: "40px" }}
-              variant="contained"
-              onClick={() => {
-                updateUserUi();
-              }}
-            >
-              Обновить пароль
-            </Button>
+          <Stack maxWidth={480} direction="column" spacing={3}>
+            <Stack direction="column" spacing={2}>
+              <Typography variant="h4" component="div">
+                Личная информация
+              </Typography>
+              <TextField
+                label="Логин"
+                variant="outlined"
+                value={user.user.login ?? ""}
+                disabled
+                helperText="Логин изменить нельзя"
+              />
+              <TextField
+                label="ФИО"
+                variant="outlined"
+                value={info.name}
+                onChange={setInfoField("name")}
+                disabled={!infoLoaded}
+              />
+              <TextField
+                label="Профессия"
+                variant="outlined"
+                value={info.profession}
+                onChange={setInfoField("profession")}
+                disabled={!infoLoaded}
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Стаж (лет)"
+                  variant="outlined"
+                  value={info.experienceYears}
+                  onChange={setInfoField("experienceYears")}
+                  disabled={!infoLoaded}
+                />
+                <TextField
+                  fullWidth
+                  label="Стаж (месяцев)"
+                  variant="outlined"
+                  value={info.experienceMonths}
+                  onChange={setInfoField("experienceMonths")}
+                  disabled={!infoLoaded}
+                  helperText="От 0 до 11"
+                />
+              </Stack>
+              <TextField
+                select
+                label="Пол"
+                variant="outlined"
+                value={info.gender}
+                onChange={setInfoField("gender")}
+                disabled={!infoLoaded}
+              >
+                {USER_GENDER_OPTIONS.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Возраст"
+                variant="outlined"
+                value={info.age}
+                onChange={setInfoField("age")}
+                disabled={!infoLoaded}
+              />
+              <Button
+                sx={{ width: "fit-content", height: "40px" }}
+                variant="contained"
+                disabled={!infoLoaded || infoSaving}
+                onClick={saveInfo}
+              >
+                {infoSaving ? "Сохранение..." : "Сохранить данные"}
+              </Button>
+            </Stack>
+
+            <Divider />
+
+            <Stack direction="column" spacing={2}>
+              <Typography variant="h4" component="div">
+                Изменение пароля
+              </Typography>
+              <TextField
+                type="password"
+                autoComplete="new-password"
+                onChange={(event) => {
+                  setUpdatePassword(event.target.value);
+                }}
+                value={updatePassword}
+                label="Введите новый пароль"
+                variant="outlined"
+                helperText={`Минимум ${MIN_PASSWORD_LENGTH} символов`}
+              />
+              <TextField
+                type="password"
+                autoComplete="new-password"
+                onChange={(event) => {
+                  setUpdateRepeatPassword(event.target.value);
+                }}
+                value={updateRepeatPassword}
+                label="Повторите новый пароль"
+                variant="outlined"
+              />
+              <Button
+                sx={{ width: "fit-content", height: "40px" }}
+                variant="contained"
+                disabled={passwordSaving}
+                onClick={updateUserUi}
+              >
+                {passwordSaving ? "Сохранение..." : "Обновить пароль"}
+              </Button>
+            </Stack>
           </Stack>
         </Box>
       ) : (

@@ -369,6 +369,39 @@ func (h *Handler) updateUser(c *gin.Context) {
 	})
 }
 
+// updateProfile — self-service: пользователь меняет только свои данные.
+// Роль и текущий набор параметров через этот эндпоинт менять нельзя.
+func (h *Handler) updateProfile(c *gin.Context) {
+	userId := c.GetInt(userCtx)
+	if userId <= 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user id not found in context")
+		return
+	}
+
+	var input gameServer.UpdateUserInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	input.Role = nil
+	input.CurParSetId = nil
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.User.UpdateUser(userId, input); err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
 type getAllGroupsResponse struct {
 	Data []gameServer.Group `json:"data"`
 }

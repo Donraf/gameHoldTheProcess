@@ -53,6 +53,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.GET("/userParSet/:userId/:parSetId", h.getUserParSet)
 				userAuth.GET("/:id", h.getOneUser)
 				userAuth.DELETE("/:id", h.checkAdminRole, h.deleteUser)
+				userAuth.PUT("/profile", h.updateProfile)
 				userAuth.PUT("/:id", h.checkAdminRole, h.updateUser)
 				userAuth.PUT("/changeGroupParSet", h.checkResearcherRole, h.changeGroupParSet)
 				userAuth.POST("/playersStat", h.checkResearcherRole, h.getPlayersStat)

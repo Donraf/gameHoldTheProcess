@@ -21,6 +21,9 @@ export const USER_ROLE_USER = "User";
 export const USER_ROLE_ADMIN = "ADMIN";
 export const USER_ROLE_RESEARCHER = "Researcher";
 
+// Держать в синхронизации с сервером (MinPasswordLength в server/user.go).
+export const MIN_PASSWORD_LENGTH = 6;
+
 export const USER_GENDER_MALE = "Мужской";
 export const USER_GENDER_FEMALE = "Женский";
 export const USER_GENDER_OPTIONS = [USER_GENDER_MALE, USER_GENDER_FEMALE];
