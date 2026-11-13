@@ -24,6 +24,11 @@ func (h *Handler) registration(c *gin.Context) {
 		return
 	}
 
+	if input.GroupId == nil {
+		newErrorResponse(c, http.StatusBadRequest, "group is required")
+		return
+	}
+
 	input.Role = gameServer.RoleUser
 
 	token, err := h.services.User.CreateUser(input)

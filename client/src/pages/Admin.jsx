@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, CssBaseline, Stack, Toolbar, Typography } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import { ADMIN_GRAPH_ROUTE, ADMIN_PARSET_ROUTE, ADMIN_TESTS_ROUTE, ADMIN_USER_ROUTE, RESEARCHER_GROUP_ROUTE } from "../utils/constants";
+import { ADMIN_GRAPH_ROUTE, ADMIN_PARSET_ROUTE, ADMIN_TESTS_ROUTE, ADMIN_USER_ROUTE, ADMIN_GROUP_ROUTE } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
 
 const Admin = observer(() => {
@@ -71,7 +71,7 @@ const Admin = observer(() => {
                   sx={{ width: "100%", height: "64px" }}
                   variant="contained"
                   onClick={() => {
-                    navigate(RESEARCHER_GROUP_ROUTE);
+                    navigate(ADMIN_GROUP_ROUTE);
                   }}
                 >
                   Изменить группу

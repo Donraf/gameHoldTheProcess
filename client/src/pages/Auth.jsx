@@ -1,5 +1,5 @@
-import React, { useContext, useState } from "react";
-import { Box, Button, Card, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from "@mui/material";
+import React, { useContext, useEffect, useState } from "react";
+import { Autocomplete, Box, Button, Card, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   ADMIN_ROUTE,
@@ -36,7 +36,6 @@ const Auth = observer(() => {
   const [gender, setGender] = useState(USER_GENDER_MALE);
   const [age, setAge] = useState("");
 
-  const [isOpenedGroupSelect, setIsOpenedGroupSelect] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
 
@@ -44,6 +43,15 @@ const Auth = observer(() => {
   const [submitting, setSubmitting] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  // Список групп нужен только на форме регистрации.
+  useEffect(() => {
+    if (!isLogin) {
+      getAllGroups().then((data) => {
+        setFetchedGroups(data);
+      });
+    }
+  }, [isLogin]);
 
   const validateRegistration = () => {
     if (userLogin.trim() === "") {
@@ -69,6 +77,9 @@ const Auth = observer(() => {
     }
     if (!USER_GENDER_OPTIONS.includes(gender)) {
       return "Выберите пол";
+    }
+    if (selectedGroup === "") {
+      return "Выберите группу";
     }
     return null;
   };
@@ -143,12 +154,6 @@ const Auth = observer(() => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const fetchGroups = () => {
-    getAllGroups().then((data) => {
-      setFetchedGroups(data);
-    });
   };
 
   return (
@@ -299,45 +304,19 @@ const Auth = observer(() => {
           {isLogin ? (
             <></>
           ) : (
-            <>
-              <FormControlLabel
-                control={
-                  <Switch
-                    onChange={(event) => {
-                      event.target.checked ? fetchGroups() : setSelectedGroup("");
-                      setIsOpenedGroupSelect(event.target.checked);
-                    }}
-                  />
-                }
-                label="Состою в группе"
-                id="group-switch"
-              />
-              {isOpenedGroupSelect ? (
-                <>
-                  <TextField
-                    select
-                    value={selectedGroup}
-                    onChange={(event) => {
-                      const newSelectedGroup = event.target.value;
-                      setSelectedGroup(newSelectedGroup);
-                    }}
-                    id="group-select"
-                    variant={"outlined"}
-                    sx={{
-                      flexGrow: 9,
-                    }}
-                  >
-                    {fetchedGroups.map((item) => (
-                      <MenuItem key={item.id} value={item}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </>
-              ) : (
-                <></>
+            <Autocomplete
+              options={fetchedGroups}
+              getOptionLabel={(group) => group.name}
+              renderInput={(params) => (
+                <TextField {...params} label="Выберите группу" required />
               )}
-            </>
+              value={selectedGroup || null}
+              onChange={(_, newValue) => {
+                setSelectedGroup(newValue ?? "");
+              }}
+              noOptionsText="Группы не найдены"
+              id="group-select"
+            />
           )}
           <Stack alignItems={"center"} justifyContent={"space-between"} direction={"row"} spacing={4}>
             <Stack direction={"row"} align={"center"} alignItems={"center"}>

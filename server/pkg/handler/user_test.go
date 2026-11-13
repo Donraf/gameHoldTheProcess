@@ -30,10 +30,11 @@ func validRegisterUserInput() gameServer.RegisterUserInput {
 		ExperienceYears: 5,
 		Gender:          "Мужской",
 		Age:             30,
+		GroupId:         ptrInt(1),
 	}
 }
 
-const validRegisterUserBody = `{"login": "l", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`
+const validRegisterUserBody = `{"login": "l", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id":1}`
 
 func TestHandler_registration(t *testing.T) {
 	type mockBehavior func(r *service.MockUser, userInput gameServer.RegisterUserInput)
@@ -80,7 +81,7 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "role is forced to User on public registration",
-			inputBody: `{"login": "l", "password": "password1", "role": "ADMIN", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "l", "password": "password1", "role": "ADMIN", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30, "group_id":1}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Role = gameServer.RoleUser
@@ -100,6 +101,13 @@ func TestHandler_registration(t *testing.T) {
 				r.EXPECT().CreateUser(userInput).Return("", gameServer.ErrDuplicateLogin)
 			},
 			expectedStatusCode: 409,
+			isError:            true,
+		},
+		{
+			name:               "group is required",
+			inputBody:          `{"login": "l", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":5, "gender":"Мужской", "age":30}`,
+			mockBehavior:       func(r *service.MockUser, userInput gameServer.RegisterUserInput) {},
+			expectedStatusCode: 400,
 			isError:            true,
 		},
 		{
@@ -244,7 +252,7 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "ok with years and months",
-			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":2, "experience_months":7, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Инженер", "experience_years":2, "experience_months":7, "gender":"Мужской", "age":30, "group_id":1}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Login = "login"
@@ -260,7 +268,7 @@ func TestHandler_registration(t *testing.T) {
 		},
 		{
 			name:      "ok with zero experience",
-			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Специалист", "experience_years":0, "experience_months":0, "gender":"Мужской", "age":30}`,
+			inputBody: `{"login": "login", "password": "password1", "role": "User", "name":"n", "profession":"Специалист", "experience_years":0, "experience_months":0, "gender":"Мужской", "age":30, "group_id":1}`,
 			userInput: func() gameServer.RegisterUserInput {
 				input := validRegisterUserInput()
 				input.Login = "login"
@@ -345,6 +353,7 @@ func TestHandler_createUser(t *testing.T) {
 	inputWithRole := func(role string) gameServer.RegisterUserInput {
 		input := validRegisterUserInput()
 		input.Role = role
+		input.GroupId = nil // создание через админку не требует группы
 		return input
 	}
 

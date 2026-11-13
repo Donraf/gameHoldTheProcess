@@ -8,7 +8,7 @@ import {
   LOGIN_ROUTE,
   ONBOARDING_TESTS_ROUTE,
   REGISTRATION_ROUTE,
-  RESEARCHER_GROUP_ROUTE,
+  ADMIN_GROUP_ROUTE,
   RESEARCHER_ROOM_ROUTE,
   RESEARCHER_USER_ROUTE,
   USER_PROFILE_ROUTE,
@@ -25,7 +25,7 @@ import AdminGraph from "./pages/AdminGraph";
 import ResearcherRoom from "./pages/ResearcherRoom";
 import AdminParset from "./pages/AdminParSet";
 import ResearcherUser from "./pages/ResearcherUser";
-import ResearcherGroup from "./pages/ResearcherGroup";
+import AdminGroup from "./pages/AdminGroup";
 import AdminTests from "./pages/AdminTests";
 import OnboardingTests from "./pages/OnboardingTests";
 
@@ -74,8 +74,8 @@ export const authRoutes = [
     roles: ADMIN_AND_RESEARCHER,
   },
   {
-    path: RESEARCHER_GROUP_ROUTE,
-    Component: <ResearcherGroup />,
+    path: ADMIN_GROUP_ROUTE,
+    Component: <AdminGroup />,
     roles: [USER_ROLE_ADMIN],
   },
   {

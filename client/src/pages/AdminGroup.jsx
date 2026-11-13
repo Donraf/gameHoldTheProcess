@@ -61,7 +61,7 @@ const formatParSetLabel = (parSet) =>
   " | вер. проп.: " +
   parSet.missing_danger_prob;
 
-const ResearcherGroup = () => {
+const AdminGroup = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -570,8 +570,8 @@ const ResearcherGroup = () => {
                 В группе пока нет участников
               </Typography>
             ) : (
-              <TableContainer component={Paper}>
-                <Table aria-label="members table">
+              <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                <Table stickyHeader aria-label="members table">
                   <TableHead>
                     <TableRow>
                       <TableCell />
@@ -641,4 +641,4 @@ const ResearcherGroup = () => {
   );
 };
 
-export default ResearcherGroup;
+export default AdminGroup;

@@ -303,7 +303,8 @@ func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 			COALESCE(ut.name, '') AS creator_name,
 			(SELECT COUNT(*) FROM %s AS ugt WHERE ugt.group_id = gt.id) AS members_count
 		 FROM %s AS gt
-		 LEFT JOIN %s AS ut ON ut.user_id = gt.creator_id`,
+		 LEFT JOIN %s AS ut ON ut.user_id = gt.creator_id
+		 ORDER BY gt.name`,
 		userGroupsTable, groupsTable, usersTable)
 
 	err := u.db.Select(&groups, query)
