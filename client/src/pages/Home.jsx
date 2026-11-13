@@ -113,6 +113,10 @@ const Home = observer(() => {
   const handleOpenTrainingWarnModal = () => setIsTrainingWarnModalOpened(true);
   const handleCloseTrainingWarnModal = () => setIsTrainingWarnModalOpened(false);
 
+  // Счётчик запросов подсказок: применяем результат только последнего,
+  // чтобы параллельные загрузки не рассинхронизировали hintCharts и индексы.
+  const hintFetchSeq = useRef(0);
+
   const handleSessionExpired = () => {
     setShouldEndTime(true);
     setIsTimeUp(true);
@@ -149,19 +153,26 @@ const Home = observer(() => {
   useEffect(() => {
     if (chosenHint === "AllSessions") {
       setHintModalDataFetched(false);
+      const seq = ++hintFetchSeq.current;
       const fetchData = async () => {
         let chartCount = await getGraphsCount("user_id", user.user.user_id);
-        setCountHintCharts(chartCount);
         let pageCount = await getGraphsPageCount("user_id", user.user.user_id);
-        setCountPageHintCharts(pageCount);
         let charts = await fetchGraphs("user_id", user.user.user_id, pageCount);
         let hintCharts = await chartToHintCharts(charts);
+        if (seq !== hintFetchSeq.current) {
+          return;
+        }
+        setCountHintCharts(chartCount);
+        setCountPageHintCharts(pageCount);
         setHintCharts(hintCharts);
         setCurLocalHintChartNum(charts.length - 1);
         setCurPageHintChartsNum(pageCount);
         setCurHintChartNum(1);
       };
       fetchData().then(() => {
+        if (seq !== hintFetchSeq.current) {
+          return;
+        }
         setHintModalDataFetched(true);
       });
     } else if (chosenHint === "CrashProbability") {
@@ -186,8 +197,12 @@ const Home = observer(() => {
     setCurHintChartNum(curHintChartNum + 1);
     if (curLocalHintChartNum <= 0 && curPageHintChartsNum > 1) {
       setHintModalDataFetched(false);
+      const seq = ++hintFetchSeq.current;
       let charts = await fetchGraphs("user_id", user.user.user_id, curPageHintChartsNum - 1);
       let hintCharts = await chartToHintCharts(charts);
+      if (seq !== hintFetchSeq.current) {
+        return;
+      }
       setHintCharts(hintCharts);
       setCurPageHintChartsNum(curPageHintChartsNum - 1);
       setCurLocalHintChartNum(charts.length - 1);
@@ -202,8 +217,12 @@ const Home = observer(() => {
     setCurHintChartNum(curHintChartNum - 1);
     if (curLocalHintChartNum >= hintCharts.length - 1 && curPageHintChartsNum < countPageHintCharts) {
       setHintModalDataFetched(false);
+      const seq = ++hintFetchSeq.current;
       let charts = await fetchGraphs("user_id", user.user.user_id, curPageHintChartsNum + 1);
       let hintCharts = await chartToHintCharts(charts);
+      if (seq !== hintFetchSeq.current) {
+        return;
+      }
       setHintCharts(hintCharts);
       setCurPageHintChartsNum(curPageHintChartsNum + 1);
       setCurLocalHintChartNum(0);

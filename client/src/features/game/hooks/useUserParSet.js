@@ -34,7 +34,7 @@ export function useUserParSet({ isAuth, userId, chartData, setTotalScore, change
           oldUps.training_start_time !== ups.training_start_time ||
           oldUps.game_start_time !== ups.game_start_time
         ) {
-          if (ups.score !== oldScore && ups !== null && !ups.is_training) {
+          if (ups.score !== oldScore && !ups.is_training) {
             setTotalScore(0);
             changeTotalScore(ups.score);
           }
