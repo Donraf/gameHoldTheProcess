@@ -18,7 +18,8 @@ func NewStatisticsPostgres(db *sqlx.DB) *StatisticsPostgres {
 func (p *StatisticsPostgres) CountGames(input gameServer.ComputeStatisticsInput) (int, error) {
 	var gamesCount int
 
-	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE user_id = $1 AND parameter_set_id = $2 AND NOT is_training`, chartsTable)
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE user_id = $1 AND parameter_set_id = $2 AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))`, chartsTable)
 
 	row := p.db.QueryRow(query, input.UserId, input.ParSetId)
 	if err := row.Scan(&gamesCount); err != nil {
@@ -40,6 +41,7 @@ func (p *StatisticsPostgres) CountStops(input gameServer.ComputeStatisticsInput)
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_stop
 			`, pointsTable, chartsTable)
@@ -64,6 +66,7 @@ func (p *StatisticsPostgres) CountCrashes(input gameServer.ComputeStatisticsInpu
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_crash
 			`, pointsTable, chartsTable)
@@ -88,6 +91,7 @@ func (p *StatisticsPostgres) GetYStopsOnSignal(input gameServer.ComputeStatistic
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_stop AND (is_useful_ai_signal OR is_deceptive_ai_signal)
 			`, pointsTable, chartsTable)
@@ -109,6 +113,7 @@ func (p *StatisticsPostgres) GetYStopsWithoutSignal(input gameServer.ComputeStat
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_stop AND NOT (is_useful_ai_signal OR is_deceptive_ai_signal)
 			`, pointsTable, chartsTable)
@@ -130,6 +135,7 @@ func (p *StatisticsPostgres) GetYHintsOnSignal(input gameServer.ComputeStatistic
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_check AND (is_useful_ai_signal OR is_deceptive_ai_signal)
 			`, pointsTable, chartsTable)
@@ -151,6 +157,7 @@ func (p *StatisticsPostgres) GetYHintsWithoutSignal(input gameServer.ComputeStat
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND is_check AND NOT (is_useful_ai_signal OR is_deceptive_ai_signal)
 			`, pointsTable, chartsTable)
@@ -172,6 +179,7 @@ func (p *StatisticsPostgres) GetYContinuesAfterSignal(input gameServer.ComputeSt
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND NOT is_stop AND (is_useful_ai_signal OR is_deceptive_ai_signal)
 			`, pointsTable, chartsTable)
@@ -193,6 +201,7 @@ func (p *StatisticsPostgres) GetAllEvents(input gameServer.ComputeStatisticsInpu
 					WHERE user_id = $1
 					AND parameter_set_id = $2
 					AND NOT is_training
+					AND EXISTS (SELECT 1 FROM points AS pt WHERE pt.chart_id = charts.id AND (pt.is_stop OR pt.is_crash))
 				)
 				AND (is_crash OR is_useful_ai_signal OR is_deceptive_ai_signal OR is_stop OR is_pause OR is_check)
 				ORDER BY chart_id, x ASC
