@@ -33,3 +33,15 @@ func internalErrorResponse(c *gin.Context, err error) {
 	}).Errorf("internal error: %s", err.Error())
 	c.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse{"internal server error"})
 }
+
+// bindErrorResponse отвечает 400 на невалидное тело запроса.
+// Клиенту возвращается общее сообщение — внутренние тексты биндера
+// (имена полей, типы, теги) остаются в логе.
+func bindErrorResponse(c *gin.Context, err error) {
+	logrus.WithFields(logrus.Fields{
+		"request_id": requestIDFrom(c),
+		"method":     c.Request.Method,
+		"path":       c.Request.URL.Path,
+	}).Warnf("failed to bind request body: %s", err.Error())
+	c.AbortWithStatusJSON(http.StatusBadRequest, errorResponse{"invalid request body"})
+}

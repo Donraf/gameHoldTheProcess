@@ -86,7 +86,7 @@ func (h *Handler) startSession(c *gin.Context) {
 	var input gameServer.StartSessionInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 

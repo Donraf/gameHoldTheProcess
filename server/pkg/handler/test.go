@@ -46,7 +46,7 @@ func (h *Handler) submitTestResult(c *gin.Context) {
 
 	var input gameServer.SubmitTestResultInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 	if err := input.Validate(); err != nil {
@@ -86,7 +86,7 @@ func (h *Handler) getAllTests(c *gin.Context) {
 func (h *Handler) createTest(c *gin.Context) {
 	var input gameServer.CreateTestInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 	if err := input.Validate(); err != nil {
@@ -112,7 +112,7 @@ func (h *Handler) updateTest(c *gin.Context) {
 
 	var input gameServer.UpdateTestInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 	if err := input.Validate(); err != nil {

@@ -11,7 +11,7 @@ import (
 func (h *Handler) createPoint(c *gin.Context) {
 	var input gameServer.Point
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -65,7 +65,7 @@ const maxPointsPerBatch = 20000
 func (h *Handler) createPoints(c *gin.Context) {
 	var points []gameServer.Point
 	if err := c.BindJSON(&points); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 

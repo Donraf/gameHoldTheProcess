@@ -15,7 +15,7 @@ type computeStatisticsResponse struct {
 func (h *Handler) computeStatistics(c *gin.Context) {
 	var input gameServer.ComputeStatisticsInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 

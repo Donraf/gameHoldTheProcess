@@ -13,7 +13,7 @@ func (h *Handler) createChart(c *gin.Context) {
 	var input gameServer.CreateChartInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -72,7 +72,7 @@ type getChartsPageCountResponse struct {
 func (h *Handler) getChartsPageCount(c *gin.Context) {
 	var input gameServer.GetChartsPageCountInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -101,7 +101,7 @@ type getChartsCountResponse struct {
 func (h *Handler) getChartsCount(c *gin.Context) {
 	var input gameServer.GetChartsCountInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -130,7 +130,7 @@ type getAllChartsResponse struct {
 func (h *Handler) getAllCharts(c *gin.Context) {
 	var input gameServer.GetAllChartsInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -182,7 +182,7 @@ type getAllParSetsResponse struct {
 func (h *Handler) getAllParSets(c *gin.Context) {
 	var input gameServer.GetAllParSetsInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -226,7 +226,7 @@ func (h *Handler) createParSet(c *gin.Context) {
 	var input gameServer.CreateParSetInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -255,7 +255,7 @@ func (h *Handler) updateParSet(c *gin.Context) {
 
 	var input gameServer.CreateParSetInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 

@@ -15,7 +15,7 @@ func (h *Handler) registration(c *gin.Context) {
 	var input gameServer.RegisterUserInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -50,7 +50,7 @@ func (h *Handler) createUser(c *gin.Context) {
 	var input gameServer.RegisterUserInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *Handler) login(c *gin.Context) {
 	var input gameServer.LoginInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (h *Handler) updateScore(c *gin.Context) {
 	var input gameServer.UpdateScoreInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -187,7 +187,7 @@ type getUsersPageCountResponse struct {
 func (h *Handler) getUsersPageCount(c *gin.Context) {
 	var input gameServer.GetUsersPageCountInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -299,7 +299,7 @@ type getAllUsersResponse struct {
 func (h *Handler) getAllUsers(c *gin.Context) {
 	var input gameServer.GetAllUsersInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -355,7 +355,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 	var input gameServer.UpdateUserInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -385,7 +385,7 @@ func (h *Handler) updateProfile(c *gin.Context) {
 
 	var input gameServer.UpdateUserInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -426,7 +426,7 @@ func (h *Handler) getAllGroups(c *gin.Context) {
 func (h *Handler) createGroup(c *gin.Context) {
 	var input gameServer.CreateGroupInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -458,7 +458,7 @@ func (h *Handler) updateGroup(c *gin.Context) {
 
 	var input gameServer.UpdateGroupInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -583,7 +583,7 @@ type getPlayersStatResponse struct {
 func (h *Handler) getPlayersStat(c *gin.Context) {
 	var input gameServer.GetPlayersStatInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -616,7 +616,7 @@ type getPlayersPageCountResponse struct {
 func (h *Handler) getPlayersPageCount(c *gin.Context) {
 	var input gameServer.GetPlayersPageCountInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -638,7 +638,7 @@ type getPlayersEventsResponse struct {
 func (h *Handler) getPlayersEvents(c *gin.Context) {
 	var input gameServer.GetPlayersEventsInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -667,7 +667,7 @@ func (h *Handler) updateUserParSet(c *gin.Context) {
 
 	var input gameServer.UpdateUserParSetInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -695,7 +695,7 @@ func (h *Handler) updateUserUserParSet(c *gin.Context) {
 
 	var input gameServer.UpdateUserUserParSetInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -736,7 +736,7 @@ type getPlayersEventsPageCountResponse struct {
 func (h *Handler) getPlayersEventsPageCount(c *gin.Context) {
 	var input gameServer.GetPlayersEventsPageCountInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
@@ -754,7 +754,7 @@ func (h *Handler) getPlayersEventsPageCount(c *gin.Context) {
 func (h *Handler) changeGroupParSet(c *gin.Context) {
 	var input gameServer.ChangeGroupParSetInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		bindErrorResponse(c, err)
 		return
 	}
 
