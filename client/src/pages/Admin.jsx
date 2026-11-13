@@ -5,7 +5,6 @@ import { Box, Button, CssBaseline, Stack, Toolbar, Typography } from "@mui/mater
 import NavBarDrawer from "../components/NavBarDrawer";
 import { ADMIN_GRAPH_ROUTE, ADMIN_PARSET_ROUTE, ADMIN_TESTS_ROUTE, ADMIN_USER_ROUTE, RESEARCHER_GROUP_ROUTE } from "../utils/constants";
 import Grid from "@mui/material/Grid2";
-import { fetchPointsInCsv } from "../http/pointAPI";
 
 const Admin = observer(() => {
   const navigate = useNavigate();
@@ -76,33 +75,6 @@ const Admin = observer(() => {
                   }}
                 >
                   Изменить группу
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
-
-          <Typography variant="h4" component="div">
-            Выгрузка данных
-          </Typography>
-
-          <Box sx={{ flexGrow: 1 }}>
-            <Grid container spacing={2}>
-              <Grid size={4}>
-                <Button
-                  sx={{ width: "100%", height: "64px" }}
-                  variant="contained"
-                  onClick={() => {
-                    fetchPointsInCsv().then((response) => {
-                      const fileurl = window.URL.createObjectURL(new Blob([response]));
-                      const link = document.createElement("a");
-                      link.href = fileurl;
-                      link.setAttribute("download", "points.csv");
-                      document.body.appendChild(link);
-                      link.click();
-                    });
-                  }}
-                >
-                  Выгрузить все сыгранные игры
                 </Button>
               </Grid>
             </Grid>

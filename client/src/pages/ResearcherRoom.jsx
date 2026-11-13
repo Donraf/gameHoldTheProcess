@@ -13,14 +13,13 @@ import NavBarDrawer from "../components/NavBarDrawer";
 import { getAllGroups, getPlayersPageCount, getPlayersStat } from "../http/userAPI";
 import PlayersGrid from "../components/PlayersGrid";
 import { useSearchParams } from "react-router-dom";
+import { NO_GROUP_OPTION } from "../utils/constants";
 
 const ResearcherRoom = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   var qGroupName = searchParams.get("group_name");
   var qNoGroup = searchParams.get("no_group");
   var qPage = searchParams.get("page");
-
-  const NO_GROUP_OPTION = { id: -1, name: "Без группы" };
 
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState([]);

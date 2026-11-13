@@ -12,6 +12,9 @@ export const ONBOARDING_TESTS_ROUTE = "/onboarding/tests";
 
 export const ADMIN_TESTS_ROUTE = ADMIN_ROUTE + "/tests";
 
+// Опция фильтра «Без группы» в комнате исследователя.
+export const NO_GROUP_OPTION = { id: -1, name: "Без группы" };
+
 export const RESEARCHER_ROOM_ROUTE = "/researcher";
 export const RESEARCHER_USER_ROUTE = RESEARCHER_ROOM_ROUTE + "/user";
 export const RESEARCHER_GROUP_ROUTE = RESEARCHER_ROOM_ROUTE + "/group";
