@@ -48,6 +48,8 @@ type Chart interface {
 	GetAllParSets(input gameServer.GetAllParSetsInput) ([]gameServer.ParameterSet, error)
 	GetParSetsPageCount() (int, error)
 	CreateParSet(input gameServer.CreateParSetInput) (int, error)
+	UpdateParSet(id int, input gameServer.CreateParSetInput) error
+	DeleteParSet(id int) error
 }
 
 type Point interface {

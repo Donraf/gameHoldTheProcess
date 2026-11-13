@@ -178,6 +178,52 @@ func (_c *MockChart_DeleteChart_Call) RunAndReturn(run func(int) error) *MockCha
 	return _c
 }
 
+// DeleteParSet provides a mock function with given fields: id
+func (_m *MockChart) DeleteParSet(id int) error {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteParSet")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockChart_DeleteParSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteParSet'
+type MockChart_DeleteParSet_Call struct {
+	*mock.Call
+}
+
+// DeleteParSet is a helper method to define mock.On call
+//   - id int
+func (_e *MockChart_Expecter) DeleteParSet(id interface{}) *MockChart_DeleteParSet_Call {
+	return &MockChart_DeleteParSet_Call{Call: _e.mock.On("DeleteParSet", id)}
+}
+
+func (_c *MockChart_DeleteParSet_Call) Run(run func(id int)) *MockChart_DeleteParSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int))
+	})
+	return _c
+}
+
+func (_c *MockChart_DeleteParSet_Call) Return(_a0 error) *MockChart_DeleteParSet_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockChart_DeleteParSet_Call) RunAndReturn(run func(int) error) *MockChart_DeleteParSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllCharts provides a mock function with given fields: input
 func (_m *MockChart) GetAllCharts(input gameServer.GetAllChartsInput) ([]gameServer.Chart, error) {
 	ret := _m.Called(input)
@@ -513,6 +559,53 @@ func (_c *MockChart_GetParSetsPageCount_Call) Return(_a0 int, _a1 error) *MockCh
 }
 
 func (_c *MockChart_GetParSetsPageCount_Call) RunAndReturn(run func() (int, error)) *MockChart_GetParSetsPageCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateParSet provides a mock function with given fields: id, input
+func (_m *MockChart) UpdateParSet(id int, input gameServer.CreateParSetInput) error {
+	ret := _m.Called(id, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateParSet")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int, gameServer.CreateParSetInput) error); ok {
+		r0 = rf(id, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockChart_UpdateParSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateParSet'
+type MockChart_UpdateParSet_Call struct {
+	*mock.Call
+}
+
+// UpdateParSet is a helper method to define mock.On call
+//   - id int
+//   - input gameServer.CreateParSetInput
+func (_e *MockChart_Expecter) UpdateParSet(id interface{}, input interface{}) *MockChart_UpdateParSet_Call {
+	return &MockChart_UpdateParSet_Call{Call: _e.mock.On("UpdateParSet", id, input)}
+}
+
+func (_c *MockChart_UpdateParSet_Call) Run(run func(id int, input gameServer.CreateParSetInput)) *MockChart_UpdateParSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(gameServer.CreateParSetInput))
+	})
+	return _c
+}
+
+func (_c *MockChart_UpdateParSet_Call) Return(_a0 error) *MockChart_UpdateParSet_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockChart_UpdateParSet_Call) RunAndReturn(run func(int, gameServer.CreateParSetInput) error) *MockChart_UpdateParSet_Call {
 	_c.Call.Return(run)
 	return _c
 }

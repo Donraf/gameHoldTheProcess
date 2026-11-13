@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 
 	gameServer "example.com/gameHoldTheProcessServer"
@@ -164,4 +165,45 @@ func (p *ChartPostgres) CreateParSet(input gameServer.CreateParSetInput) (int, e
 	}
 
 	return id, nil
+}
+
+func (p *ChartPostgres) UpdateParSet(id int, input gameServer.CreateParSetInput) error {
+	query := fmt.Sprintf(
+		"UPDATE %s SET a=$1, b=$2, noise_mean=$3, noise_stdev=$4, false_warning_prob=$5, missing_danger_prob=$6, scoring_config=$7, hint_cost=$8, false_alarm_threshold=$9, rules_text=$10 WHERE id=$11",
+		parameterSetsTable,
+	)
+	res, err := p.db.Exec(
+		query,
+		input.A,
+		input.B,
+		input.NoiseMean,
+		input.NoiseStdev,
+		input.FalseWarningProb,
+		input.MissingDangerProb,
+		input.ScoringConfig,
+		input.HintCost,
+		input.FalseAlarmThreshold,
+		input.RulesText,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func (p *ChartPostgres) DeleteParSet(id int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", parameterSetsTable)
+	_, err := p.db.Exec(query, id)
+	if err != nil && isForeignKeyViolation(err) {
+		return gameServer.ErrParSetInUse
+	}
+	return err
 }

@@ -5,6 +5,10 @@ import {
   Button,
   Container,
   CssBaseline,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Pagination,
   Paper,
   Stack,
@@ -21,8 +25,9 @@ import {
 import NavBarDrawer from "../components/NavBarDrawer";
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
+import EditIcon from "../components/icons/EditIcon";
 import { useSnackbar } from "notistack";
-import { createParSet, getParSets, getParSetsPageCount } from "../http/graphAPI";
+import { createParSet, deleteParSet, getParSets, getParSetsPageCount, updateParSet } from "../http/graphAPI";
 import { ChartData } from "../utils/ChartData";
 import {
   DEFAULT_FALSE_ALARM_THRESHOLD,
@@ -53,6 +58,36 @@ const options = {
   },
 };
 
+const PREVIEW_LENGTH = 80;
+
+const emptyForm = {
+  a: "",
+  b: "",
+  noiseMean: "",
+  noiseStdev: "",
+  falseWarningProb: "",
+  missingDangerProb: "",
+  hintCost: DEFAULT_HINT_COST,
+  falseAlarmThreshold: DEFAULT_FALSE_ALARM_THRESHOLD,
+  scoringConfig: JSON.stringify(DEFAULT_SCORING_CONFIG, null, 2),
+  rulesText: "",
+};
+
+function formFromParSet(parSet) {
+  return {
+    a: String(parSet.a),
+    b: String(parSet.b),
+    noiseMean: String(parSet.noise_mean),
+    noiseStdev: String(parSet.noise_stdev),
+    falseWarningProb: String(parSet.false_warning_prob),
+    missingDangerProb: String(parSet.missing_danger_prob),
+    hintCost: parSet.hint_cost ?? DEFAULT_HINT_COST,
+    falseAlarmThreshold: parSet.false_alarm_threshold ?? DEFAULT_FALSE_ALARM_THRESHOLD,
+    scoringConfig: formatScoringConfig(parSet.scoring_config),
+    rulesText: parSet.rules_text ?? "",
+  };
+}
+
 function formatScoringConfig(scoringConfig) {
   if (scoringConfig == null) {
     return "—";
@@ -66,26 +101,123 @@ function formatScoringConfig(scoringConfig) {
   }
 }
 
-function formatRulesText(rulesText) {
-  if (!rulesText?.trim()) {
-    return "Стандартные правила";
+function validateForm(form) {
+  if (form.a === "" || !isValidLocalizedNumber(form.a) || parseLocalizedNumber(form.a) < 0) {
+    return "Коэффициент a должен быть неотрицательным числом";
   }
-  return rulesText;
+  if (form.b === "" || !isValidLocalizedNumber(form.b) || parseLocalizedNumber(form.b) < 0) {
+    return "Коэффициент b должен быть неотрицательным числом";
+  }
+  if (form.noiseMean === "" || !isValidLocalizedNumber(form.noiseMean) || parseLocalizedNumber(form.noiseMean) < 0) {
+    return "Математическое ожидание помехи должно быть неотрицательным числом";
+  }
+  if (form.noiseStdev === "" || !isValidLocalizedNumber(form.noiseStdev) || parseLocalizedNumber(form.noiseStdev) < 0) {
+    return "Стандартное отклонение помехи должно быть неотрицательным числом";
+  }
+  if (
+    form.falseWarningProb === "" ||
+    !isValidLocalizedNumber(form.falseWarningProb) ||
+    parseLocalizedNumber(form.falseWarningProb) < 0
+  ) {
+    return "Вероятность ложной тревоги должна быть неотрицательным числом";
+  }
+  if (
+    form.missingDangerProb === "" ||
+    !isValidLocalizedNumber(form.missingDangerProb) ||
+    parseLocalizedNumber(form.missingDangerProb) < 0
+  ) {
+    return "Вероятность пропуска цели должна быть неотрицательным числом";
+  }
+  try {
+    parseLocalizedJson(form.scoringConfig);
+  } catch (e) {
+    return "Конфигурация бонусов и штрафов должна быть валидным JSON";
+  }
+  const parsedHintCost = parseLocalizedNumber(form.hintCost);
+  if (form.hintCost === "" || Number.isNaN(parsedHintCost) || parsedHintCost < 0) {
+    return "Введите корректную стоимость подсказки";
+  }
+  const parsedFalseAlarmThreshold = parseLocalizedNumber(form.falseAlarmThreshold);
+  if (
+    form.falseAlarmThreshold === "" ||
+    Number.isNaN(parsedFalseAlarmThreshold) ||
+    parsedFalseAlarmThreshold <= 0 ||
+    parsedFalseAlarmThreshold > 1
+  ) {
+    return "Порог ложной тревоги должен быть в диапазоне (0, 1]";
+  }
+  return null;
 }
 
-const scrollableCellSx = {
-  maxWidth: 320,
-  verticalAlign: "top",
+function buildPayload(form) {
+  return {
+    a: parseLocalizedNumber(form.a),
+    b: parseLocalizedNumber(form.b),
+    noise_mean: parseLocalizedNumber(form.noiseMean),
+    noise_stdev: parseLocalizedNumber(form.noiseStdev),
+    false_warning_prob: parseLocalizedNumber(form.falseWarningProb),
+    missing_danger_prob: parseLocalizedNumber(form.missingDangerProb),
+    scoring_config: parseLocalizedJson(form.scoringConfig),
+    hint_cost: parseLocalizedNumber(form.hintCost),
+    false_alarm_threshold: parseLocalizedNumber(form.falseAlarmThreshold),
+    rules_text: form.rulesText,
+  };
+}
+
+const ParSetFields = ({ values, onChange }) => {
+  const field = (key, label, extraProps = {}) => (
+    <TextField
+      fullWidth
+      label={label}
+      variant="outlined"
+      value={values[key]}
+      onChange={(event) => onChange(key, event.target.value)}
+      {...extraProps}
+    />
+  );
+
+  return (
+    <Stack width="100%" direction="column" spacing={2}>
+      {field("a", "Коэффициент a", { required: true })}
+      {field("b", "Коэффициент b", { required: true })}
+      {field("noiseMean", "Математическое ожидание помехи", { required: true })}
+      {field("noiseStdev", "Стандартное отклонение помехи", { required: true })}
+      {field("falseWarningProb", "Вероятность ложной тревоги", { required: true })}
+      {field("missingDangerProb", "Вероятность пропуска цели", { required: true })}
+      {field("hintCost", "Стоимость подсказки (кнопка)", { required: true })}
+      {field("falseAlarmThreshold", "Порог ложной тревоги (falseAlarmThreshold)", {
+        required: true,
+        helperText: "Можно вводить 0.9 или 0,9",
+      })}
+      {field("scoringConfig", "Бонусы и штрафы (JSON)", {
+        multiline: true,
+        minRows: 8,
+        required: true,
+        helperText: "В числах допустимы и точка, и запятая как разделитель дробной части",
+      })}
+      {field("rulesText", "Текст правил игры", {
+        multiline: true,
+        minRows: 8,
+        helperText: "Пустое поле — стандартные правила. Сложная таблица: HTML <table> с colspan и rowspan",
+      })}
+    </Stack>
+  );
 };
 
-const scrollableBoxSx = {
-  maxHeight: 160,
-  overflow: "auto",
-  whiteSpace: "pre-wrap",
-  wordBreak: "break-word",
+const PreviewCell = ({ text, monospace, onOpen }) => {
+  const content = text ?? "";
+  const isLong = content.length > PREVIEW_LENGTH;
+  return (
+    <Box sx={{ fontFamily: monospace ? "monospace" : "inherit", fontSize: monospace ? 12 : 13 }}>
+      {isLong ? content.slice(0, PREVIEW_LENGTH) + "…" : content || "—"}{" "}
+      {isLong ? (
+        <Button size="small" onClick={onOpen}>
+          Показать
+        </Button>
+      ) : null}
+    </Box>
+  );
 };
-
-const isUnset = (value) => value === -1 || value === "-1" || value === "" || value == null;
 
 const AdminParset = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
@@ -93,68 +225,33 @@ const AdminParset = () => {
   const [page, setPage] = React.useState(1);
   const [pageCount, setPageCount] = React.useState(1);
 
-  const [a, setA] = React.useState(-1);
-  const [b, setB] = React.useState(-1);
-  const [noiseMean, setNoiseMean] = React.useState(-1);
-  const [noiseStdev, setNoiseStdev] = React.useState(-1);
-  const [falseWarningProb, setFalseWarningProb] = React.useState(-1);
-  const [missingDangerProb, setMissingDangerProb] = React.useState(-1);
-  const [hintCost, setHintCost] = React.useState(DEFAULT_HINT_COST);
-  const [falseAlarmThreshold, setFalseAlarmThreshold] = React.useState(DEFAULT_FALSE_ALARM_THRESHOLD);
-  const [scoringConfig, setScoringConfig] = React.useState(JSON.stringify(DEFAULT_SCORING_CONFIG, null, 2));
-  const [rulesText, setRulesText] = React.useState("");
+  const [createForm, setCreateForm] = useState(emptyForm);
+  const [creating, setCreating] = useState(false);
 
-  const [parSetShowTrigger, setParSetShowTrigger] = useState(false);
-  const chartRef = useRef(null);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [updating, setUpdating] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const [viewContent, setViewContent] = useState(null);
+
   const [chartData, setChartData] = useState(null);
+  const chartRef = useRef(null);
 
   const [updateTrigger, setUpdateTrigger] = useState(false);
 
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
+  const notifyError = (text) =>
+    enqueueSnackbar(text, { variant: "error", autoHideDuration: 4000, preventDuplicate: true });
 
   const getParSetsUI = useCallback(async () => {
-    const filteredDataFromQuery = await getParSets();
+    const filteredDataFromQuery = await getParSets(page);
     const newPageCount = await getParSetsPageCount();
     setPageCount(newPageCount);
     setFilteredData(filteredDataFromQuery);
-  }, []);
-
-  const createChartData = useCallback(() => {
-    const parsedA = parseLocalizedNumber(a);
-    const parsedB = parseLocalizedNumber(b);
-    const parsedNoiseMean = parseLocalizedNumber(noiseMean);
-    const parsedNoiseStdev = parseLocalizedNumber(noiseStdev);
-
-    if (
-      isUnset(a) ||
-      isUnset(b) ||
-      isUnset(noiseMean) ||
-      isUnset(noiseStdev) ||
-      parsedA < 0 ||
-      parsedB < 0 ||
-      parsedNoiseMean < 0 ||
-      parsedNoiseStdev < 0
-    ) {
-      setChartData(null);
-      return;
-    }
-
-    const parSet = {
-      a: parsedA,
-      b: parsedB,
-      noise_mean: parsedNoiseMean,
-      noise_stdev: parsedNoiseStdev,
-      false_warning_prob: 0,
-      missing_danger_prob: 0,
-    };
-    let newChartData = new ChartData(0);
-    newChartData.setParSet(parSet);
-    while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
-      newChartData.generateNextPoint();
-    }
-    setChartData(newChartData.getFullData());
-  }, [a, b, noiseMean, noiseStdev]);
+  }, [page]);
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -163,118 +260,122 @@ const AdminParset = () => {
     });
   }, [page, updateTrigger, getParSetsUI]);
 
-  const triggerUpdateParSet = () => {
-    setParSetShowTrigger((prevState) => {
-      return !prevState;
-    });
-  };
-
-  useEffect(() => {
-    createChartData();
-  }, [parSetShowTrigger, createChartData]);
-
-  useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts, enqueueSnackbar]);
-
-  const addParSet = () => {
-    let snackErrors = [];
-    if (isUnset(a)) {
-      snackErrors.push("Введите коэффициент усиления");
-    } else if (!isValidLocalizedNumber(a) || parseLocalizedNumber(a) < 0) {
-      snackErrors.push("Коэффициент a должен быть неотрицательным числом");
-    }
-    if (isUnset(b)) {
-      snackErrors.push("Введите константу времени");
-    } else if (!isValidLocalizedNumber(b) || parseLocalizedNumber(b) < 0) {
-      snackErrors.push("Коэффициент b должен быть неотрицательным числом");
-    }
-    if (isUnset(noiseMean)) {
-      snackErrors.push("Введите математическое ожидание помехи");
-    } else if (!isValidLocalizedNumber(noiseMean) || parseLocalizedNumber(noiseMean) < 0) {
-      snackErrors.push("Математическое ожидание помехи должно быть неотрицательным числом");
-    }
-    if (isUnset(noiseStdev)) {
-      snackErrors.push("Введите стандартное отклонение помехи");
-    } else if (!isValidLocalizedNumber(noiseStdev) || parseLocalizedNumber(noiseStdev) < 0) {
-      snackErrors.push("Стандартное отклонение помехи должно быть неотрицательным числом");
-    }
-    if (isUnset(falseWarningProb)) {
-      snackErrors.push("Введите вероятность ложной тревоги");
-    } else if (!isValidLocalizedNumber(falseWarningProb) || parseLocalizedNumber(falseWarningProb) < 0) {
-      snackErrors.push("Вероятность ложной тревоги должна быть неотрицательным числом");
-    }
-    if (isUnset(missingDangerProb)) {
-      snackErrors.push("Введите вероятность пропуска цели");
-    } else if (!isValidLocalizedNumber(missingDangerProb) || parseLocalizedNumber(missingDangerProb) < 0) {
-      snackErrors.push("Вероятность пропуска цели должна быть неотрицательным числом");
-    }
-    let parsedScoringConfig;
-    try {
-      parsedScoringConfig = parseLocalizedJson(scoringConfig);
-    } catch (e) {
-      snackErrors.push("Конфигурация бонусов и штрафов должна быть валидным JSON");
-    }
-    const parsedHintCost = parseLocalizedNumber(hintCost);
-    if (hintCost === "" || Number.isNaN(parsedHintCost) || parsedHintCost < 0) {
-      snackErrors.push("Введите корректную стоимость подсказки");
-    }
-    const parsedFalseAlarmThreshold = parseLocalizedNumber(falseAlarmThreshold);
-    if (
-      falseAlarmThreshold === "" ||
-      Number.isNaN(parsedFalseAlarmThreshold) ||
-      parsedFalseAlarmThreshold <= 0 ||
-      parsedFalseAlarmThreshold > 1
-    ) {
-      snackErrors.push("Порог ложной тревоги должен быть в диапазоне (0, 1]");
-    }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
+  const showPreview = () => {
+    if (validateForm(createForm) !== null) {
+      setChartData(null);
+      notifyError("Заполните параметры корректно, чтобы посмотреть ход процесса");
       return;
     }
 
-    createParSet({
-      a: parseLocalizedNumber(a),
-      b: parseLocalizedNumber(b),
-      noise_mean: parseLocalizedNumber(noiseMean),
-      noise_stdev: parseLocalizedNumber(noiseStdev),
-      false_warning_prob: parseLocalizedNumber(falseWarningProb),
-      missing_danger_prob: parseLocalizedNumber(missingDangerProb),
-      scoring_config: parsedScoringConfig,
-      hint_cost: parsedHintCost,
-      false_alarm_threshold: parsedFalseAlarmThreshold,
-      rules_text: rulesText,
-    }).then(
-      (_) => {
-        enqueueSnackbar("Пользователь добавлен", {
+    const parSet = {
+      a: parseLocalizedNumber(createForm.a),
+      b: parseLocalizedNumber(createForm.b),
+      noise_mean: parseLocalizedNumber(createForm.noiseMean),
+      noise_stdev: parseLocalizedNumber(createForm.noiseStdev),
+      false_warning_prob: parseLocalizedNumber(createForm.falseWarningProb),
+      missing_danger_prob: parseLocalizedNumber(createForm.missingDangerProb),
+    };
+    let newChartData = new ChartData(0);
+    newChartData.setParSet(parSet);
+    while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
+      newChartData.generateNextPoint();
+    }
+    setChartData(newChartData.getFullData());
+  };
+
+  const addParSet = () => {
+    const validationError = validateForm(createForm);
+    if (validationError) {
+      notifyError(validationError);
+      return;
+    }
+    if (creating) {
+      return;
+    }
+
+    setCreating(true);
+    createParSet(buildPayload(createForm)).then(
+      () => {
+        setCreating(false);
+        enqueueSnackbar("Набор параметров добавлен", {
           variant: "success",
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setA(-1);
-        setB(-1);
-        setNoiseMean(-1);
-        setNoiseStdev(-1);
-        setFalseWarningProb(-1);
-        setMissingDangerProb(-1);
-        setHintCost(DEFAULT_HINT_COST);
-        setFalseAlarmThreshold(DEFAULT_FALSE_ALARM_THRESHOLD);
-        setScoringConfig(JSON.stringify(DEFAULT_SCORING_CONFIG, null, 2));
-        setRulesText("");
+        setCreateForm(emptyForm);
         setUpdateTrigger(!updateTrigger);
       },
-      (_) => {
-        enqueueSnackbar("Ошибка при добавлении пользователя", {
-          variant: "error",
+      () => {
+        setCreating(false);
+        notifyError("Ошибка при добавлении набора параметров");
+      }
+    );
+  };
+
+  const openEditDialog = (parSet) => {
+    setEditTarget(parSet);
+    setEditForm(formFromParSet(parSet));
+  };
+
+  const closeEditDialog = () => {
+    setEditTarget(null);
+    setUpdating(false);
+  };
+
+  const saveParSet = () => {
+    const validationError = validateForm(editForm);
+    if (validationError) {
+      notifyError(validationError);
+      return;
+    }
+    if (updating) {
+      return;
+    }
+
+    setUpdating(true);
+    updateParSet(editTarget.id, buildPayload(editForm)).then(
+      () => {
+        setUpdating(false);
+        enqueueSnackbar("Набор параметров обновлён", {
+          variant: "success",
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
+        closeEditDialog();
+        setUpdateTrigger(!updateTrigger);
+      },
+      () => {
+        setUpdating(false);
+        notifyError("Ошибка при обновлении набора параметров");
+      }
+    );
+  };
+
+  const confirmDelete = () => {
+    if (deleting || deleteTarget == null) {
+      return;
+    }
+
+    setDeleting(true);
+    deleteParSet(deleteTarget.id).then(
+      () => {
+        setDeleting(false);
+        setDeleteTarget(null);
+        enqueueSnackbar("Набор параметров удалён", {
+          variant: "success",
+          autoHideDuration: 3000,
+          preventDuplicate: true,
+        });
+        setUpdateTrigger(!updateTrigger);
+      },
+      (e) => {
+        setDeleting(false);
+        setDeleteTarget(null);
+        if (e.response && e.response.status === 409) {
+          notifyError("Набор используется (пользователями, группами или играми) и не может быть удалён");
+        } else {
+          notifyError("Ошибка при удалении набора параметров");
+        }
       }
     );
   };
@@ -291,103 +392,9 @@ const AdminParset = () => {
               <Typography variant="h4" noWrap component="div">
                 Добавление набора параметров
               </Typography>
-              <TextField
-                onChange={(event) => {
-                  setA(event.target.value);
-                }}
-                value={a}
-                id="a-coef-field"
-                label="Введите коэффициент a"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => {
-                  setB(event.target.value);
-                }}
-                value={b}
-                id="b-coef-field"
-                label="Введите коэффициент b"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => {
-                  setNoiseMean(event.target.value);
-                }}
-                value={noiseMean}
-                id="noise-mean-field"
-                label="Введите математическое ожидание помехи"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => {
-                  setNoiseStdev(event.target.value);
-                }}
-                value={noiseStdev}
-                id="noise-stdev-field"
-                label="Введите стандартное отклонение помехи"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => {
-                  setFalseWarningProb(event.target.value);
-                }}
-                value={falseWarningProb}
-                id="false-warning-prob-field"
-                label="Введите вероятность ложной тревоги"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => {
-                  setMissingDangerProb(event.target.value);
-                }}
-                value={missingDangerProb}
-                id="missing-danger-prob-field"
-                label="Введите вероятность пропуска цели"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => setHintCost(event.target.value)}
-                value={hintCost}
-                id="hint-cost-field"
-                label="Стоимость подсказки (кнопка)"
-                required={true}
-                variant="outlined"
-              />
-              <TextField
-                onChange={(event) => setFalseAlarmThreshold(event.target.value)}
-                value={falseAlarmThreshold}
-                id="false-alarm-threshold-field"
-                label="Порог ложной тревоги (falseAlarmThreshold)"
-                required={true}
-                variant="outlined"
-                helperText="Можно вводить 0.9 или 0,9"
-              />
-              <TextField
-                onChange={(event) => setScoringConfig(event.target.value)}
-                value={scoringConfig}
-                id="scoring-config-field"
-                label="Бонусы и штрафы (JSON)"
-                multiline
-                minRows={8}
-                required={true}
-                variant="outlined"
-                helperText="В числах допустимы и точка, и запятая как разделитель дробной части"
-              />
-              <TextField
-                onChange={(event) => setRulesText(event.target.value)}
-                value={rulesText}
-                id="rules-text-field"
-                label="Текст правил игры"
-                multiline
-                minRows={8}
-                variant="outlined"
-                helperText="Пустое поле — стандартные правила. Сложная таблица: HTML <table> с colspan и rowspan"
+              <ParSetFields
+                values={createForm}
+                onChange={(key, value) => setCreateForm((prev) => ({ ...prev, [key]: value }))}
               />
             </Stack>
 
@@ -396,28 +403,26 @@ const AdminParset = () => {
             </Container>
           </Stack>
 
-          <Button
-            sx={{ width: "fit-content", height: "40px" }}
-            variant="contained"
-            onClick={() => {
-              addParSet();
-            }}
-          >
-            Добавить набор параметров
-          </Button>
-
-          <Button
-            sx={{ width: "fit-content", height: "40px" }}
-            variant="contained"
-            onClick={() => {
-              triggerUpdateParSet();
-            }}
-          >
-            Посмотреть возможный ход процесса
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              sx={{ width: "fit-content", height: "40px" }}
+              variant="contained"
+              disabled={creating}
+              onClick={addParSet}
+            >
+              {creating ? "Добавление..." : "Добавить набор параметров"}
+            </Button>
+            <Button
+              sx={{ width: "fit-content", height: "40px" }}
+              variant="outlined"
+              onClick={showPreview}
+            >
+              Посмотреть возможный ход процесса
+            </Button>
+          </Stack>
 
           <Typography variant="h4" noWrap component="div">
-            Изменение набора параметров
+            Наборы параметров
           </Typography>
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1400 }} aria-label="simple table">
@@ -439,38 +444,66 @@ const AdminParset = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isDataFetched ? (
-                  filteredData.map((parSet) => (
-                    <TableRow key={parSet.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell sx={{ width: 75 }}>
-                        <Stack direction="row" spacing={1}>
-                          <ImageButton onClick={() => {}}>
-                            <DeleteIcon />
-                          </ImageButton>
-                        </Stack>
+                {isDataFetched && filteredData !== null ? (
+                  filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={13} align="center" sx={{ py: 6 }}>
+                        Наборы параметров не найдены
                       </TableCell>
-                      <TableCell component="th" scope="row">
-                        {parSet.id}
-                      </TableCell>
-                      <TableCell>{parSet.a}</TableCell>
-                      <TableCell>{parSet.b}</TableCell>
-                      <TableCell>{parSet.noise_mean}</TableCell>
-                      <TableCell>{parSet.noise_stdev}</TableCell>
-                      <TableCell>{parSet.false_warning_prob}</TableCell>
-                      <TableCell>{parSet.missing_danger_prob}</TableCell>
-                      <TableCell>{parSet.hint_cost}</TableCell>
-                      <TableCell>{parSet.false_alarm_threshold}</TableCell>
-                      <TableCell sx={scrollableCellSx}>
-                        <Box sx={{ ...scrollableBoxSx, fontFamily: "monospace", fontSize: 12 }}>
-                          {formatScoringConfig(parSet.scoring_config)}
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={scrollableCellSx}>
-                        <Box sx={{ ...scrollableBoxSx, fontSize: 13 }}>{formatRulesText(parSet.rules_text)}</Box>
-                      </TableCell>
-                      <TableCell>{dateFormat(parSet.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
                     </TableRow>
-                  ))
+                  ) : (
+                    filteredData.map((parSet) => (
+                      <TableRow key={parSet.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                        <TableCell sx={{ width: 110 }}>
+                          <Stack direction="row" spacing={1}>
+                            <ImageButton onClick={() => openEditDialog(parSet)}>
+                              <EditIcon />
+                            </ImageButton>
+                            <ImageButton onClick={() => setDeleteTarget(parSet)}>
+                              <DeleteIcon />
+                            </ImageButton>
+                          </Stack>
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {parSet.id}
+                        </TableCell>
+                        <TableCell>{parSet.a}</TableCell>
+                        <TableCell>{parSet.b}</TableCell>
+                        <TableCell>{parSet.noise_mean}</TableCell>
+                        <TableCell>{parSet.noise_stdev}</TableCell>
+                        <TableCell>{parSet.false_warning_prob}</TableCell>
+                        <TableCell>{parSet.missing_danger_prob}</TableCell>
+                        <TableCell>{parSet.hint_cost}</TableCell>
+                        <TableCell>{parSet.false_alarm_threshold}</TableCell>
+                        <TableCell>
+                          <PreviewCell
+                            text={formatScoringConfig(parSet.scoring_config)}
+                            monospace
+                            onOpen={() =>
+                              setViewContent({
+                                title: `Бонусы и штрафы — набор №${parSet.id}`,
+                                content: formatScoringConfig(parSet.scoring_config),
+                                monospace: true,
+                              })
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <PreviewCell
+                            text={parSet.rules_text?.trim() ? parSet.rules_text : "Стандартные правила"}
+                            onOpen={() =>
+                              setViewContent({
+                                title: `Правила игры — набор №${parSet.id}`,
+                                content: parSet.rules_text?.trim() ? parSet.rules_text : "Стандартные правила",
+                                monospace: false,
+                              })
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>{dateFormat(parSet.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
+                      </TableRow>
+                    ))
+                  )
                 ) : (
                   <></>
                 )}
@@ -492,6 +525,59 @@ const AdminParset = () => {
             <></>
           )}
         </Stack>
+
+        <Dialog open={editTarget !== null} onClose={closeEditDialog} maxWidth="md" fullWidth>
+          <DialogTitle>Изменение набора параметров №{editTarget?.id}</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 1 }}>
+              <ParSetFields
+                values={editForm}
+                onChange={(key, value) => setEditForm((prev) => ({ ...prev, [key]: value }))}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeEditDialog}>Отмена</Button>
+            <Button variant="contained" onClick={saveParSet} disabled={updating}>
+              {updating ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>
+          <DialogTitle>Удалить набор параметров?</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Удалить набор параметров №{deleteTarget?.id}? Если набор используется пользователями,
+              группами или в сыгранных играх, удаление будет отклонено.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteTarget(null)}>Отмена</Button>
+            <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? "Удаление..." : "Удалить"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={viewContent !== null} onClose={() => setViewContent(null)} maxWidth="md" fullWidth>
+          <DialogTitle>{viewContent?.title}</DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontFamily: viewContent?.monospace ? "monospace" : "inherit",
+                fontSize: viewContent?.monospace ? 13 : 15,
+              }}
+            >
+              {viewContent?.content}
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setViewContent(null)}>Закрыть</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );

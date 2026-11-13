@@ -121,3 +121,20 @@ export const createParSet = async (parSet) => {
     throw e;
   }
 };
+
+export const updateParSet = async (id, parSet) => {
+  try {
+    const { data } = await $authHost.put(`api/chart/parSet/${id}`, parSet);
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const deleteParSet = async (id) => {
+  try {
+    await $authHost.delete(`api/chart/parSet/${id}`);
+  } catch (e) {
+    throw e;
+  }
+};

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var ErrParSetInUse = errors.New("parameter set is in use")
+
 type Chart struct {
 	Id             int    `json:"id"`
 	ParameterSetId int    `json:"parameter_set_id" binding:"required" db:"parameter_set_id"`

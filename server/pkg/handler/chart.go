@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -242,5 +243,54 @@ func (h *Handler) createParSet(c *gin.Context) {
 
 	c.JSON(http.StatusOK, map[string]any{
 		"id": id,
+	})
+}
+
+func (h *Handler) updateParSet(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	var input gameServer.CreateParSetInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.services.Chart.UpdateParSet(id, input); err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
+
+func (h *Handler) deleteParSet(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	if err := h.services.Chart.DeleteParSet(id); err != nil {
+		if errors.Is(err, gameServer.ErrParSetInUse) {
+			newErrorResponse(c, http.StatusConflict, "parameter set is in use and cannot be deleted")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
 	})
 }

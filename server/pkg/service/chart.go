@@ -71,3 +71,12 @@ func (s *ChartService) CreateParSet(input gameServer.CreateParSetInput) (int, er
 	input.ApplyDefaults()
 	return s.repo.CreateParSet(input)
 }
+
+func (s *ChartService) UpdateParSet(id int, input gameServer.CreateParSetInput) error {
+	input.ApplyDefaults()
+	return s.repo.UpdateParSet(id, input)
+}
+
+func (s *ChartService) DeleteParSet(id int) error {
+	return s.repo.DeleteParSet(id)
+}
