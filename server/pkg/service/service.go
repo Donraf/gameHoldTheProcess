@@ -82,14 +82,17 @@ type Service struct {
 	Point
 	Statistics
 	Test
+	StatisticsScheduler *StatisticsScheduler
 }
 
 func NewService(repo *repository.Repository) *Service {
+	statisticsService := NewStatisticsService(repo.Statistics)
 	return &Service{
-		User:       NewUserService(repo.User),
-		Chart:      NewChartService(repo.Chart),
-		Point:      NewPointService(repo.Point),
-		Statistics: NewStatisticsService(repo.Statistics),
-		Test:       NewTestService(repo.Test),
+		User:                NewUserService(repo.User),
+		Chart:               NewChartService(repo.Chart),
+		Point:               NewPointService(repo.Point),
+		Statistics:          statisticsService,
+		Test:                NewTestService(repo.Test),
+		StatisticsScheduler: NewStatisticsScheduler(statisticsService, 30*time.Second),
 	}
 }

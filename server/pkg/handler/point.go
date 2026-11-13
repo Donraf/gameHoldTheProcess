@@ -41,6 +41,11 @@ func (h *Handler) createPoint(c *gin.Context) {
 		return
 	}
 
+	// Финальная точка игры — помечаем статистику игрока на пересчёт.
+	if input.IsCrash || input.IsStop {
+		h.services.StatisticsScheduler.MarkDirty(chart.UserId, chart.ParameterSetId)
+	}
+
 	c.JSON(http.StatusOK, map[string]any{
 		"id": id,
 	})

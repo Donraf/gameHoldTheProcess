@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -53,6 +54,14 @@ func main() {
 	services := service.NewService(repo)
 	handlers := handler.NewHandler(services)
 
+	schedulerCtx, stopScheduler := context.WithCancel(context.Background())
+	var schedulerWg sync.WaitGroup
+	schedulerWg.Add(1)
+	go func() {
+		defer schedulerWg.Done()
+		services.StatisticsScheduler.Run(schedulerCtx)
+	}()
+
 	srv := new(gameServer.Server)
 	go func() {
 		if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -71,6 +80,8 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		logrus.Errorf("error when shutting down the server: %s", err.Error())
 	}
+	stopScheduler()
+	schedulerWg.Wait()
 	if err := db.Close(); err != nil {
 		logrus.Errorf("error when closing the database connection: %s", err.Error())
 	}
