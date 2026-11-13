@@ -81,7 +81,7 @@ function createChartData(parSet) {
   while (!chartData.isCrashed() && chartData.points.length <= 200) {
     chartData.generateNextPoint();
   }
-  return chartData.fullData;
+  return chartData.getFullData();
 }
 
 function formChoiceChartData(choiceStats) {

@@ -65,12 +65,11 @@ export class ChartData {
     this.parSet = parSet;
     this.falseAlarmThreshold = DEFAULT_FALSE_ALARM_THRESHOLD;
     // Делаем состояние наблюдаемым: ререндер графика и счёта больше не зависит
-    // от случайных setState снаружи. points/data/fullData — observable.ref,
+    // от случайных setState снаружи. points/data — observable.ref,
     // чтобы MobX не проксировал тысячи точек и не мешал Chart.js.
     makeAutoObservable(this, {
       points: observable.ref,
       data: observable.ref,
-      fullData: observable.ref,
       parSet: observable.ref,
     });
     this.restart();
@@ -102,7 +101,12 @@ export class ChartData {
     }
 
     this.data = this.formData(pointsToShow);
-    this.fullData = this.formData(this.points.slice(0, -this.checkDangerNum));
+  }
+
+  // Полный набор данных строится лениво: в игровом цикле он не нужен,
+  // а собирать его каждый тик — O(n) на всю историю сессии.
+  getFullData() {
+    return this.formData(this.points.slice(0, -this.checkDangerNum));
   }
 
   /*

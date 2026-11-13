@@ -153,7 +153,7 @@ const AdminParset = () => {
     while (!newChartData.isCrashed() && newChartData.points.length <= 200) {
       newChartData.generateNextPoint();
     }
-    setChartData(newChartData.fullData);
+    setChartData(newChartData.getFullData());
   }, [a, b, noiseMean, noiseStdev]);
 
   useEffect(() => {
