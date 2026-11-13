@@ -5,6 +5,9 @@ import { millisToMinutesAndSeconds } from "../utils/getTimeDiff";
 const Timer = ({ active, deadlineIntervalMs, onDeadline, textClr = "#000000" }) => {
   const [curTime, setCurTime] = useState(deadlineIntervalMs);
   const deadlineRef = useRef(null);
+  // Колбэк живёт в ref, чтобы его смена не пересоздавала интервал.
+  const onDeadlineRef = useRef(onDeadline);
+  onDeadlineRef.current = onDeadline;
 
   useEffect(() => {
     deadlineRef.current = null;
@@ -25,7 +28,7 @@ const Timer = ({ active, deadlineIntervalMs, onDeadline, textClr = "#000000" }) 
     const tick = () => {
       const time = deadlineRef.current - Date.now();
       if (time < 0) {
-        onDeadline();
+        onDeadlineRef.current();
         setCurTime(0);
         return;
       }
@@ -35,7 +38,7 @@ const Timer = ({ active, deadlineIntervalMs, onDeadline, textClr = "#000000" }) 
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [active, deadlineIntervalMs, onDeadline]);
+  }, [active, deadlineIntervalMs]);
 
   return (
     <Typography sx={{ color: textClr }}>{millisToMinutesAndSeconds(curTime)}</Typography>
