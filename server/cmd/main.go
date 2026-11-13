@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,6 +36,10 @@ func main() {
 
 	if err := godotenv.Load(); err != nil {
 		logrus.Warn("no .env file found, falling back to environment variables")
+	}
+
+	if err := validateSecrets(); err != nil {
+		logrus.Fatalf("missing required configuration: %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -96,4 +101,22 @@ func initConfig() error {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 	return viper.ReadInConfig()
+}
+
+// validateSecrets проверяет, что все обязательные секреты заданы.
+// Без этого сервер стартовал бы с пустым ключом подписи JWT
+// или пустым паролем к БД, молча работая небезопасно.
+// PASSWORD_SALT нужен только для проверки legacy SHA-1 хешей —
+// требуется, пока в БД остаются пользователи со старыми хешами.
+func validateSecrets() error {
+	var missing []string
+	for _, name := range []string{"JWT_SIGNING_KEY", "DB_PASSWORD", "PASSWORD_SALT"} {
+		if os.Getenv(name) == "" {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("environment variables not set: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
