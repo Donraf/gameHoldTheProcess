@@ -54,6 +54,7 @@ type Chart interface {
 
 type Point interface {
 	CreatePoint(input gameServer.Point) (int, error)
+	CreatePoints(points []gameServer.Point) error
 	GetOnePoint(id int) (gameServer.Point, error)
 	GetAllPointsById(id int) ([]gameServer.Point, error)
 	DeletePoint(id int) error

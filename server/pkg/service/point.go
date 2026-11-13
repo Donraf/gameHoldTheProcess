@@ -19,6 +19,10 @@ func (s *PointService) CreatePoint(input gameServer.Point) (int, error) {
 	return s.repo.CreatePoint(input)
 }
 
+func (s *PointService) CreatePoints(points []gameServer.Point) error {
+	return s.repo.CreatePoints(points)
+}
+
 func (s *PointService) GetOnePoint(id int) (gameServer.Point, error) {
 	return s.repo.GetOnePoint(id)
 }

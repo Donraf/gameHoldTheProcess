@@ -92,6 +92,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		point := api.Group("/point", h.checkUserAuth)
 		{
 			point.POST("/", h.createPoint)
+			point.POST("/batch", h.createPoints)
 			point.GET("/csv", h.checkResearcherRole, h.getAllPointsInCsv)
 			point.GET("/chart_id/:chart_id", h.getAllPointsById)
 			point.GET("/:id", h.getOnePoint)

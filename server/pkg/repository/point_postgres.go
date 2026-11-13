@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -28,6 +29,57 @@ func (p *PointPostgres) CreatePoint(input gameServer.Point) (int, error) {
 	}
 
 	return id, nil
+}
+
+// pointsPerBatch ограничивает размер одного INSERT: у Postgres лимит
+// 65535 параметров на запрос, у нас 12 параметров на точку.
+const pointsPerBatch = 5000
+
+// CreatePoints вставляет пачку точек multi-row INSERT'ами в одной транзакции:
+// одна игра — тысячи точек, по одной вставке на точку это тысячи
+// round-trip'ов к БД.
+func (p *PointPostgres) CreatePoints(points []gameServer.Point) error {
+	if len(points) == 0 {
+		return nil
+	}
+
+	timeNow := gameServer.Now()
+
+	tx, err := p.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for start := 0; start < len(points); start += pointsPerBatch {
+		end := start + pointsPerBatch
+		if end > len(points) {
+			end = len(points)
+		}
+		chunk := points[start:end]
+
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("INSERT INTO %s (x, y, score, is_crash, is_useful_ai_signal, is_deceptive_ai_signal, is_stop, is_pause, is_check, created_at, chart_id, check_info) VALUES ", pointsTable))
+
+		args := make([]any, 0, len(chunk)*12)
+		for i, pt := range chunk {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			base := i*12 + 1
+			sb.WriteString(fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)",
+				base, base+1, base+2, base+3, base+4, base+5, base+6, base+7, base+8, base+9, base+10, base+11))
+			args = append(args, pt.X, pt.Y, pt.Score, pt.IsCrash,
+				pt.IsUsefulAiSignal, pt.IsDeceptiveAiSignal, pt.IsStop, pt.IsPause,
+				pt.IsCheck, timeNow, pt.ChartId, pt.CheckInfo)
+		}
+
+		if _, err := tx.Exec(sb.String(), args...); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (p *PointPostgres) GetOnePoint(id int) (gameServer.Point, error) {

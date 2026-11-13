@@ -76,6 +76,52 @@ func (_c *MockPoint_CreatePoint_Call) RunAndReturn(run func(gameServer.Point) (i
 	return _c
 }
 
+// CreatePoints provides a mock function with given fields: points
+func (_m *MockPoint) CreatePoints(points []gameServer.Point) error {
+	ret := _m.Called(points)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePoints")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]gameServer.Point) error); ok {
+		r0 = rf(points)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockPoint_CreatePoints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePoints'
+type MockPoint_CreatePoints_Call struct {
+	*mock.Call
+}
+
+// CreatePoints is a helper method to define mock.On call
+//   - points []gameServer.Point
+func (_e *MockPoint_Expecter) CreatePoints(points interface{}) *MockPoint_CreatePoints_Call {
+	return &MockPoint_CreatePoints_Call{Call: _e.mock.On("CreatePoints", points)}
+}
+
+func (_c *MockPoint_CreatePoints_Call) Run(run func(points []gameServer.Point)) *MockPoint_CreatePoints_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]gameServer.Point))
+	})
+	return _c
+}
+
+func (_c *MockPoint_CreatePoints_Call) Return(_a0 error) *MockPoint_CreatePoints_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockPoint_CreatePoints_Call) RunAndReturn(run func([]gameServer.Point) error) *MockPoint_CreatePoints_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePoint provides a mock function with given fields: id
 func (_m *MockPoint) DeletePoint(id int) error {
 	ret := _m.Called(id)

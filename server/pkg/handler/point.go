@@ -55,6 +55,72 @@ type getOnePointResponse struct {
 	Data gameServer.Point `json:"data"`
 }
 
+// maxPointsPerBatch — защита от злонамеренно огромных тел запроса:
+// реальная игра генерирует ~6 тыс. точек.
+const maxPointsPerBatch = 20000
+
+// createPoints принимает массив точек одной игры и пишет их одной пачкой.
+// Все точки обязаны относиться к одному chart_id — иначе пришлось бы
+// проверять сессию на каждый график.
+func (h *Handler) createPoints(c *gin.Context) {
+	var points []gameServer.Point
+	if err := c.BindJSON(&points); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(points) == 0 {
+		newErrorResponse(c, http.StatusBadRequest, "empty points array")
+		return
+	}
+	if len(points) > maxPointsPerBatch {
+		newErrorResponse(c, http.StatusBadRequest, "too many points in one batch")
+		return
+	}
+
+	chartId := points[0].ChartId
+	for i := range points {
+		if err := points[i].Validate(); err != nil {
+			newErrorResponse(c, http.StatusBadRequest, err.Error())
+			return
+		}
+		if points[i].ChartId != chartId {
+			newErrorResponse(c, http.StatusBadRequest, "all points must belong to the same chart")
+			return
+		}
+	}
+
+	if c.GetInt(userCtx) == 0 {
+		newErrorResponse(c, http.StatusUnauthorized, "user not authorized")
+		return
+	}
+
+	chart, err := h.services.Chart.GetOneChart(chartId)
+	if err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	if _, ok := h.sessionGuard(c, chart.UserId, chart.ParameterSetId); !ok {
+		return
+	}
+
+	if err := h.services.Point.CreatePoints(points); err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+
+	// Финальная точка игры — помечаем статистику игрока на пересчёт.
+	for _, pt := range points {
+		if pt.IsCrash || pt.IsStop {
+			h.services.StatisticsScheduler.MarkDirty(chart.UserId, chart.ParameterSetId)
+			break
+		}
+	}
+
+	c.JSON(http.StatusOK, statusResponse{Status: "ok"})
+}
+
 func (h *Handler) getOnePoint(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {

@@ -15,20 +15,23 @@ export const createGraph = async (points, user_id, par_set_id, totalScore, isTra
       });
     }
     let graphId = data.id;
-    for (const point of points) {
-      await $authHost.post("api/point/", {
-        chart_id: graphId,
-        x: parseFloat(point.x),
-        y: parseFloat(point.y),
-        score: point.score,
-        is_crash: point.is_crash,
-        is_useful_ai_signal: point.is_useful_ai_signal,
-        is_deceptive_ai_signal: point.is_deceptive_ai_signal,
-        is_stop: point.is_stop,
-        is_pause: point.is_pause,
-        is_check: point.is_check,
-        check_info: point.check_info,
-      });
+    if (points.length > 0) {
+      await $authHost.post(
+        "api/point/batch",
+        points.map((point) => ({
+          chart_id: graphId,
+          x: parseFloat(point.x),
+          y: parseFloat(point.y),
+          score: point.score,
+          is_crash: point.is_crash,
+          is_useful_ai_signal: point.is_useful_ai_signal,
+          is_deceptive_ai_signal: point.is_deceptive_ai_signal,
+          is_stop: point.is_stop,
+          is_pause: point.is_pause,
+          is_check: point.is_check,
+          check_info: point.check_info,
+        })),
+      );
     }
     return data;
   } catch (e) {

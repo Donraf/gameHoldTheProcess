@@ -469,3 +469,130 @@ func TestHandler_deletePoint(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_createPoints(t *testing.T) {
+	type mockBehavior func(pointMock *service.MockPoint, chartMock *service.MockChart, userMock *service.MockUser, points []gameServer.Point)
+
+	twoPoints := []gameServer.Point{
+		{X: 1, Y: 1, Score: 1, ChartId: 1},
+		{X: 2, Y: 2, Score: 2, ChartId: 1},
+	}
+
+	tests := []struct {
+		name                string
+		inputBody           string
+		ctxUserId           int
+		points              []gameServer.Point
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			inputBody: `[{"x": 1, "y": 1, "score": 1, "chart_id": 1}, {"x": 2, "y": 2, "score": 2, "chart_id": 1}]`,
+			ctxUserId: 1,
+			points:    twoPoints,
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				start := gameServer.Now()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
+				pm.EXPECT().CreatePoints(points).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "empty array",
+			inputBody:          `[]`,
+			ctxUserId:          1,
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "different chart ids",
+			inputBody:          `[{"x": 1, "y": 1, "score": 1, "chart_id": 1}, {"x": 2, "y": 2, "score": 2, "chart_id": 2}]`,
+			ctxUserId:          1,
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "invalid point",
+			inputBody:          `[{"x": -1, "y": 1, "score": 1, "chart_id": 1}]`,
+			ctxUserId:          1,
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "not authorized",
+			inputBody:          `[{"x": 1, "y": 1, "score": 1, "chart_id": 1}]`,
+			ctxUserId:          0,
+			mockBehavior:       func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {},
+			expectedStatusCode: 401,
+			isError:            true,
+		},
+		{
+			name:      "session time is up",
+			inputBody: `[{"x": 1, "y": 1, "score": 1, "chart_id": 1}]`,
+			ctxUserId: 1,
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				expired := gameServer.Now().Add(-50 * time.Minute)
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &expired}, nil)
+			},
+			expectedStatusCode: 403,
+			isError:            true,
+		},
+		{
+			name:      "internal server error",
+			inputBody: `[{"x": 1, "y": 1, "score": 1, "chart_id": 1}]`,
+			ctxUserId: 1,
+			points:    []gameServer.Point{{X: 1, Y: 1, Score: 1, ChartId: 1}},
+			mockBehavior: func(pm *service.MockPoint, cm *service.MockChart, um *service.MockUser, points []gameServer.Point) {
+				cm.EXPECT().GetOneChart(1).Return(gameServer.Chart{Id: 1, UserId: 1, ParameterSetId: 1}, nil)
+				start := gameServer.Now()
+				um.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil)
+				pm.EXPECT().CreatePoints(points).Return(errors.New(""))
+			},
+			expectedStatusCode: 500,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pointMock := service.NewMockPoint(t)
+			chartMock := service.NewMockChart(t)
+			userMock := service.NewMockUser(t)
+			tt.mockBehavior(pointMock, chartMock, userMock, tt.points)
+
+			services := &service.Service{Point: pointMock, Chart: chartMock, User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/", func(c *gin.Context) {
+				if tt.ctxUserId != 0 {
+					c.Set(userCtx, tt.ctxUserId)
+					c.Set(userCtxRole, gameServer.RoleUser)
+				}
+				handler.createPoints(c)
+			})
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/", bytes.NewBufferString(tt.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
