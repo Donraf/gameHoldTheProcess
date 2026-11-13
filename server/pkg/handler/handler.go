@@ -33,12 +33,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	// Protects the login endpoint against brute-force password guessing.
 	loginLimiter := newRateLimiter(30, time.Minute)
+	// Protects registration against mass account creation.
+	registrationLimiter := newRateLimiter(50, time.Hour)
 
 	api := router.Group("/api")
 	{
 		user := api.Group("/user")
 		{
-			user.POST("/registration", h.registration)
+			user.POST("/registration", rateLimitMiddleware(registrationLimiter), h.registration)
 			user.POST("/login", rateLimitMiddleware(loginLimiter), h.login)
 			user.GET("/groups", h.getAllGroups)
 			userAuth := user.Group("", h.checkUserAuth)
