@@ -11,6 +11,7 @@ import {
   USER_GENDER_FEMALE,
   USER_GENDER_MALE,
   USER_GENDER_OPTIONS,
+  MIN_PASSWORD_LENGTH,
 } from "../utils/constants";
 import { getAllGroups, login, registration } from "../http/userAPI";
 import { resolvePostAuthRoute } from "../http/testAPI";
@@ -30,7 +31,7 @@ const Auth = observer(() => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [profession, setProfession] = useState("");
-  const [experienceYears, setExperienceYears] = useState("");
+  const [experienceYears, setExperienceYears] = useState("0");
   const [experienceMonths, setExperienceMonths] = useState("0");
   const [gender, setGender] = useState(USER_GENDER_MALE);
   const [age, setAge] = useState("");
@@ -40,10 +41,20 @@ const Auth = observer(() => {
   const [selectedGroup, setSelectedGroup] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
   const validateRegistration = () => {
+    if (userLogin.trim() === "") {
+      return "Введите логин";
+    }
+    if (name.trim() === "") {
+      return "Введите ФИО";
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return `Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`;
+    }
     if (profession.trim() === "") {
       return "Введите профессию";
     }
@@ -63,10 +74,22 @@ const Auth = observer(() => {
   };
 
   const click = async () => {
+    if (submitting) {
+      return;
+    }
+    setSubmitting(true);
     try {
       let data;
       if (isLogin) {
-        data = await login(userLogin, password);
+        if (userLogin.trim() === "" || password === "") {
+          enqueueSnackbar("Введите логин и пароль", {
+            variant: "error",
+            autoHideDuration: 3000,
+            preventDuplicate: true,
+          });
+          return;
+        }
+        data = await login(userLogin.trim(), password);
       } else {
         const validationError = validateRegistration();
         if (validationError) {
@@ -82,7 +105,7 @@ const Auth = observer(() => {
         if (selectedGroup !== "") {
           groupId = selectedGroup.id;
         }
-        data = await registration(userLogin, password, name, {
+        data = await registration(userLogin.trim(), password, name.trim(), {
           profession: profession.trim(),
           experienceYears: Number(experienceYears),
           experienceMonths: Number(experienceMonths),
@@ -104,11 +127,21 @@ const Auth = observer(() => {
         navigate(nextRoute);
       }
     } catch (e) {
-      enqueueSnackbar("Ошибка при авторизации или регистрации", {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      });
+      const serverError = e.response?.data?.error;
+      enqueueSnackbar(
+        isLogin
+          ? serverError === "invalid login or password"
+            ? "Неверный логин или пароль"
+            : "Ошибка при авторизации" + (serverError ? `: ${serverError}` : "")
+          : "Ошибка при регистрации" + (serverError ? `: ${serverError}` : ""),
+        {
+          variant: "error",
+          autoHideDuration: 4000,
+          preventDuplicate: true,
+        }
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -130,7 +163,16 @@ const Auth = observer(() => {
           alignItems: "center",
         }}
       >
-        <Stack width={"100%"} direction="column" spacing={4}>
+        <Stack
+          width={"100%"}
+          direction="column"
+          spacing={4}
+          component="form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            click();
+          }}
+        >
           <Typography align={"center"} variant="h4" noWrap component="div">
             {isLogin ? "Авторизация" : "Регистрация"}
           </Typography>
@@ -286,7 +328,7 @@ const Auth = observer(() => {
                     }}
                   >
                     {fetchedGroups.map((item) => (
-                      <MenuItem id={"groupItem" + item.id} value={item}>
+                      <MenuItem key={item.id} value={item}>
                         {item.name}
                       </MenuItem>
                     ))}
@@ -315,8 +357,8 @@ const Auth = observer(() => {
                 </>
               )}
             </Stack>
-            <Button variant={"outlined"} onClick={click}>
-              {isLogin ? "Войти" : "Зарегистрироваться"}
+            <Button type="submit" variant={"outlined"} disabled={submitting}>
+              {submitting ? "Отправка..." : isLogin ? "Войти" : "Зарегистрироваться"}
             </Button>
           </Stack>
         </Stack>
