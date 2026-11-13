@@ -18,6 +18,13 @@ func NewHandler(services *service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+	// Доверяем X-Forwarded-For только от локального reverse-proxy (nginx
+	// на той же машине). Иначе любой клиент мог бы подделать свой IP
+	// и обойти rate limiter на логине.
+	// Если прокси переедет на другую машину, её адрес нужно добавить сюда.
+	if err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
+		panic(err)
+	}
 	router.Use(gin.Recovery())
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
