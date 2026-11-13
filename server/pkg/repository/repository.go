@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
 )
@@ -31,6 +33,7 @@ type User interface {
 	GetPlayersPointsWithEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error)
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
 	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
+	StartUserSession(userId, parSetId int, isTraining bool, startTime time.Time) error
 	ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error
 }
 

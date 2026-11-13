@@ -108,28 +108,22 @@ func (h *Handler) startSession(c *gin.Context) {
 	}
 
 	now := gameServer.Now()
-	startTime := now
 
-	if ups.IsTraining {
-		if ups.TrainingStartTime == nil {
-			if err := h.services.User.UpdateUserUserParSet(userId, gameServer.UpdateUserUserParSetInput{
-				ParSetId:          input.ParSetId,
-				TrainingStartTime: &startTime,
-			}); err != nil {
-				internalErrorResponse(c, err)
-				return
-			}
-			ups.TrainingStartTime = &startTime
-		}
-	} else if ups.GameStartTime == nil {
-		if err := h.services.User.UpdateUserUserParSet(userId, gameServer.UpdateUserUserParSetInput{
-			ParSetId:      input.ParSetId,
-			GameStartTime: &startTime,
-		}); err != nil {
+	needsStart := (ups.IsTraining && ups.TrainingStartTime == nil) ||
+		(!ups.IsTraining && ups.GameStartTime == nil)
+	if needsStart {
+		if err := h.services.User.StartUserSession(userId, input.ParSetId, ups.IsTraining, now); err != nil {
 			internalErrorResponse(c, err)
 			return
 		}
-		ups.GameStartTime = &startTime
+
+		// Перечитываем: при параллельных запросах побеждает один UPDATE,
+		// здесь забираем авторитетное время старта из БД.
+		ups, err = h.services.User.GetUserParameterSet(userId, input.ParSetId)
+		if err != nil {
+			internalErrorResponse(c, err)
+			return
+		}
 	}
 
 	ups.RemTimeMs = ups.RemTime(now)

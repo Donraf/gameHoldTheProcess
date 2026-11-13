@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	gameServer "example.com/gameHoldTheProcessServer"
 	"example.com/gameHoldTheProcessServer/pkg/repository"
 )
@@ -32,6 +34,7 @@ type User interface {
 	GetPlayersEventsPageCount(input gameServer.GetPlayersEventsPageCountInput) (int, error)
 	UpdateUserParSet(id int, input gameServer.UpdateUserParSetInput) error
 	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
+	StartUserSession(userId, parSetId int, isTraining bool, startTime time.Time) error
 	ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error
 }
 

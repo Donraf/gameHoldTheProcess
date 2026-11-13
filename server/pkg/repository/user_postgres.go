@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	gameServer "example.com/gameHoldTheProcessServer"
 	"github.com/jmoiron/sqlx"
@@ -807,6 +808,18 @@ func (u *UserPostgres) UpdateUserUserParSet(id int, input gameServer.UpdateUserU
 	args = append(args, id, input.ParSetId)
 
 	_, err := u.db.Exec(query, args...)
+	return err
+}
+
+// StartUserSession атомарно проставляет время старта сессии: UPDATE с условием
+// IS NULL не даёт двум параллельным запросам перезаписать время друг друга.
+func (u *UserPostgres) StartUserSession(userId, parSetId int, isTraining bool, startTime time.Time) error {
+	column := "game_start_time"
+	if isTraining {
+		column = "training_start_time"
+	}
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND parameter_set_id=$3 AND %s IS NULL", userParameterSetsTable, column, column)
+	_, err := u.db.Exec(query, startTime, userId, parSetId)
 	return err
 }
 

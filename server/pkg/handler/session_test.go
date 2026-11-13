@@ -31,8 +31,10 @@ func TestHandler_startSession(t *testing.T) {
 			inputBody: `{"par_set_id": 1}`,
 			ctxUserId: 1,
 			mockBehavior: func(r *service.MockUser) {
-				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true}, nil)
-				r.EXPECT().UpdateUserUserParSet(1, mock.Anything).Return(nil)
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true}, nil).Once()
+				r.EXPECT().StartUserSession(1, 1, true, mock.Anything).Return(nil)
+				start := gameServer.Now()
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: true, TrainingStartTime: &start}, nil).Once()
 			},
 			expectedStatusCode: 200,
 			expectedContains:   "training_start_time",
@@ -42,8 +44,10 @@ func TestHandler_startSession(t *testing.T) {
 			inputBody: `{"par_set_id": 1}`,
 			ctxUserId: 1,
 			mockBehavior: func(r *service.MockUser) {
-				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false}, nil)
-				r.EXPECT().UpdateUserUserParSet(1, mock.Anything).Return(nil)
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false}, nil).Once()
+				r.EXPECT().StartUserSession(1, 1, false, mock.Anything).Return(nil)
+				start := gameServer.Now()
+				r.EXPECT().GetUserParameterSet(1, 1).Return(gameServer.UserParameterSet{IsTraining: false, GameStartTime: &start}, nil).Once()
 			},
 			expectedStatusCode: 200,
 			expectedContains:   "game_start_time",

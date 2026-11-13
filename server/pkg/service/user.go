@@ -280,6 +280,10 @@ func (u *UserService) UpdateUserUserParSet(id int, input gameServer.UpdateUserUs
 	return u.repo.UpdateUserUserParSet(id, input)
 }
 
+func (u *UserService) StartUserSession(userId, parSetId int, isTraining bool, startTime time.Time) error {
+	return u.repo.StartUserSession(userId, parSetId, isTraining, startTime)
+}
+
 func (u *UserService) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
 	return u.repo.ChangeGroupParSet(input)
 }
