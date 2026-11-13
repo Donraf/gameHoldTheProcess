@@ -69,7 +69,7 @@ export const authRoutes = [
     roles: ADMIN_AND_RESEARCHER,
   },
   {
-    path: RESEARCHER_USER_ROUTE,
+    path: RESEARCHER_USER_ROUTE + "/:userId",
     Component: <ResearcherUser />,
     roles: ADMIN_AND_RESEARCHER,
   },

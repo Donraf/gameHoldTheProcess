@@ -1,9 +1,11 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
+import dateFormat from "dateformat";
 import {
   Autocomplete,
   Box,
   Button,
   CssBaseline,
+  Divider,
   Pagination,
   Paper,
   Stack,
@@ -18,8 +20,8 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
-import { getPlayersEvents, getPlayersEventsPageCount } from "../http/userAPI";
-import { useLocation } from "react-router-dom";
+import { fetchUser, getPlayersEvents, getPlayersEventsPageCount, getPlayersStat } from "../http/userAPI";
+import { useParams } from "react-router-dom";
 import { computeStatistics, getStatistics } from "../http/statisticsAPI";
 import { Context } from "..";
 import { COLORS, USER_ROLE_ADMIN } from "../utils/constants";
@@ -38,10 +40,41 @@ const EVENT_TYPE_MAP = new Map([
   ["Отклонение совета ИИ", "reject_advice"],
 ]);
 
+const InfoRow = ({ label, value }) => (
+  <Stack width={"100%"} direction="row" spacing={0.5}>
+    <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+      {label}:
+    </Typography>
+    <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+      {value ?? "—"}
+    </Typography>
+  </Stack>
+);
+
+function formatExperience(years, months) {
+  if (years == null && months == null) {
+    return null;
+  }
+  const parts = [];
+  if (years != null) {
+    parts.push(`${years} г.`);
+  }
+  if (months != null) {
+    parts.push(`${months} мес.`);
+  }
+  return parts.join(" ");
+}
+
 const ResearcherUser = () => {
   const { user } = useContext(Context);
-  const location = useLocation();
-  const [selectedParSetId, setSelectedParSetId] = useState(location.state.player.cur_par_set_id);
+  const { userId } = useParams();
+
+  const [player, setPlayer] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [playerLoading, setPlayerLoading] = useState(true);
+  const [playerNotFound, setPlayerNotFound] = useState(false);
+
+  const [selectedParSetId, setSelectedParSetId] = useState(null);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
   const [stats, setStats] = useState(null);
@@ -49,26 +82,52 @@ const ResearcherUser = () => {
   const [pageCount, setPageCount] = React.useState(1);
   const [selectedGroup, setSelectedGroup] = React.useState("Все события");
 
+  // Загрузка игрока по id из URL — страница переживает F5 и прямой заход по ссылке.
+  useEffect(() => {
+    setPlayerLoading(true);
+    setPlayerNotFound(false);
+    Promise.all([getPlayersStat("user_id", userId, 1), fetchUser(userId)]).then(
+      ([players, userResponse]) => {
+        const found = players[0] ?? null;
+        if (found === null) {
+          setPlayerNotFound(true);
+        } else {
+          setPlayer(found);
+          setSelectedParSetId(found.cur_par_set_id);
+          setProfile(userResponse.data ?? userResponse);
+        }
+        setPlayerLoading(false);
+      },
+      () => {
+        setPlayerNotFound(true);
+        setPlayerLoading(false);
+      }
+    );
+  }, [userId]);
+
   const filterData = useCallback(
     async (updatePage) => {
+      if (player === null || selectedParSetId === null) {
+        return;
+      }
       const filteredDataFromQuery = await getPlayersEvents(
-        location.state.player.id,
+        player.id,
         selectedParSetId,
         page,
         EVENT_TYPE_MAP.get(selectedGroup)
       );
       const newPageCount = await getPlayersEventsPageCount(
-        location.state.player.id,
+        player.id,
         selectedParSetId,
         EVENT_TYPE_MAP.get(selectedGroup)
       );
-      const nextStats = await getStatistics(location.state.player.id, selectedParSetId);
+      const nextStats = await getStatistics(player.id, selectedParSetId);
       setPageCount(newPageCount);
       if (updatePage) setPage(1);
       setFilteredData(filteredDataFromQuery);
       setStats(nextStats);
     },
-    [location.state.player.id, page, selectedGroup, selectedParSetId]
+    [player, page, selectedGroup, selectedParSetId]
   );
 
   useEffect(() => {
@@ -86,10 +145,40 @@ const ResearcherUser = () => {
   }, [selectedParSetId, selectedGroup, filterData]);
 
   const computeStats = async () => {
-    computeStatistics(location.state.player.id, selectedParSetId).then((nextStats) => {
+    computeStatistics(player.id, selectedParSetId).then((nextStats) => {
       setStats(nextStats);
     });
   };
+
+  if (playerLoading) {
+    return (
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <NavBarDrawer />
+        <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
+          <Toolbar />
+          <Typography variant="h4" component="div">
+            Загрузка данных игрока...
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (playerNotFound || player === null) {
+    return (
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <NavBarDrawer />
+        <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
+          <Toolbar />
+          <Typography variant="h4" component="div">
+            Игрок не найден
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -98,23 +187,40 @@ const ResearcherUser = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            ФИО игрока: {location.state.player.name}
+          <Typography sx={{ color: "#232E4A", fontSize: 24, fontWeight: "bold" }} component="div">
+            Информация об игроке
           </Typography>
+          <Stack width={"60%"} direction="column" spacing={0.5}>
+            <InfoRow label="ФИО" value={player.name} />
+            <InfoRow label="Логин" value={profile?.login} />
+            <InfoRow label="Профессия" value={profile?.profession} />
+            <InfoRow
+              label="Стаж"
+              value={formatExperience(profile?.experience_years, profile?.experience_months)}
+            />
+            <InfoRow label="Пол" value={profile?.gender} />
+            <InfoRow label="Возраст" value={profile?.age != null ? `${profile.age} лет` : null} />
+            <InfoRow
+              label="Дата регистрации"
+              value={profile?.created_at ? dateFormat(profile.created_at, "yyyy-mm-dd") : null}
+            />
+          </Stack>
+
+          <Divider />
 
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Пройденные тесты:
           </Typography>
-          <PlayerTestResults userId={location.state.player.id} />
+          <PlayerTestResults userId={player.id} />
 
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Набор параметров:
           </Typography>
           <Autocomplete
-            options={location.state.player.par_sets}
+            options={player.par_sets}
             getOptionLabel={(parSet) => parSetLabel(parSet)}
             renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
-            value={location.state.player.par_sets.find((parSet) => parSet.id === selectedParSetId) || null}
+            value={player.par_sets.find((parSet) => parSet.id === selectedParSetId) || null}
             onChange={(_, newValue) => {
               const newSelectedParSetId = newValue ? newValue.id : 0;
               setSelectedParSetId(newSelectedParSetId);
@@ -144,7 +250,7 @@ const ResearcherUser = () => {
             <></>
           )}
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
-            Статистика по набору параметров №{selectedParSetId}:
+            Статистика по набору параметров {parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}:
           </Typography>
           <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
             Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок -{" "}
@@ -198,7 +304,7 @@ const ResearcherUser = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isDataFetched ? (
+                {isDataFetched && filteredData !== null ? (
                   filteredData.map((event) => (
                     <TableRow key={event.x} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                       <TableCell width={60} component="th" scope="row">

@@ -428,6 +428,11 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 	var args []any
 
 	switch input.FilterTag {
+	case "user_id":
+		{
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE user_id=$1 AND role=$2", usersTable)
+			args = []any{input.FilterValue, gameServer.RoleUser}
+		}
 	case "login":
 		{
 			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE login LIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT %v", usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)

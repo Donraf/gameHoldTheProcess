@@ -337,7 +337,7 @@ export default function PlayerCard({ player }) {
               flexGrow: 1,
             }}
             onClick={() => {
-              navigate(RESEARCHER_USER_ROUTE, { state: { player: player } });
+              navigate(`${RESEARCHER_USER_ROUTE}/${player.id}`);
             }}
             startIcon={<StatisticsIcon />}
           >
