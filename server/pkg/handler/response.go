@@ -16,11 +16,20 @@ type statusResponse struct {
 }
 
 func newErrorResponse(c *gin.Context, statusCode int, message string) {
-	logrus.Error(message)
+	// Клиентские ошибки (4xx) — штатная ситуация, логируем на уровне Warn,
+	// чтобы не тонули настоящие серверные ошибки.
+	logrus.WithFields(logrus.Fields{
+		"request_id": requestIDFrom(c),
+		"status":     statusCode,
+	}).Warn(message)
 	c.AbortWithStatusJSON(statusCode, errorResponse{message})
 }
 
 func internalErrorResponse(c *gin.Context, err error) {
-	logrus.Errorf("internal error on %s %s: %s", c.Request.Method, c.Request.URL.Path, err.Error())
+	logrus.WithFields(logrus.Fields{
+		"request_id": requestIDFrom(c),
+		"method":     c.Request.Method,
+		"path":       c.Request.URL.Path,
+	}).Errorf("internal error: %s", err.Error())
 	c.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse{"internal server error"})
 }

@@ -25,6 +25,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	if err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		panic(err)
 	}
+	router.Use(requestIDMiddleware())
+	router.Use(loggerMiddleware())
 	router.Use(gin.Recovery())
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
