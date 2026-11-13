@@ -65,6 +65,13 @@ export function useGameLoop({
     }
 
     const interval = setInterval(() => {
+      // Защёлка: после взрыва/остановки и до рестарта тик ничего не делает.
+      // Без неё повторный тик до применения setIsChartPaused(true) мог бы
+      // заново сохранить график и дважды начислить очки.
+      if (chartData.wasExplosion || chartData.wasManualStop) {
+        return;
+      }
+
       const oldScore = chartData.score;
       chartData.generateNextPoint();
 
