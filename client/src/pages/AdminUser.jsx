@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER, USER_GENDER_FEMALE, USER_GENDER_MALE } from "../utils/constants";
+import { USER_ROLE_ADMIN, USER_ROLE_RESEARCHER, USER_ROLE_USER, USER_GENDER_FEMALE, USER_GENDER_MALE, MIN_PASSWORD_LENGTH } from "../utils/constants";
 import {
   Autocomplete,
   Box,
@@ -34,8 +34,18 @@ import EditIcon from "../components/icons/EditIcon";
 import { useSnackbar } from "notistack";
 import { useSearchParams } from "react-router-dom";
 
+const SEARCH_FILTER_OPTIONS = [
+  { value: "user_name", label: "ФИО" },
+  { value: "login", label: "Логин" },
+];
+
+const DEBOUNCE_MS = 400;
+
 const AdminUser = () => {
   const { user: userStore } = useContext(Context);
+
+  // Форма создания (в модалке)
+  const [createOpen, setCreateOpen] = useState(false);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -48,6 +58,7 @@ const AdminUser = () => {
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("");
 
+  // Форма редактирования
   const [updatePassword, setUpdatePassword] = useState("");
   const [updateRole, setUpdateRole] = useState(USER_ROLE_USER);
   const [updateName, setUpdateName] = useState("");
@@ -69,15 +80,21 @@ const AdminUser = () => {
   const [currentId, setCurrentId] = React.useState(0);
   const [pageCount, setPageCount] = React.useState(1);
 
+  // Поиск по логину/ФИО с дебаунсом
+  const [searchTag, setSearchTag] = useState("user_name");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState({ tag: "user_name", value: "" });
+
   const [searchParams, setSearchParams] = useSearchParams();
   var qGroupName = searchParams.get("group_name");
   var qPage = searchParams.get("page");
 
   const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
 
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const [refreshTick, setRefreshTick] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
+  const notifyError = (text) =>
+    enqueueSnackbar(text, { variant: "error", autoHideDuration: 4000, preventDuplicate: true });
 
   const roleNameArr = [
     [USER_ROLE_USER, "Пользователь"],
@@ -114,11 +131,30 @@ const AdminUser = () => {
     });
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch({ tag: searchTag, value: searchInput.trim() });
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchTag, searchInput]);
+
+  // При смене поискового запроса возвращаемся на первую страницу.
+  useEffect(() => {
+    if (debouncedSearch.value !== "") {
+      setSearchParams({ group_name: qGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
   const filterData = useCallback(async () => {
     let filteredDataFromQuery;
     let newPageCount;
     const currentPage = parseInt(qPage) || 1;
-    if (qGroupName) {
+    if (debouncedSearch.value !== "") {
+      // Текстовый поиск имеет приоритет над фильтром по группе.
+      filteredDataFromQuery = await fetchUsers(debouncedSearch.tag, debouncedSearch.value, currentPage, sortBy, sortDir);
+      newPageCount = await getUsersPageCount(debouncedSearch.tag, debouncedSearch.value);
+    } else if (qGroupName) {
       filteredDataFromQuery = await fetchUsers("group_name", qGroupName, currentPage, sortBy, sortDir);
       newPageCount = await getUsersPageCount("group_name", qGroupName);
     } else {
@@ -127,7 +163,7 @@ const AdminUser = () => {
     }
     setPageCount(newPageCount);
     setFilteredData(filteredDataFromQuery);
-  }, [qGroupName, qPage, sortBy, sortDir]);
+  }, [qGroupName, qPage, sortBy, sortDir, debouncedSearch]);
 
   useEffect(() => {
     fetchGroups();
@@ -140,44 +176,62 @@ const AdminUser = () => {
     });
   }, [searchParams, filterData, refreshTick]);
 
-  useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts, enqueueSnackbar]);
+  const resetCreateForm = () => {
+    setLogin("");
+    setPassword("");
+    setName("");
+    setProfession("");
+    setExperienceYears("");
+    setExperienceMonths("0");
+    setGender(USER_GENDER_MALE);
+    setAge("");
+    setRole(USER_ROLE_USER);
+    setSelectedGroup("");
+  };
+
+  const handleCreateOpen = () => {
+    resetCreateForm();
+    setCreateOpen(true);
+  };
+
+  const handleCreateClose = () => {
+    setCreateOpen(false);
+  };
 
   const addUser = () => {
     if (adding) {
       return;
     }
-    let snackErrors = [];
-    if (login === "") {
-      snackErrors.push("Введите логин пользователя");
+    if (login.trim() === "") {
+      notifyError("Введите логин пользователя");
+      return;
     }
     if (password === "") {
-      snackErrors.push("Введите пароль пользователя");
+      notifyError("Введите пароль пользователя");
+      return;
     }
-    if (name === "") {
-      snackErrors.push("Введите ФИО пользователя");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      notifyError(`Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`);
+      return;
+    }
+    if (name.trim() === "") {
+      notifyError("Введите ФИО пользователя");
+      return;
     }
     if (profession.trim() === "") {
-      snackErrors.push("Введите профессию пользователя");
+      notifyError("Введите профессию пользователя");
+      return;
     }
-    if (experienceYears === "" || Number(experienceYears) < 0) {
-      snackErrors.push("Введите корректный стаж пользователя");
+    if (experienceYears === "" || !Number.isInteger(Number(experienceYears)) || Number(experienceYears) < 0) {
+      notifyError("Введите корректный стаж пользователя");
+      return;
     }
     if (experienceMonths === "" || Number(experienceMonths) < 0 || Number(experienceMonths) > 11) {
-      snackErrors.push("Введите корректный стаж пользователя в месяцах (0-11)");
+      notifyError("Введите корректный стаж пользователя в месяцах (0-11)");
+      return;
     }
     if (age === "" || Number(age) <= 0 || Number(age) > 150) {
-      snackErrors.push("Введите корректный возраст пользователя");
-    }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
+      notifyError("Введите корректный возраст пользователя");
       return;
     }
 
@@ -187,7 +241,7 @@ const AdminUser = () => {
     }
 
     setAdding(true);
-    createUser(login, password, name, role, {
+    createUser(login.trim(), password, name.trim(), role, {
       profession: profession.trim(),
       experienceYears: Number(experienceYears),
       experienceMonths: Number(experienceMonths),
@@ -201,26 +255,13 @@ const AdminUser = () => {
           autoHideDuration: 3000,
           preventDuplicate: true,
         });
-        setLogin("");
-        setPassword("");
-        setName("");
-        setProfession("");
-        setExperienceYears("");
-        setExperienceMonths("0");
-        setGender(USER_GENDER_MALE);
-        setAge("");
-        setRole(USER_ROLE_USER);
-        setSelectedGroup("");
+        handleCreateClose();
         setRefreshTick((tick) => tick + 1);
       },
       (e) => {
         setAdding(false);
         const serverError = e.response?.data?.error;
-        enqueueSnackbar("Ошибка при добавлении пользователя" + (serverError ? `: ${serverError}` : ""), {
-          variant: "error",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
+        notifyError("Ошибка при добавлении пользователя" + (serverError ? `: ${serverError}` : ""));
       }
     );
   };
@@ -243,11 +284,7 @@ const AdminUser = () => {
       },
       (e) => {
         const serverError = e.response?.data?.error;
-        enqueueSnackbar("Ошибка при удалении пользователя" + (serverError ? `: ${serverError}` : ""), {
-          variant: "error",
-          autoHideDuration: 4000,
-          preventDuplicate: true,
-        });
+        notifyError("Ошибка при удалении пользователя" + (serverError ? `: ${serverError}` : ""));
       }
     );
   };
@@ -273,7 +310,6 @@ const AdminUser = () => {
     if (updating) {
       return;
     }
-    let snackErrors = [];
 
     const nameChanged = updateName.trim() !== "" && updateName.trim() !== (editUser?.name ?? "");
     const professionChanged =
@@ -286,14 +322,21 @@ const AdminUser = () => {
     const ageChanged = updateAge !== "" && Number(updateAge) !== (editUser?.age ?? 0);
     const roleChanged = editUser != null && updateRole !== editUser.role;
 
+    if (updatePassword !== "" && updatePassword.length < MIN_PASSWORD_LENGTH) {
+      notifyError(`Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`);
+      return;
+    }
     if (yearsChanged && Number(updateExperienceYears) < 0) {
-      snackErrors.push("Введите корректный стаж в годах (не меньше 0)");
+      notifyError("Введите корректный стаж в годах (не меньше 0)");
+      return;
     }
     if (monthsChanged && (Number(updateExperienceMonths) < 0 || Number(updateExperienceMonths) > 11)) {
-      snackErrors.push("Введите корректный стаж в месяцах (0-11)");
+      notifyError("Введите корректный стаж в месяцах (0-11)");
+      return;
     }
     if (ageChanged && (Number(updateAge) <= 0 || Number(updateAge) > 150)) {
-      snackErrors.push("Введите корректный возраст (1-150)");
+      notifyError("Введите корректный возраст (1-150)");
+      return;
     }
     if (
       updatePassword === "" &&
@@ -305,10 +348,7 @@ const AdminUser = () => {
       !genderChanged &&
       !ageChanged
     ) {
-      snackErrors.push("Нечего изменять: заполните хотя бы одно поле");
-    }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
+      notifyError("Нечего изменять: заполните хотя бы одно поле");
       return;
     }
 
@@ -353,11 +393,7 @@ const AdminUser = () => {
       (e) => {
         setUpdating(false);
         const serverError = e.response?.data?.error;
-        enqueueSnackbar("Ошибка при обновлении пользователя" + (serverError ? `: ${serverError}` : ""), {
-          variant: "error",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
+        notifyError("Ошибка при обновлении пользователя" + (serverError ? `: ${serverError}` : ""));
       }
     );
   };
@@ -396,157 +432,49 @@ const AdminUser = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography variant="h4" noWrap component="div">
-            Добавление нового пользователя
-          </Typography>
-          <TextField
-            onChange={(event) => {
-              setLogin(event.target.value);
-            }}
-            value={login}
-            id="login-field"
-            label="Введите логин пользователя"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {
-              setName(event.target.value);
-            }}
-            value={name}
-            id="name-field"
-            label="Введите ФИО пользователя"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {
-              setProfession(event.target.value);
-            }}
-            value={profession}
-            id="profession-field"
-            label="Профессия"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            type="number"
-            inputProps={{ min: 0 }}
-            onChange={(event) => {
-              setExperienceYears(event.target.value);
-            }}
-            value={experienceYears}
-            id="experience-field"
-            label="Стаж (лет)"
-            helperText="Можно указать 0 — без стажа"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            type="number"
-            inputProps={{ min: 0, max: 11 }}
-            onChange={(event) => {
-              setExperienceMonths(event.target.value);
-            }}
-            value={experienceMonths}
-            id="experience-months-field"
-            label="Стаж (месяцев, 0-11)"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            select
-            value={gender}
-            onChange={(event) => {
-              setGender(event.target.value);
-            }}
-            id="gender-select"
-            label="Пол"
-            required={true}
-            variant="outlined"
-          >
-            <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
-            <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
-          </TextField>
-          <TextField
-            type="number"
-            inputProps={{ min: 1, max: 150 }}
-            onChange={(event) => {
-              setAge(event.target.value);
-            }}
-            value={age}
-            id="age-field"
-            label="Возраст"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            onChange={(event) => {
-              setPassword(event.target.value);
-            }}
-            value={password}
-            id="password-field"
-            label="Введите пароль пользователя"
-            required={true}
-            variant="outlined"
-          />
-          <TextField
-            select
-            value={role}
-            onChange={(event) => {
-              const newRole = event.target.value;
-              setRole(newRole);
-            }}
-            id="role-select"
-            variant={"outlined"}
-          >
-            {roleNameArr.map((item, i) => (
-              <MenuItem id={"roleItem" + i} value={item[0]}>
-                {item[1]}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Autocomplete
-            options={fetchedGroups}
-            getOptionLabel={(group) => group.name}
-            renderInput={(params) => <TextField {...params} label="Выберите группу" />}
-            value={fetchedGroups.find((group) => group.name === selectedGroup.name) || null}
-            onChange={(_, newValue) => {
-              const newSelectedGroup = newValue;
-              setSelectedGroup(newSelectedGroup);
-            }}
-            sx={{
-              flexGrow: 9,
-            }}
-          />
-          <Button
-            sx={{ width: "fit-content", height: "40px" }}
-            variant="contained"
-            disabled={adding}
-            onClick={() => {
-              addUser();
-            }}
-          >
-            {adding ? "Добавление..." : "Добавить пользователя"}
-          </Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="h4" noWrap component="div" sx={{ flexGrow: 1 }}>
+              Пользователи
+            </Typography>
+            <Button variant="contained" sx={{ height: "40px" }} onClick={handleCreateOpen}>
+              Добавить пользователя
+            </Button>
+          </Stack>
 
-          <Typography variant="h4" noWrap component="div">
-            Изменение пользователя
-          </Typography>
-          <Autocomplete
-            options={fetchedGroups}
-            getOptionLabel={(group) => group.name}
-            renderInput={(params) => <TextField {...params} label="Выберите группу" />}
-            value={fetchedGroups.find((group) => group.name === selectedGroupName) || null}
-            onChange={(_, newValue) => {
-              const newSelectedGroupName = newValue ? newValue.name : "";
-              setSelectedGroupName(newSelectedGroupName);
-              setSearchParams({ group_name: newSelectedGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
-            }}
-            sx={{
-              flexGrow: 9,
-            }}
-          />
+          <Stack direction="row" spacing={2}>
+            <TextField
+              select
+              sx={{ minWidth: 140 }}
+              label="Искать по"
+              value={searchTag}
+              onChange={(event) => setSearchTag(event.target.value)}
+            >
+              {SEARCH_FILTER_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              fullWidth
+              label="Поиск (имеет приоритет над фильтром группы)"
+              variant="outlined"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+            />
+            <Autocomplete
+              sx={{ minWidth: 260 }}
+              options={fetchedGroups}
+              getOptionLabel={(group) => group.name}
+              renderInput={(params) => <TextField {...params} label="Фильтр по группе" />}
+              value={fetchedGroups.find((group) => group.name === selectedGroupName) || null}
+              onChange={(_, newValue) => {
+                const newSelectedGroupName = newValue ? newValue.name : "";
+                setSelectedGroupName(newSelectedGroupName);
+                setSearchParams({ group_name: newSelectedGroupName, page: 1, sort_by: sortBy, sort_dir: sortDir });
+              }}
+            />
+          </Stack>
 
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -571,40 +499,48 @@ const AdminUser = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isDataFetched ? (
-                  filteredData.map((user) => (
-                    <TableRow key={user.user_id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell sx={{ width: 75 }}>
-                        <Stack direction="row" spacing={1}>
-                          <ImageButton
-                            disabled={user.user_id === userStore.user.user_id}
-                            onClick={() => {
-                              handleDeleteOpen(user);
-                            }}
-                          >
-                            <DeleteIcon />
-                          </ImageButton>
-                          <ImageButton
-                            onClick={() => {
-                              handleClickOpen(user);
-                            }}
-                          >
-                            <EditIcon />
-                          </ImageButton>
-                        </Stack>
+                {isDataFetched && filteredData !== null ? (
+                  filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                        Пользователи не найдены
                       </TableCell>
-                      <TableCell component="th" scope="row">
-                        {user.login}
-                      </TableCell>
-                      <TableCell>{roleNameMap.get(user.role)}</TableCell>
-                      <TableCell component="th" scope="row">
-                        {user.name}
-                      </TableCell>
-                      <TableCell>{user.profession ?? ""}</TableCell>
-                      <TableCell>{`${user.experience_years ?? 0} л. ${user.experience_months ?? 0} мес.`}</TableCell>
-                      <TableCell>{user.age ?? ""}</TableCell>
                     </TableRow>
-                  ))
+                  ) : (
+                    filteredData.map((user) => (
+                      <TableRow key={user.user_id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                        <TableCell sx={{ width: 75 }}>
+                          <Stack direction="row" spacing={1}>
+                            <ImageButton
+                              disabled={user.user_id === userStore.user.user_id}
+                              onClick={() => {
+                                handleDeleteOpen(user);
+                              }}
+                            >
+                              <DeleteIcon />
+                            </ImageButton>
+                            <ImageButton
+                              onClick={() => {
+                                handleClickOpen(user);
+                              }}
+                            >
+                              <EditIcon />
+                            </ImageButton>
+                          </Stack>
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {user.login}
+                        </TableCell>
+                        <TableCell>{roleNameMap.get(user.role)}</TableCell>
+                        <TableCell component="th" scope="row">
+                          {user.name}
+                        </TableCell>
+                        <TableCell>{user.profession ?? ""}</TableCell>
+                        <TableCell>{`${user.experience_years ?? 0} л. ${user.experience_months ?? 0} мес.`}</TableCell>
+                        <TableCell>{user.age ?? ""}</TableCell>
+                      </TableRow>
+                    ))
+                  )
                 ) : (
                   <></>
                 )}
@@ -628,6 +564,141 @@ const AdminUser = () => {
         </Stack>
       </Box>
 
+      <Dialog open={createOpen} onClose={handleCreateClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Добавить пользователя</DialogTitle>
+        <DialogContent>
+          <Stack width={"100%"} direction="column" spacing={2} sx={{ pt: 1 }}>
+            <TextField
+              onChange={(event) => {
+                setLogin(event.target.value);
+              }}
+              value={login}
+              id="login-field"
+              label="Введите логин пользователя"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {
+                setName(event.target.value);
+              }}
+              value={name}
+              id="name-field"
+              label="Введите ФИО пользователя"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              onChange={(event) => {
+                setProfession(event.target.value);
+              }}
+              value={profession}
+              id="profession-field"
+              label="Профессия"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              type="number"
+              inputProps={{ min: 0 }}
+              onChange={(event) => {
+                setExperienceYears(event.target.value);
+              }}
+              value={experienceYears}
+              id="experience-field"
+              label="Стаж (лет)"
+              helperText="Можно указать 0 — без стажа"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              type="number"
+              inputProps={{ min: 0, max: 11 }}
+              onChange={(event) => {
+                setExperienceMonths(event.target.value);
+              }}
+              value={experienceMonths}
+              id="experience-months-field"
+              label="Стаж (месяцев, 0-11)"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              select
+              value={gender}
+              onChange={(event) => {
+                setGender(event.target.value);
+              }}
+              id="gender-select"
+              label="Пол"
+              required={true}
+              variant="outlined"
+            >
+              <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
+              <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
+            </TextField>
+            <TextField
+              type="number"
+              inputProps={{ min: 1, max: 150 }}
+              onChange={(event) => {
+                setAge(event.target.value);
+              }}
+              value={age}
+              id="age-field"
+              label="Возраст"
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              type="password"
+              autoComplete="new-password"
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+              value={password}
+              id="password-field"
+              label="Введите пароль пользователя"
+              helperText={`Минимум ${MIN_PASSWORD_LENGTH} символов`}
+              required={true}
+              variant="outlined"
+            />
+            <TextField
+              select
+              label="Роль"
+              value={role}
+              onChange={(event) => {
+                const newRole = event.target.value;
+                setRole(newRole);
+              }}
+              id="role-select"
+              variant={"outlined"}
+            >
+              {roleNameArr.map((item) => (
+                <MenuItem key={item[0]} value={item[0]}>
+                  {item[1]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Autocomplete
+              options={fetchedGroups}
+              getOptionLabel={(group) => group.name}
+              renderInput={(params) => <TextField {...params} label="Выберите группу" />}
+              value={fetchedGroups.find((group) => group.name === selectedGroup.name) || null}
+              onChange={(_, newValue) => {
+                const newSelectedGroup = newValue;
+                setSelectedGroup(newSelectedGroup);
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCreateClose}>Отмена</Button>
+          <Button variant="contained" disabled={adding} onClick={addUser}>
+            {adding ? "Добавление..." : "Добавить пользователя"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Изменить пользователя</DialogTitle>
         <DialogContent>
@@ -644,6 +715,7 @@ const AdminUser = () => {
               label="Новый пароль (оставьте пустым, чтобы не менять)"
               type="password"
               autoComplete="new-password"
+              helperText={`Минимум ${MIN_PASSWORD_LENGTH} символов`}
               variant="outlined"
             />
             <TextField
