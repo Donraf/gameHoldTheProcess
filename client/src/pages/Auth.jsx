@@ -178,7 +178,7 @@ const Auth = observer(() => {
             click();
           }}
         >
-          <Typography align={"center"} variant="h4" noWrap component="h1">
+          <Typography align={"center"} variant="h4" component="h1">
             {isLogin ? "Авторизация" : "Регистрация"}
           </Typography>
           {!isLogin && (

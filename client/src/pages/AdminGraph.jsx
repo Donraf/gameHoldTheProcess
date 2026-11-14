@@ -128,7 +128,7 @@ const AdminGraph = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography variant="h4" noWrap component="h1">
+          <Typography variant="h4" component="h1">
             Пройденные игры
           </Typography>
           <Stack direction="row" spacing={2}>
