@@ -338,20 +338,22 @@ export default function PlayerCard({ player }) {
             }}
             startIcon={<StatisticsIcon />}
           >
-            Посмотреть статистику
+            Посмотреть расширенную статистику
           </Button>
-          <Button
-            variant="contained"
-            sx={{              height: "50%",
-              flexGrow: 1,
+          {user.isAuth && user.user.role === USER_ROLE_ADMIN && (
+            <Button
+              variant="contained"
+              sx={{              height: "50%",
+                flexGrow: 1,
 }}
-            onClick={() => {
-              handleOpenChangeParSetModal();
-            }}
-            startIcon={<ChangeIcon />}
-          >
-            Изменить набор параметров
-          </Button>
+              onClick={() => {
+                handleOpenChangeParSetModal();
+              }}
+              startIcon={<ChangeIcon />}
+            >
+              Изменить набор параметров
+            </Button>
+          )}
         </Stack>
       </Stack>
 
