@@ -50,7 +50,7 @@ func (p *ChartPostgres) GetChartsCount(input gameServer.GetChartsPageCountInput)
 		query += " WHERE ut.login LIKE $1"
 		args = []any{likePattern(input.FilterValue)}
 	case "user_name":
-		query += " WHERE ut.name LIKE $1"
+		query += " WHERE ut.name ILIKE $1"
 		args = []any{likePattern(input.FilterValue)}
 	case "user_id":
 		query += " WHERE ct.user_id=$1"
@@ -83,7 +83,7 @@ func (p *ChartPostgres) GetAllCharts(input gameServer.GetAllChartsInput) ([]game
 		query += " WHERE ut.login LIKE $1"
 		args = []any{likePattern(input.FilterValue)}
 	case "user_name":
-		query += " WHERE ut.name LIKE $1"
+		query += " WHERE ut.name ILIKE $1"
 		args = []any{likePattern(input.FilterValue)}
 	case "user_id":
 		query += " WHERE ct.user_id=$1"

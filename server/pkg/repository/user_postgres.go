@@ -188,13 +188,13 @@ func (u *UserPostgres) GetAllUsers(input gameServer.GetAllUsersInput) ([]gameSer
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE $1 ORDER BY %s OFFSET %v LIMIT %v`,
+				 WHERE gt.name ILIKE $1 ORDER BY %s OFFSET %v LIMIT %v`,
 				groupsTable, userGroupsTable, usersTable, input.OrderByClause("ut"), (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE name LIKE $1 ORDER BY %s OFFSET %v LIMIT %v", usersTable, input.OrderByClause(""), (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, profession, experience_years, experience_months, gender, age, created_at FROM %s WHERE name ILIKE $1 ORDER BY %s OFFSET %v LIMIT %v", usersTable, input.OrderByClause(""), (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
@@ -235,13 +235,13 @@ func (u *UserPostgres) GetUsersCount(input gameServer.GetUsersPageCountInput) (i
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE $1`,
+				 WHERE gt.name ILIKE $1`,
 				groupsTable, userGroupsTable, usersTable)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE $1", usersTable)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name ILIKE $1", usersTable)
 			args = []any{likePattern(input.FilterValue)}
 		}
 	default:
@@ -453,7 +453,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE $1 AND role=$2
+				 WHERE gt.name ILIKE $1 AND role=$2
 				 ORDER BY name 
 				 OFFSET %v LIMIT %v`,
 				groupsTable, userGroupsTable, usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
@@ -472,7 +472,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name LIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT %v", usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
+			query = fmt.Sprintf("SELECT user_id, login, name, role, cur_par_set_id, created_at FROM %s WHERE name ILIKE $1 AND role=$2 ORDER BY name OFFSET %v LIMIT %v", usersTable, (input.CurrentPage-1)*gameServer.DefaultPageLimit, gameServer.DefaultPageLimit)
 			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	default:
@@ -546,7 +546,7 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 				 FROM %s AS gt
 				 JOIN %s AS ugt ON gt.id=ugt.group_id
 				 JOIN %s AS ut ON ugt.user_id=ut.user_id
-				 WHERE gt.name LIKE $1 AND role=$2`,
+				 WHERE gt.name ILIKE $1 AND role=$2`,
 				groupsTable, userGroupsTable, usersTable)
 			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
@@ -561,7 +561,7 @@ func (u *UserPostgres) GetPlayersPageCount(input gameServer.GetPlayersPageCountI
 		}
 	case "user_name":
 		{
-			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name LIKE $1 AND role=$2", usersTable)
+			query = fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE name ILIKE $1 AND role=$2", usersTable)
 			args = []any{likePattern(input.FilterValue), gameServer.RoleUser}
 		}
 	default:
