@@ -42,10 +42,10 @@ const EVENT_TYPE_MAP = new Map([
 
 const InfoRow = ({ label, value }) => (
   <Stack width={"100%"} direction="row" spacing={0.5}>
-    <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+    <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
       {label}:
     </Typography>
-    <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+    <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
       {value ?? "—"}
     </Typography>
   </Stack>
@@ -187,7 +187,7 @@ const ResearcherUser = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography sx={{ color: "#232E4A", fontSize: 24, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 24, fontWeight: "bold" }} component="div">
             Информация об игроке
           </Typography>
           <Stack width={"60%"} direction="column" spacing={0.5}>
@@ -208,12 +208,12 @@ const ResearcherUser = () => {
 
           <Divider />
 
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Пройденные тесты:
           </Typography>
           <PlayerTestResults userId={player.id} />
 
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Набор параметров:
           </Typography>
           <Autocomplete
@@ -234,7 +234,7 @@ const ResearcherUser = () => {
             <Button
               variant="outlined"
               sx={{
-                color: "#FFFFFF",
+                color: "common.white",
                 height: "50%",
                 backgroundColor: COLORS.mainTheme,
                 flexGrow: 1,
@@ -249,37 +249,37 @@ const ResearcherUser = () => {
           ) : (
             <></>
           )}
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Статистика по набору параметров {parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}:
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок -{" "}
             {stats?.stops_num != null ? stats?.stops_num : "???"}, взрывов -{" "}
             {stats?.crashes_num != null ? stats?.crashes_num : "???"}. Итоговый счёт{" "}
             {stats?.total_score != null ? stats?.total_score : "???"}.
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Остановка по сигналу n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
             {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Запрос информации по сигналу n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
             {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Продолжение после сигнала n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
           <ResUserCharts choiceStats={stats?.choice_stats}/>
-          <Typography sx={{ color: "#232E4A", fontSize: 32, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 32, fontWeight: "bold" }} component="div">
             Статистика по Венгеру:
           </Typography>
           <ResUserVengerCharts choiceStats={stats?.choice_stats_venger_charts}/>
           <ResUserVengerTable choiceStats={stats?.choice_stats_venger_table}/>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
           </Typography>
           <Autocomplete

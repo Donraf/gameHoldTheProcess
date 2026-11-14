@@ -37,23 +37,23 @@ function TestResultCard({ result, answerRows }) {
     <Paper sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Stack spacing={0.5}>
-          <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }}>
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
             {result.title}
           </Typography>
-          <Typography sx={{ color: "#232E4A", fontSize: 14 }}>
+          <Typography sx={{ fontSize: 14 }}>
             Пройден: {formatCompletedAt(result.completed_at)}
             {result.score != null ? ` | Средний балл: ${result.score.toFixed(2)}` : ""}
           </Typography>
         </Stack>
         {result.description ? (
-          <Typography sx={{ color: "#232E4A", fontSize: 14 }}>{result.description}</Typography>
+          <Typography sx={{ fontSize: 14 }}>{result.description}</Typography>
         ) : null}
         <Button
           variant="outlined"
           onClick={() => setExpanded((prev) => !prev)}
           sx={{
             alignSelf: "flex-start",
-            color: "#FFFFFF",
+            color: "common.white",
             backgroundColor: COLORS.mainTheme,
           }}
         >
@@ -126,7 +126,7 @@ export default function PlayerTestResults({ userId }) {
 
   if (results.length === 0) {
     return (
-      <Typography sx={{ color: "#232E4A", fontSize: 16 }} component="div">
+      <Typography sx={{ fontSize: 16 }} component="div">
         Пройденных тестов нет.
       </Typography>
     );

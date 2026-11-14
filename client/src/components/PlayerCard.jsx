@@ -218,11 +218,11 @@ export default function PlayerCard({ player }) {
   return (
     <Card sx={{ padding: "12px" }}>
       <Stack width={"100%"} direction="column">
-        <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+        <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
           {player ? player.name : ""}
         </Typography>
 
-        <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+        <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
           Логин: {player ? player.login : ""}
         </Typography>
 
@@ -230,10 +230,10 @@ export default function PlayerCard({ player }) {
 
         <Stack width={"80%"} direction="column">
           <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Текущий набор параметров:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {player
                 ? isDataFetched && filteredData !== null
                   ? parSetLabel(
@@ -247,37 +247,37 @@ export default function PlayerCard({ player }) {
           </Stack>
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Геймов:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {stats?.games_num != null ? stats?.games_num : "???"}
             </Typography>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Остановок:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {stats?.stops_num != null ? stats?.stops_num : "???"}
             </Typography>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Взрывов:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {stats?.crashes_num != null ? stats?.crashes_num : "???"}
             </Typography>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Счёт:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {stats?.total_score != null ? stats?.total_score : "???"}
             </Typography>
           </Stack>
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Остановка по сигналу:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
               {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
@@ -285,10 +285,10 @@ export default function PlayerCard({ player }) {
           </Stack>
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Запрос информации по сигналу:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
               {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
@@ -296,10 +296,10 @@ export default function PlayerCard({ player }) {
           </Stack>
 
           {/* <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Запрос информации без сигнала:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
               {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
@@ -307,10 +307,10 @@ export default function PlayerCard({ player }) {
           </Stack> */}
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "#8390A3", fontSize: 16, fontWeight: "medium" }} component="div">
+            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Продолжение после сигнала:
             </Typography>
-            <Typography sx={{ color: "#232E4A", fontSize: 16, fontWeight: "bold" }} component="div">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
               {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
               {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
@@ -331,7 +331,7 @@ export default function PlayerCard({ player }) {
           <Button
             variant="outlined"
             sx={{
-              color: "#FFFFFF",
+              color: "common.white",
               height: "50%",
               backgroundColor: COLORS.mainTheme,
               flexGrow: 1,
@@ -346,7 +346,7 @@ export default function PlayerCard({ player }) {
           <Button
             variant="outlined"
             sx={{
-              color: "#FFFFFF",
+              color: "common.white",
               height: "50%",
               backgroundColor: COLORS.mainTheme,
               flexGrow: 1,
@@ -365,7 +365,7 @@ export default function PlayerCard({ player }) {
         <Button
           variant="outlined"
           sx={{
-            color: "#FFFFFF",
+            color: "common.white",
             height: "50%",
             backgroundColor: COLORS.mainTheme,
             flexGrow: 1,
