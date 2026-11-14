@@ -160,10 +160,10 @@ const Auth = observer(() => {
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
       <Card
         sx={{
-          minWidth: "400px",
-          maxWidth: "600px",
-          width: "50%",
-          padding: "36px",
+          width: "100%",
+          maxWidth: "480px",
+          mx: 2,
+          padding: { xs: "24px", sm: "36px" },
           display: "flex",
           alignItems: "center",
         }}
@@ -181,6 +181,11 @@ const Auth = observer(() => {
           <Typography align={"center"} variant="h4" noWrap component="div">
             {isLogin ? "Авторизация" : "Регистрация"}
           </Typography>
+          {!isLogin && (
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: -2 }}>
+              Учётные данные
+            </Typography>
+          )}
           <TextField
             onChange={(event) => {
               setUserLogin(event.target.value);
@@ -190,81 +195,6 @@ const Auth = observer(() => {
             label="Введите ваш логин"
             variant="outlined"
           />
-          {isLogin ? (
-            <></>
-          ) : (
-            <TextField
-              onChange={(event) => {
-                setName(event.target.value);
-              }}
-              value={name}
-              id="name-field"
-              label="Введите ФИО"
-              variant="outlined"
-            />
-          )}
-          {!isLogin ? (
-            <>
-              <TextField
-                onChange={(event) => {
-                  setProfession(event.target.value);
-                }}
-                value={profession}
-                id="profession-field"
-                label="Профессия"
-                variant="outlined"
-              />
-              <TextField
-                type="number"
-                inputProps={{ min: 0 }}
-                onChange={(event) => {
-                  setExperienceYears(event.target.value);
-                }}
-                value={experienceYears}
-                id="experience-field"
-                label="Стаж (лет)"
-                helperText="Можно указать 0 — без стажа"
-                variant="outlined"
-              />
-              <TextField
-                type="number"
-                inputProps={{ min: 0, max: 11 }}
-                onChange={(event) => {
-                  setExperienceMonths(event.target.value);
-                }}
-                value={experienceMonths}
-                id="experience-months-field"
-                label="Стаж (месяцев, 0-11)"
-                variant="outlined"
-              />
-              <TextField
-                select
-                value={gender}
-                onChange={(event) => {
-                  setGender(event.target.value);
-                }}
-                id="gender-select"
-                label="Пол"
-                variant="outlined"
-              >
-                <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
-                <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
-              </TextField>
-              <TextField
-                type="number"
-                inputProps={{ min: 1, max: 150 }}
-                onChange={(event) => {
-                  setAge(event.target.value);
-                }}
-                value={age}
-                id="age-field"
-                label="Возраст"
-                variant="outlined"
-              />
-            </>
-          ) : (
-            <></>
-          )}
           <Stack display="flex" direction="row" spacing={2}>
             <TextField
               sx={{
@@ -301,25 +231,108 @@ const Auth = observer(() => {
               </>
             )}
           </Stack>
-          {isLogin ? (
-            <></>
+          {!isLogin ? (
+            <>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ mb: -2 }}>
+                О себе
+              </Typography>
+              <TextField
+                onChange={(event) => {
+                  setName(event.target.value);
+                }}
+                value={name}
+                id="name-field"
+                label="Введите ФИО"
+                variant="outlined"
+              />
+              <TextField
+                onChange={(event) => {
+                  setProfession(event.target.value);
+                }}
+                value={profession}
+                id="profession-field"
+                label="Профессия"
+                variant="outlined"
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  onChange={(event) => {
+                    setExperienceYears(event.target.value);
+                  }}
+                  value={experienceYears}
+                  id="experience-field"
+                  label="Стаж (лет)"
+                  helperText="Можно указать 0 — без стажа"
+                  variant="outlined"
+                />
+                <TextField
+                  fullWidth
+                  type="number"
+                  inputProps={{ min: 0, max: 11 }}
+                  onChange={(event) => {
+                    setExperienceMonths(event.target.value);
+                  }}
+                  value={experienceMonths}
+                  id="experience-months-field"
+                  label="Стаж (месяцев, 0-11)"
+                  variant="outlined"
+                />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  fullWidth
+                  select
+                  value={gender}
+                  onChange={(event) => {
+                    setGender(event.target.value);
+                  }}
+                  id="gender-select"
+                  label="Пол"
+                  variant="outlined"
+                >
+                  <MenuItem value={USER_GENDER_MALE}>{USER_GENDER_MALE}</MenuItem>
+                  <MenuItem value={USER_GENDER_FEMALE}>{USER_GENDER_FEMALE}</MenuItem>
+                </TextField>
+                <TextField
+                  fullWidth
+                  type="number"
+                  inputProps={{ min: 1, max: 150 }}
+                  onChange={(event) => {
+                    setAge(event.target.value);
+                  }}
+                  value={age}
+                  id="age-field"
+                  label="Возраст"
+                  variant="outlined"
+                />
+              </Stack>
+              <Autocomplete
+                options={fetchedGroups}
+                getOptionLabel={(group) => group.name}
+                renderInput={(params) => (
+                  <TextField {...params} label="Выберите группу" required />
+                )}
+                value={selectedGroup || null}
+                onChange={(_, newValue) => {
+                  setSelectedGroup(newValue ?? "");
+                }}
+                noOptionsText="Группы не найдены"
+                id="group-select"
+              />
+            </>
           ) : (
-            <Autocomplete
-              options={fetchedGroups}
-              getOptionLabel={(group) => group.name}
-              renderInput={(params) => (
-                <TextField {...params} label="Выберите группу" required />
-              )}
-              value={selectedGroup || null}
-              onChange={(_, newValue) => {
-                setSelectedGroup(newValue ?? "");
-              }}
-              noOptionsText="Группы не найдены"
-              id="group-select"
-            />
+            <></>
           )}
-          <Stack alignItems={"center"} justifyContent={"space-between"} direction={"row"} spacing={4}>
-            <Stack direction={"row"} align={"center"} alignItems={"center"}>
+          <Stack
+            alignItems={{ xs: "stretch", sm: "center" }}
+            justifyContent={"space-between"}
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+          >
+            <Stack direction={"row"} align={"center"} alignItems={"center"} spacing={1}>
               {isLogin ? (
                 <>
                   <Typography variant="body1" component="div">
