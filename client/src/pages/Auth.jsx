@@ -48,7 +48,7 @@ const Auth = observer(() => {
   useEffect(() => {
     if (!isLogin) {
       getAllGroups().then((data) => {
-        setFetchedGroups(data);
+        setFetchedGroups(data.filter((group) => group.is_active));
       });
     }
   }, [isLogin]);

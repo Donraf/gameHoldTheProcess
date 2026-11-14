@@ -226,61 +226,6 @@ func (_c *MockPoint_GetAllPointsById_Call) RunAndReturn(run func(int) ([]gameSer
 	return _c
 }
 
-// GetCsvOfPoints provides a mock function with no fields
-func (_m *MockPoint) GetCsvOfPoints() (string, error) {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCsvOfPoints")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (string, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockPoint_GetCsvOfPoints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCsvOfPoints'
-type MockPoint_GetCsvOfPoints_Call struct {
-	*mock.Call
-}
-
-// GetCsvOfPoints is a helper method to define mock.On call
-func (_e *MockPoint_Expecter) GetCsvOfPoints() *MockPoint_GetCsvOfPoints_Call {
-	return &MockPoint_GetCsvOfPoints_Call{Call: _e.mock.On("GetCsvOfPoints")}
-}
-
-func (_c *MockPoint_GetCsvOfPoints_Call) Run(run func()) *MockPoint_GetCsvOfPoints_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockPoint_GetCsvOfPoints_Call) Return(_a0 string, _a1 error) *MockPoint_GetCsvOfPoints_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockPoint_GetCsvOfPoints_Call) RunAndReturn(run func() (string, error)) *MockPoint_GetCsvOfPoints_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetOnePoint provides a mock function with given fields: id
 func (_m *MockPoint) GetOnePoint(id int) (gameServer.Point, error) {
 	ret := _m.Called(id)

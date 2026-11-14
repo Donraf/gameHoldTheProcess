@@ -13,6 +13,7 @@ import {
   Modal,
   Paper,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -36,6 +37,7 @@ import {
   getAllGroups,
   getGroupMembers,
   removeGroupMember,
+  setGroupActive,
   updateGroup,
 } from "../http/userAPI";
 import ChangeIconBlack from "../components/icons/ChangeIconBlack";
@@ -168,6 +170,25 @@ const AdminGroup = () => {
   const openDeleteConfirm = (group) => {
     setGroupToDelete(group);
     setIsDeleteConfirmOpen(true);
+  };
+
+  const toggleGroupActive = (group, isActive) => {
+    setGroupActive(group.id, isActive).then(
+      () => {
+        setGroups((prev) =>
+          prev.map((g) => (g.id === group.id ? { ...g, is_active: isActive } : g))
+        );
+        enqueueSnackbar(
+          isActive
+            ? `Группа ${group.name} включена и снова доступна при регистрации`
+            : `Группа ${group.name} выключена и скрыта при регистрации`,
+          { variant: "success", autoHideDuration: 3000, preventDuplicate: true }
+        );
+      },
+      () => {
+        notifyError("Ошибка при изменении активности группы");
+      }
+    );
   };
 
   const removeGroup = () => {
@@ -372,19 +393,20 @@ const AdminGroup = () => {
                   <TableCell>Набор параметров</TableCell>
                   <TableCell>Создатель</TableCell>
                   <TableCell>Участников</TableCell>
+                  <TableCell>Активна</TableCell>
                   <TableCell>Время создания</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
                       <CircularProgress />
                     </TableCell>
                   </TableRow>
                 ) : filteredGroups.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
                       Группы не найдены
                     </TableCell>
                   </TableRow>
@@ -418,6 +440,13 @@ const AdminGroup = () => {
                             (group.creator_id ? "ID: " + group.creator_id : "Удалён")}
                         </TableCell>
                         <TableCell>{group.members_count}</TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={group.is_active}
+                            onChange={(event) => toggleGroupActive(group, event.target.checked)}
+                            inputProps={{ "aria-label": `Активность группы ${group.name}` }}
+                          />
+                        </TableCell>
                         <TableCell>{dateFormat(group.created_at, "yyyy-mm-dd HH:MM:ss")}</TableCell>
                       </TableRow>
                     );

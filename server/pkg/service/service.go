@@ -8,7 +8,7 @@ import (
 )
 
 type User interface {
-	CreateUser(user gameServer.RegisterUserInput) (string, error)
+	CreateUser(user gameServer.RegisterUserInput, checkGroupActive bool) (string, error)
 	GenerateToken(login, password string) (string, error)
 	ParseToken(token string) (*TokenClaims, error)
 	RefreshToken(accessToken string) (string, error)
@@ -24,6 +24,7 @@ type User interface {
 	GetAllGroups() ([]gameServer.Group, error)
 	CreateGroup(input gameServer.CreateGroupInput) (int, error)
 	UpdateGroup(id int, input gameServer.UpdateGroupInput) error
+	SetGroupActive(id int, isActive bool) error
 	DeleteGroup(id int) error
 	GetGroupMembers(groupId int) ([]gameServer.User, error)
 	AddUserToGroup(groupId, userId int) error

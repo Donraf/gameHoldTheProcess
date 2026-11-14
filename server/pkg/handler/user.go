@@ -31,10 +31,18 @@ func (h *Handler) registration(c *gin.Context) {
 
 	input.Role = gameServer.RoleUser
 
-	token, err := h.services.User.CreateUser(input)
+	token, err := h.services.User.CreateUser(input, true)
 	if err != nil {
 		if errors.Is(err, gameServer.ErrDuplicateLogin) {
 			newErrorResponse(c, http.StatusConflict, "login already exists")
+			return
+		}
+		if errors.Is(err, gameServer.ErrGroupNotFound) {
+			newErrorResponse(c, http.StatusNotFound, "group is not found")
+			return
+		}
+		if errors.Is(err, gameServer.ErrGroupInactive) {
+			newErrorResponse(c, http.StatusConflict, "group is not active")
 			return
 		}
 		internalErrorResponse(c, err)
@@ -64,10 +72,18 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.User.CreateUser(input)
+	token, err := h.services.User.CreateUser(input, false)
 	if err != nil {
 		if errors.Is(err, gameServer.ErrDuplicateLogin) {
 			newErrorResponse(c, http.StatusConflict, "login already exists")
+			return
+		}
+		if errors.Is(err, gameServer.ErrGroupNotFound) {
+			newErrorResponse(c, http.StatusNotFound, "group is not found")
+			return
+		}
+		if errors.Is(err, gameServer.ErrGroupInactive) {
+			newErrorResponse(c, http.StatusConflict, "group is not active")
 			return
 		}
 		internalErrorResponse(c, err)
@@ -479,6 +495,35 @@ func (h *Handler) updateGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "ok",
 	})
+}
+
+type setGroupActiveInput struct {
+	IsActive *bool `json:"is_active" binding:"required"`
+}
+
+func (h *Handler) setGroupActive(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter id")
+		return
+	}
+
+	var input setGroupActiveInput
+	if err := c.BindJSON(&input); err != nil {
+		bindErrorResponse(c, err)
+		return
+	}
+
+	if err := h.services.User.SetGroupActive(id, *input.IsActive); err != nil {
+		if errors.Is(err, gameServer.ErrGroupNotFound) {
+			newErrorResponse(c, http.StatusNotFound, "group is not found")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{Status: "ok"})
 }
 
 func (h *Handler) deleteGroup(c *gin.Context) {

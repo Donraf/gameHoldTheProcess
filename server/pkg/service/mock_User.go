@@ -172,9 +172,9 @@ func (_c *MockUser_CreateGroup_Call) RunAndReturn(run func(gameServer.CreateGrou
 	return _c
 }
 
-// CreateUser provides a mock function with given fields: user
-func (_m *MockUser) CreateUser(user gameServer.RegisterUserInput) (string, error) {
-	ret := _m.Called(user)
+// CreateUser provides a mock function with given fields: user, checkGroupActive
+func (_m *MockUser) CreateUser(user gameServer.RegisterUserInput, checkGroupActive bool) (string, error) {
+	ret := _m.Called(user, checkGroupActive)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
@@ -182,17 +182,17 @@ func (_m *MockUser) CreateUser(user gameServer.RegisterUserInput) (string, error
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(gameServer.RegisterUserInput) (string, error)); ok {
-		return rf(user)
+	if rf, ok := ret.Get(0).(func(gameServer.RegisterUserInput, bool) (string, error)); ok {
+		return rf(user, checkGroupActive)
 	}
-	if rf, ok := ret.Get(0).(func(gameServer.RegisterUserInput) string); ok {
-		r0 = rf(user)
+	if rf, ok := ret.Get(0).(func(gameServer.RegisterUserInput, bool) string); ok {
+		r0 = rf(user, checkGroupActive)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(gameServer.RegisterUserInput) error); ok {
-		r1 = rf(user)
+	if rf, ok := ret.Get(1).(func(gameServer.RegisterUserInput, bool) error); ok {
+		r1 = rf(user, checkGroupActive)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -207,13 +207,14 @@ type MockUser_CreateUser_Call struct {
 
 // CreateUser is a helper method to define mock.On call
 //   - user gameServer.RegisterUserInput
-func (_e *MockUser_Expecter) CreateUser(user interface{}) *MockUser_CreateUser_Call {
-	return &MockUser_CreateUser_Call{Call: _e.mock.On("CreateUser", user)}
+//   - checkGroupActive bool
+func (_e *MockUser_Expecter) CreateUser(user interface{}, checkGroupActive interface{}) *MockUser_CreateUser_Call {
+	return &MockUser_CreateUser_Call{Call: _e.mock.On("CreateUser", user, checkGroupActive)}
 }
 
-func (_c *MockUser_CreateUser_Call) Run(run func(user gameServer.RegisterUserInput)) *MockUser_CreateUser_Call {
+func (_c *MockUser_CreateUser_Call) Run(run func(user gameServer.RegisterUserInput, checkGroupActive bool)) *MockUser_CreateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(gameServer.RegisterUserInput))
+		run(args[0].(gameServer.RegisterUserInput), args[1].(bool))
 	})
 	return _c
 }
@@ -223,7 +224,7 @@ func (_c *MockUser_CreateUser_Call) Return(_a0 string, _a1 error) *MockUser_Crea
 	return _c
 }
 
-func (_c *MockUser_CreateUser_Call) RunAndReturn(run func(gameServer.RegisterUserInput) (string, error)) *MockUser_CreateUser_Call {
+func (_c *MockUser_CreateUser_Call) RunAndReturn(run func(gameServer.RegisterUserInput, bool) (string, error)) *MockUser_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1217,6 +1218,53 @@ func (_c *MockUser_RemoveUserFromGroup_Call) Return(_a0 error) *MockUser_RemoveU
 }
 
 func (_c *MockUser_RemoveUserFromGroup_Call) RunAndReturn(run func(int, int) error) *MockUser_RemoveUserFromGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetGroupActive provides a mock function with given fields: id, isActive
+func (_m *MockUser) SetGroupActive(id int, isActive bool) error {
+	ret := _m.Called(id, isActive)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetGroupActive")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int, bool) error); ok {
+		r0 = rf(id, isActive)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_SetGroupActive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetGroupActive'
+type MockUser_SetGroupActive_Call struct {
+	*mock.Call
+}
+
+// SetGroupActive is a helper method to define mock.On call
+//   - id int
+//   - isActive bool
+func (_e *MockUser_Expecter) SetGroupActive(id interface{}, isActive interface{}) *MockUser_SetGroupActive_Call {
+	return &MockUser_SetGroupActive_Call{Call: _e.mock.On("SetGroupActive", id, isActive)}
+}
+
+func (_c *MockUser_SetGroupActive_Call) Run(run func(id int, isActive bool)) *MockUser_SetGroupActive_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(bool))
+	})
+	return _c
+}
+
+func (_c *MockUser_SetGroupActive_Call) Return(_a0 error) *MockUser_SetGroupActive_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_SetGroupActive_Call) RunAndReturn(run func(int, bool) error) *MockUser_SetGroupActive_Call {
 	_c.Call.Return(run)
 	return _c
 }

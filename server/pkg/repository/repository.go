@@ -22,6 +22,8 @@ type User interface {
 	GetUserParameterSet(userId, parSetId int) (gameServer.UserParameterSet, error)
 	UpdateScore(input gameServer.UpdateScoreInput) error
 	GetAllGroups() ([]gameServer.Group, error)
+	GetGroupById(id int) (gameServer.Group, error)
+	SetGroupActive(id int, isActive bool) error
 	CreateGroup(input gameServer.CreateGroupInput) (int, error)
 	UpdateGroup(id int, input gameServer.UpdateGroupInput) error
 	DeleteGroup(id int) error

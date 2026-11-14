@@ -45,12 +45,27 @@ func NewUserService(repo repository.User) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (u *UserService) CreateUser(user gameServer.RegisterUserInput) (string, error) {
+func (u *UserService) CreateUser(user gameServer.RegisterUserInput, checkGroupActive bool) (string, error) {
 	passwordHash, err := generatePasswordHash(user.Password)
 	if err != nil {
 		return "", err
 	}
 	user.Password = passwordHash
+
+	// При саморегистрации неактивная группа запрещена; админ может
+	// добавлять пользователей в любую группу, включая выключенные.
+	if checkGroupActive && user.GroupId != nil {
+		group, err := u.repo.GetGroupById(*user.GroupId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return "", gameServer.ErrGroupNotFound
+			}
+			return "", err
+		}
+		if !group.IsActive {
+			return "", gameServer.ErrGroupInactive
+		}
+	}
 
 	userId, err := u.repo.CreateUser(user)
 	if err != nil {
@@ -237,6 +252,16 @@ func (u *UserService) CreateGroup(input gameServer.CreateGroupInput) (int, error
 
 func (u *UserService) UpdateGroup(id int, input gameServer.UpdateGroupInput) error {
 	return u.repo.UpdateGroup(id, input)
+}
+
+func (u *UserService) SetGroupActive(id int, isActive bool) error {
+	if _, err := u.repo.GetGroupById(id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return gameServer.ErrGroupNotFound
+		}
+		return err
+	}
+	return u.repo.SetGroupActive(id, isActive)
 }
 
 func (u *UserService) DeleteGroup(id int) error {

@@ -24,6 +24,10 @@ var ErrDuplicateGroupName = errors.New("group name already taken")
 
 var ErrUserAlreadyInGroup = errors.New("user is already in the group")
 
+var ErrGroupNotFound = errors.New("group is not found")
+
+var ErrGroupInactive = errors.New("group is not active")
+
 type User struct {
 	Id               int     `json:"user_id" db:"user_id"`
 	Login            string  `json:"login" binding:"required"`
@@ -47,6 +51,7 @@ type Group struct {
 	CreatorName  string `json:"creator_name" db:"creator_name"`
 	MembersCount int    `json:"members_count" db:"members_count"`
 	ParSetId     int    `json:"parameter_set_id" db:"parameter_set_id"`
+	IsActive     bool   `json:"is_active" db:"is_active"`
 }
 
 type PlayerStat struct {

@@ -54,6 +54,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/session/start", h.startSession)
 				userAuth.POST("/group", h.checkAdminRole, h.createGroup)
 				userAuth.PUT("/group/:id", h.checkAdminRole, h.updateGroup)
+				userAuth.PUT("/group/:id/active", h.checkAdminRole, h.setGroupActive)
 				userAuth.DELETE("/group/:id", h.checkAdminRole, h.deleteGroup)
 				userAuth.GET("/group/:id/members", h.checkAdminRole, h.getGroupMembers)
 				userAuth.POST("/group/:id/members/:userId", h.checkAdminRole, h.addGroupMember)

@@ -14,6 +14,7 @@ import (
 	"example.com/gameHoldTheProcessServer/pkg/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func ptrInt(v int) *int {
@@ -53,7 +54,7 @@ func TestHandler_registration(t *testing.T) {
 			inputBody: validRegisterUserBody,
 			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -63,7 +64,7 @@ func TestHandler_registration(t *testing.T) {
 			inputBody: validRegisterUserBody + `, "abc123": "abc123"`,
 			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -73,7 +74,7 @@ func TestHandler_registration(t *testing.T) {
 			inputBody: validRegisterUserBody,
 			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("", errors.New("pq: duplicate key value violates unique constraint"))
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("", errors.New("pq: duplicate key value violates unique constraint"))
 			},
 			expectedStatusCode:  500,
 			expectedRequestBody: `{"error":"internal server error"}`,
@@ -88,7 +89,7 @@ func TestHandler_registration(t *testing.T) {
 				return input
 			}(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -98,7 +99,7 @@ func TestHandler_registration(t *testing.T) {
 			inputBody: validRegisterUserBody,
 			userInput: validRegisterUserInput(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("", gameServer.ErrDuplicateLogin)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("", gameServer.ErrDuplicateLogin)
 			},
 			expectedStatusCode: 409,
 			isError:            true,
@@ -261,7 +262,7 @@ func TestHandler_registration(t *testing.T) {
 				return input
 			}(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -278,7 +279,7 @@ func TestHandler_registration(t *testing.T) {
 				return input
 			}(),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -373,7 +374,7 @@ func TestHandler_createUser(t *testing.T) {
 			ctxRole:   gameServer.RoleAdmin,
 			userInput: inputWithRole(gameServer.RoleResearcher),
 			mockBehavior: func(r *service.MockUser, userInput gameServer.RegisterUserInput) {
-				r.EXPECT().CreateUser(userInput).Return("token", nil)
+				r.EXPECT().CreateUser(userInput, mock.Anything).Return("token", nil)
 			},
 			expectedStatusCode:  200,
 			expectedRequestBody: `{"token":"token"}`,
@@ -1823,12 +1824,13 @@ func TestHandler_getAllGroups(t *testing.T) {
 						CreatorId:    ptrInt(1),
 						CreatorName:  "admin",
 						MembersCount: 3,
+						IsActive:     true,
 					},
 				},
 					nil)
 			},
 			expectedStatusCode:  200,
-			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1,"creator_name":"admin","members_count":3,"parameter_set_id":0}]}`,
+			expectedRequestBody: `{"data":[{"id":1,"name":"n","created_at":"2023-10-01T00:00:00Z","creator_id":1,"creator_name":"admin","members_count":3,"parameter_set_id":0,"is_active":true}]}`,
 		},
 		{
 			name: "internal server error",
@@ -2208,6 +2210,86 @@ func TestHandler_removeGroupMember(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("DELETE", "/group/"+tt.groupId+"/members/"+tt.userId, nil)
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+			if tt.isError {
+				assert.Contains(t, w.Body.String(), "error")
+			} else {
+				assert.Equal(t, tt.expectedRequestBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandler_setGroupActive(t *testing.T) {
+	type mockBehavior func(r *service.MockUser, id int, isActive bool)
+
+	tests := []struct {
+		name                string
+		paramId             string
+		inputBody           string
+		mockBehavior        mockBehavior
+		expectedStatusCode  int
+		expectedRequestBody string
+		isError             bool
+	}{
+		{
+			name:      "ok",
+			paramId:   "1",
+			inputBody: `{"is_active": false}`,
+			mockBehavior: func(r *service.MockUser, id int, isActive bool) {
+				r.EXPECT().SetGroupActive(id, isActive).Return(nil)
+			},
+			expectedStatusCode:  200,
+			expectedRequestBody: `{"status":"ok"}`,
+		},
+		{
+			name:               "invalid id",
+			paramId:            "abc",
+			inputBody:          `{"is_active": false}`,
+			mockBehavior:       func(r *service.MockUser, id int, isActive bool) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:               "missing is_active",
+			paramId:            "1",
+			inputBody:          `{}`,
+			mockBehavior:       func(r *service.MockUser, id int, isActive bool) {},
+			expectedStatusCode: 400,
+			isError:            true,
+		},
+		{
+			name:      "group not found",
+			paramId:   "99",
+			inputBody: `{"is_active": true}`,
+			mockBehavior: func(r *service.MockUser, id int, isActive bool) {
+				r.EXPECT().SetGroupActive(id, isActive).Return(gameServer.ErrGroupNotFound)
+			},
+			expectedStatusCode: 404,
+			isError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userMock := service.NewMockUser(t)
+			id, _ := strconv.Atoi(tt.paramId)
+			var isActive bool
+			fmt.Sscanf(tt.inputBody, `{"is_active": %t}`, &isActive)
+			tt.mockBehavior(userMock, id, isActive)
+
+			services := &service.Service{User: userMock}
+			handler := NewHandler(services)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.PUT("/:id", handler.setGroupActive)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("PUT", "/"+tt.paramId, bytes.NewBufferString(tt.inputBody))
 
 			r.ServeHTTP(w, req)
 

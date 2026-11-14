@@ -328,3 +328,12 @@ export const changeGroupParSet = async (groupId, parSetId) => {
     throw e;
   }
 };
+
+export const setGroupActive = async (id, isActive) => {
+  try {
+    const { data } = await $authHost.put(`api/user/group/${id}/active`, { is_active: isActive });
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};

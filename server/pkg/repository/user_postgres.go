@@ -306,7 +306,7 @@ func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
 func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 	var groups []gameServer.Group
 	query := fmt.Sprintf(
-		`SELECT gt.id, gt.name, gt.created_at, gt.creator_id, gt.parameter_set_id,
+		`SELECT gt.id, gt.name, gt.created_at, gt.creator_id, gt.parameter_set_id, gt.is_active,
 			COALESCE(ut.name, '') AS creator_name,
 			(SELECT COUNT(*) FROM %s AS ugt WHERE ugt.group_id = gt.id) AS members_count
 		 FROM %s AS gt
@@ -317,6 +317,28 @@ func (u *UserPostgres) GetAllGroups() ([]gameServer.Group, error) {
 	err := u.db.Select(&groups, query)
 
 	return groups, err
+}
+
+func (u *UserPostgres) GetGroupById(id int) (gameServer.Group, error) {
+	var group gameServer.Group
+	query := fmt.Sprintf(
+		`SELECT gt.id, gt.name, gt.created_at, gt.creator_id, gt.parameter_set_id, gt.is_active,
+			COALESCE(ut.name, '') AS creator_name,
+			(SELECT COUNT(*) FROM %s AS ugt WHERE ugt.group_id = gt.id) AS members_count
+		 FROM %s AS gt
+		 LEFT JOIN %s AS ut ON ut.user_id = gt.creator_id
+		 WHERE gt.id=$1`,
+		userGroupsTable, groupsTable, usersTable)
+
+	err := u.db.Get(&group, query, id)
+	return group, err
+}
+
+func (u *UserPostgres) SetGroupActive(id int, isActive bool) error {
+	query := fmt.Sprintf("UPDATE %s SET is_active=$1 WHERE id=$2", groupsTable)
+	_, err := u.db.Exec(query, isActive, id)
+
+	return err
 }
 
 func (u *UserPostgres) UpdateGroup(id int, input gameServer.UpdateGroupInput) error {
