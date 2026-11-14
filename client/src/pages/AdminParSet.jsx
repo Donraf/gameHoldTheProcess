@@ -432,8 +432,8 @@ const AdminParset = () => {
           <Typography variant="h4" noWrap component="h1">
             Наборы параметров
           </Typography>
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1400 }} aria-label="simple table">
+          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+            <Table stickyHeader sx={{ minWidth: 1400 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell />

@@ -292,8 +292,8 @@ const ResearcherUser = () => {
               flexGrow: 9,
             }}
           />
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+            <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell>Значение процесса</TableCell>

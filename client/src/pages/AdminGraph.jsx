@@ -154,8 +154,8 @@ const AdminGraph = () => {
             />
           </Stack>
 
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 900 }} aria-label="simple table">
+          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+            <Table stickyHeader sx={{ minWidth: 900 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell />
