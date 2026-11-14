@@ -353,7 +353,7 @@ const Home = observer(() => {
         <Container sx={{ width: "95%" }}>
           <Chart
             onAnimationEnd={triggerWrongChoiceAnim}
-            className={wrongChoiceAnim ? "crash" : ""}
+            className={wrongChoiceAnim ? "htp-crash" : ""}
             ref={chartRef}
             options={chartOptions}
             data={chart.chartData.data}

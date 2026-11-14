@@ -136,7 +136,7 @@ export default function NavBarDrawer() {
             Удержи процесс!
           </Typography>
           {!isMobile && (
-            <Box display="flex" direction="row" gap="10px">
+            <Box display="flex" direction="row" gap={1.25}>
               {navItems.map(renderItem)}
               {renderItem(authItem)}
             </Box>

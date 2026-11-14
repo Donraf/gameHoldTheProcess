@@ -321,7 +321,7 @@ const ResearcherUser = () => {
           </TableContainer>
           {isDataFetched ? (
             <Pagination
-              sx={{ pt: "16px" }}
+              sx={{ pt: 2 }}
               count={pageCount}
               page={page}
               onChange={(event, value) => {

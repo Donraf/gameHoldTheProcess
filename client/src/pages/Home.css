@@ -1,4 +1,4 @@
-.move-up {
+.htp-move-up {
   animation: moveUp 1.5s forwards;
 }
 
@@ -24,7 +24,7 @@
   }
 }
 
-.alert-border {
+.htp-alert-border {
   outline-offset: 0;
   outline: rgba(237, 8, 0, 0.75) solid 1px;
   animation: animateOutline 1s infinite;
@@ -46,7 +46,7 @@
   }
 }
 
-.crash {
+.htp-crash {
   animation: glowing 1500ms;
 }
 

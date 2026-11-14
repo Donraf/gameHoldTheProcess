@@ -436,7 +436,7 @@ const AdminUser = () => {
             <Typography variant="h4" component="h1" sx={{ flexGrow: 1 }}>
               Пользователи
             </Typography>
-            <Button variant="contained" sx={{ height: "40px" }} onClick={handleCreateOpen}>
+            <Button variant="contained" sx={{ height: 40 }} onClick={handleCreateOpen}>
               Добавить пользователя
             </Button>
           </Stack>
@@ -549,7 +549,7 @@ const AdminUser = () => {
           </TableContainer>
           {isDataFetched ? (
             <Pagination
-              sx={{ pt: "16px" }}
+              sx={{ pt: 2 }}
               count={pageCount}
               page={parseInt(qPage) || 1}
               onChange={(event, value) => {

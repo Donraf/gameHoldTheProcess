@@ -14,7 +14,7 @@ function ScoreDelta({ scoreChange, updateFlag }) {
   return (
     <Typography
       key={updateFlag}
-      className="move-up"
+      className="htp-move-up"
       variant="h3"
       color={scoreChange < 0 ? "red" : "green"}
       sx={noSelectSx}

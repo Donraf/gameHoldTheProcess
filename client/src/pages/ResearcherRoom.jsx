@@ -94,7 +94,7 @@ const ResearcherRoom = () => {
           <PlayersGrid players={filteredData} />
           {isDataFetched ? (
             <Pagination
-              sx={{ pt: "16px" }}
+              sx={{ pt: 2 }}
               count={pageCount}
               page={parseInt(qPage)}
               onChange={(event, value) => {

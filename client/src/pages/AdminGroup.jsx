@@ -354,7 +354,7 @@ const AdminGroup = () => {
               onChange={(e) => setSearchText(e.target.value)}
             />
             <Button
-              sx={{ height: "40px", whiteSpace: "nowrap" }}
+              sx={{ height: 40, whiteSpace: "nowrap" }}
               variant="contained"
               onClick={openCreateModal}
             >
@@ -452,7 +452,7 @@ const AdminGroup = () => {
                 onChange={(e) => setEditedName(e.target.value)}
               />
               <Button
-                sx={{ height: "40px", whiteSpace: "nowrap" }}
+                sx={{ height: 40, whiteSpace: "nowrap" }}
                 variant="outlined"
                 onClick={renameGroup}
                 disabled={editedName.trim() === "" || editedName.trim() === chosenGroup?.name}
@@ -470,7 +470,7 @@ const AdminGroup = () => {
               }}
             />
             <Button
-              sx={{ width: "fit-content", height: "40px" }}
+              sx={{ width: "fit-content", height: 40 }}
               variant="contained"
               onClick={handleApplyClick}
             >
@@ -511,7 +511,7 @@ const AdminGroup = () => {
               }}
             />
             <Button
-              sx={{ width: "fit-content", height: "40px" }}
+              sx={{ width: "fit-content", height: 40 }}
               variant="contained"
               onClick={createGroupUi}
             >
@@ -552,7 +552,7 @@ const AdminGroup = () => {
                 noOptionsText="Пользователи не найдены"
               />
               <Button
-                sx={{ height: "40px", whiteSpace: "nowrap" }}
+                sx={{ height: 40, whiteSpace: "nowrap" }}
                 variant="contained"
                 onClick={addMember}
                 disabled={!userToAdd}

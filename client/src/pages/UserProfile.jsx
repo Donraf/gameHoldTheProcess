@@ -236,7 +236,7 @@ const UserProfile = observer(() => {
                 disabled={!infoLoaded}
               />
               <Button
-                sx={{ width: "fit-content", height: "40px" }}
+                sx={{ width: "fit-content", height: 40 }}
                 variant="contained"
                 disabled={!infoLoaded || infoSaving}
                 onClick={saveInfo}
@@ -273,7 +273,7 @@ const UserProfile = observer(() => {
                 variant="outlined"
               />
               <Button
-                sx={{ width: "fit-content", height: "40px" }}
+                sx={{ width: "fit-content", height: 40 }}
                 variant="contained"
                 disabled={passwordSaving}
                 onClick={updateUserUi}

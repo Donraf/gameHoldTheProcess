@@ -413,7 +413,7 @@ const AdminParset = () => {
 
           <Stack direction="row" spacing={2}>
             <Button
-              sx={{ width: "fit-content", height: "40px" }}
+              sx={{ width: "fit-content", height: 40 }}
               variant="contained"
               disabled={creating}
               onClick={addParSet}
@@ -421,7 +421,7 @@ const AdminParset = () => {
               {creating ? "Добавление..." : "Добавить набор параметров"}
             </Button>
             <Button
-              sx={{ width: "fit-content", height: "40px" }}
+              sx={{ width: "fit-content", height: 40 }}
               variant="outlined"
               onClick={showPreview}
             >
@@ -522,7 +522,7 @@ const AdminParset = () => {
           </TableContainer>
           {isDataFetched ? (
             <Pagination
-              sx={{ pt: "16px" }}
+              sx={{ pt: 2 }}
               count={pageCount}
               page={page}
               onChange={(event, value) => {

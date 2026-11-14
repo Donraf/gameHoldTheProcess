@@ -15,7 +15,7 @@ export default function DangerOverlay({ isDanger, onContinue, onOpenHints, onSto
 
   return (
     <Box
-      className="alert-border"
+      className="htp-alert-border"
       sx={{
         position: "fixed",
         zIndex: 5500,

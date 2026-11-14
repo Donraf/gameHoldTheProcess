@@ -161,9 +161,9 @@ const Auth = observer(() => {
       <Card
         sx={{
           width: "100%",
-          maxWidth: "480px",
+          maxWidth: 480,
           mx: 2,
-          padding: { xs: "24px", sm: "36px" },
+          p: { xs: 3, sm: 4.5 },
           display: "flex",
           alignItems: "center",
         }}

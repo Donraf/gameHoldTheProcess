@@ -216,7 +216,7 @@ export default function PlayerCard({ player }) {
   };
 
   return (
-    <Card sx={{ padding: "12px" }}>
+    <Card sx={{ p: 1.5 }}>
       <Stack width={"100%"} direction="column">
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
           {player ? player.name : ""}
@@ -443,7 +443,7 @@ export default function PlayerCard({ player }) {
           </TableContainer>
           {isDataFetched ? (
             <Pagination
-              sx={{ pt: "16px" }}
+              sx={{ pt: 2 }}
               count={pageCount}
               page={page}
               onChange={(event, value) => {
@@ -457,7 +457,7 @@ export default function PlayerCard({ player }) {
           )}
           {isDataFetched ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
           <Button
-            sx={{ width: "fit-content", height: "40px" }}
+            sx={{ width: "fit-content", height: 40 }}
             variant="contained"
             onClick={() => {
               updateUserUi();
