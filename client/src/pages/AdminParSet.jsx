@@ -397,7 +397,7 @@ const AdminParset = () => {
         <Stack width={"100%"} direction="column" spacing={2}>
           <Stack width={"100%"} direction="row" spacing={2}>
             <Stack width={"100%"} direction="column" spacing={2}>
-              <Typography variant="h4" noWrap component="div">
+              <Typography variant="h4" noWrap component="h2">
                 Добавление набора параметров
               </Typography>
               <ParSetFields
@@ -429,7 +429,7 @@ const AdminParset = () => {
             </Button>
           </Stack>
 
-          <Typography variant="h4" noWrap component="div">
+          <Typography variant="h4" noWrap component="h1">
             Наборы параметров
           </Typography>
           <TableContainer component={Paper}>

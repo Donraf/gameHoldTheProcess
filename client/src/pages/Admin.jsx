@@ -16,7 +16,7 @@ const Admin = observer(() => {
         <Toolbar />
 
         <Stack width={"100%"} direction="column" spacing={1}>
-          <Typography variant="h4" component="div">
+          <Typography variant="h4" component="h1">
             Изменение объектов
           </Typography>
 

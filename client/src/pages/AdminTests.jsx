@@ -192,7 +192,7 @@ export default function AdminTests() {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack spacing={3}>
-          <Typography variant="h4">Управление тестами</Typography>
+          <Typography variant="h4" component="h1">Управление тестами</Typography>
           <Typography color="text.secondary">
             Активные тесты показываются пользователям после регистрации. Если активных тестов нет, этап
             пропускается. Новые тесты потребуют прохождения у пользователей, которые их ещё не сдавали.

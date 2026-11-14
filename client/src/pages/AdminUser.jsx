@@ -433,7 +433,7 @@ const AdminUser = () => {
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Typography variant="h4" noWrap component="div" sx={{ flexGrow: 1 }}>
+            <Typography variant="h4" noWrap component="h1" sx={{ flexGrow: 1 }}>
               Пользователи
             </Typography>
             <Button variant="contained" sx={{ height: "40px" }} onClick={handleCreateOpen}>

@@ -157,7 +157,7 @@ const ResearcherUser = () => {
         <NavBarDrawer />
         <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
           <Toolbar />
-          <Typography variant="h4" component="div">
+          <Typography variant="h4" component="h1">
             Загрузка данных игрока...
           </Typography>
         </Box>
@@ -172,7 +172,7 @@ const ResearcherUser = () => {
         <NavBarDrawer />
         <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
           <Toolbar />
-          <Typography variant="h4" component="div">
+          <Typography variant="h4" component="h1">
             Игрок не найден
           </Typography>
         </Box>
@@ -187,7 +187,7 @@ const ResearcherUser = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography sx={{ fontSize: 24, fontWeight: "bold" }} component="div">
+          <Typography variant="h4" component="h1">
             Информация об игроке
           </Typography>
           <Stack width={"60%"} direction="column" spacing={0.5}>

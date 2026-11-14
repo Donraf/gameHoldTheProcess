@@ -110,13 +110,13 @@ const OnboardingTests = observer(() => {
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" p={2}>
       <Card sx={{ width: "100%", maxWidth: 720, p: 4 }}>
         <Stack spacing={3}>
-          <Typography variant="h4" align="center">
+          <Typography variant="h4" component="h1" align="center">
             Вступительные тесты
           </Typography>
           <Typography align="center" color="text.secondary">
             Тест {currentIndex + 1} из {pendingTests.length}
           </Typography>
-          <Typography variant="h5">{currentTest.title}</Typography>
+          <Typography variant="h5" component="h2">{currentTest.title}</Typography>
           {currentTest.description ? <Typography>{currentTest.description}</Typography> : null}
           <TestRenderer test={currentTest} onSubmit={handleSubmit} submitting={submitting} />
         </Stack>

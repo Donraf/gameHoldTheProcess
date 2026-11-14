@@ -340,7 +340,7 @@ const AdminGroup = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography variant="h4" noWrap component="div">
+          <Typography variant="h4" noWrap component="h1">
             Работа с группами
           </Typography>
 
@@ -440,7 +440,7 @@ const AdminGroup = () => {
           onClose={closeChangeModal}
         >
           <ModalContent sx={{ width: 800 }}>
-            <Typography variant="h4" noWrap component="div">
+            <Typography variant="h4" noWrap component="h2">
               Изменение группы {chosenGroup?.name}
             </Typography>
             <Stack direction="row" spacing={2} alignItems="center">
@@ -491,7 +491,7 @@ const AdminGroup = () => {
           onClose={() => setIsCreateModalOpen(false)}
         >
           <ModalContent sx={{ width: 800 }}>
-            <Typography variant="h4" noWrap component="div">
+            <Typography variant="h4" noWrap component="h2">
               Создание группы
             </Typography>
             <TextField
@@ -532,7 +532,7 @@ const AdminGroup = () => {
           onClose={closeMembersModal}
         >
           <ModalContent sx={{ width: 800 }}>
-            <Typography variant="h4" noWrap component="div">
+            <Typography variant="h4" noWrap component="h2">
               Состав группы {membersGroup?.name}
             </Typography>
 

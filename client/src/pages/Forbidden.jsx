@@ -11,7 +11,7 @@ export default function Forbidden() {
       <CssBaseline />
       <AppBar position="fixed" sx={{ width: "100%" }}>
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="h1">
             Страница не найдена.
           </Typography>
         </Toolbar>

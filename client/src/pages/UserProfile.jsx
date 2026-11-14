@@ -171,7 +171,7 @@ const UserProfile = observer(() => {
           <Toolbar />
           <Stack maxWidth={480} direction="column" spacing={3}>
             <Stack direction="column" spacing={2}>
-              <Typography variant="h4" component="div">
+              <Typography variant="h4" component="h1">
                 Личная информация
               </Typography>
               <TextField
@@ -248,7 +248,7 @@ const UserProfile = observer(() => {
             <Divider />
 
             <Stack direction="column" spacing={2}>
-              <Typography variant="h4" component="div">
+              <Typography variant="h4" component="h2">
                 Изменение пароля
               </Typography>
               <TextField

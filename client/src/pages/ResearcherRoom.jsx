@@ -68,7 +68,7 @@ const ResearcherRoom = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Typography variant="h4" noWrap component="div">
+          <Typography variant="h4" noWrap component="h1">
             Выбрать группу участников
           </Typography>
           <Autocomplete
