@@ -24,7 +24,7 @@ import { fetchUser, getPlayersEvents, getPlayersEventsPageCount, getPlayersStat 
 import { useParams } from "react-router-dom";
 import { computeStatistics, getStatistics } from "../http/statisticsAPI";
 import { Context } from "..";
-import { COLORS, USER_ROLE_ADMIN } from "../utils/constants";
+import { USER_ROLE_ADMIN } from "../utils/constants";
 import { parSetLabel } from "../utils/parSet";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
 import ResUserCharts from "../components/ResUserCharts";
@@ -232,13 +232,10 @@ const ResearcherUser = () => {
           />
           {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
             <Button
-              variant="outlined"
-              sx={{
-                color: "common.white",
-                height: "50%",
-                backgroundColor: COLORS.mainTheme,
+              variant="contained"
+              sx={{                height: "50%",
                 flexGrow: 1,
-              }}
+}}
               onClick={() => {
                 computeStats();
               }}

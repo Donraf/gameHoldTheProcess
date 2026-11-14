@@ -336,7 +336,7 @@ const Auth = observer(() => {
                 </>
               )}
             </Stack>
-            <Button type="submit" variant={"outlined"} disabled={submitting}>
+            <Button type="submit" variant={"contained"} disabled={submitting}>
               {submitting ? "Отправка..." : isLogin ? "Войти" : "Зарегистрироваться"}
             </Button>
           </Stack>

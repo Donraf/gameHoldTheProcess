@@ -15,7 +15,6 @@ import {
 } from "@mui/material";
 import { fetchPlayerTestResults } from "../http/testAPI";
 import { buildAnswerRows } from "../features/tests/formatTestAnswers";
-import { COLORS } from "../utils/constants";
 
 function formatCompletedAt(value) {
   if (!value) {
@@ -49,12 +48,9 @@ function TestResultCard({ result, answerRows }) {
           <Typography sx={{ fontSize: 14 }}>{result.description}</Typography>
         ) : null}
         <Button
-          variant="outlined"
+          variant="contained"
           onClick={() => setExpanded((prev) => !prev)}
-          sx={{
-            alignSelf: "flex-start",
-            color: "common.white",
-            backgroundColor: COLORS.mainTheme,
+          sx={{            alignSelf: "flex-start",
           }}
         >
           {expanded ? "Скрыть ответы" : "Показать ответы"}

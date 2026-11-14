@@ -29,7 +29,7 @@ import {
   Filler,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { COLORS, RESEARCHER_USER_ROUTE, USER_ROLE_ADMIN } from "../utils/constants";
+import { RESEARCHER_USER_ROUTE, USER_ROLE_ADMIN } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { ModalContent } from "./ModalContent";
 import { getParSets, getParSetsPageCount } from "../http/graphAPI";
@@ -329,13 +329,10 @@ export default function PlayerCard({ player }) {
 
         <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Button
-            variant="outlined"
-            sx={{
-              color: "common.white",
-              height: "50%",
-              backgroundColor: COLORS.mainTheme,
+            variant="contained"
+            sx={{              height: "50%",
               flexGrow: 1,
-            }}
+}}
             onClick={() => {
               navigate(`${RESEARCHER_USER_ROUTE}/${player.id}`);
             }}
@@ -344,13 +341,10 @@ export default function PlayerCard({ player }) {
             Посмотреть статистику
           </Button>
           <Button
-            variant="outlined"
-            sx={{
-              color: "common.white",
-              height: "50%",
-              backgroundColor: COLORS.mainTheme,
+            variant="contained"
+            sx={{              height: "50%",
               flexGrow: 1,
-            }}
+}}
             onClick={() => {
               handleOpenChangeParSetModal();
             }}
@@ -363,13 +357,10 @@ export default function PlayerCard({ player }) {
 
       {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
         <Button
-          variant="outlined"
-          sx={{
-            color: "common.white",
-            height: "50%",
-            backgroundColor: COLORS.mainTheme,
+          variant="contained"
+          sx={{            height: "50%",
             flexGrow: 1,
-          }}
+}}
           onClick={() => {
             computeStats();
           }}
