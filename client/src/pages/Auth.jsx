@@ -322,14 +322,14 @@ const Auth = observer(() => {
             <Stack direction={"row"} align={"center"} alignItems={"center"}>
               {isLogin ? (
                 <>
-                  <Typography variant="h8" noWrap component="div">
+                  <Typography variant="body1" component="div">
                     Нет аккаунта?
                   </Typography>
                   <NavLink to={REGISTRATION_ROUTE}>Зарегистрируйтесь.</NavLink>
                 </>
               ) : (
                 <>
-                  <Typography variant="h8" noWrap component="div">
+                  <Typography variant="body1" component="div">
                     Есть аккаунт?
                   </Typography>
                   <NavLink to={LOGIN_ROUTE}>Войдите.</NavLink>
