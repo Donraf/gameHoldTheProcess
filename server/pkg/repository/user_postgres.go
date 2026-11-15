@@ -950,6 +950,16 @@ func (u *UserPostgres) MergeUsers(input gameServer.MergeUsersInput) error {
 		}
 	}
 
+	// Защита от пропущенных в запросе конфликтов: если для какого-то общего
+	// теста выбор не передан, удаляем результат удаляемого аккаунта,
+	// иначе перенос нарушит UNIQUE (user_id, test_id).
+	query = fmt.Sprintf(
+		"DELETE FROM %s AS d USING %s AS k WHERE d.user_id=$1 AND k.user_id=$2 AND d.test_id=k.test_id",
+		testResultsTable, testResultsTable)
+	if _, err = tx.Exec(query, input.DropUserId, input.KeepUserId); err != nil {
+		return rollback()
+	}
+
 	// Остальные результаты тестов переносим на оставляемый аккаунт.
 	query = fmt.Sprintf("UPDATE %s SET user_id=$1 WHERE user_id=$2", testResultsTable)
 	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
@@ -982,14 +992,6 @@ func (u *UserPostgres) MergeUsers(input gameServer.MergeUsersInput) error {
 		return rollback()
 	}
 
-	// Профиль и логин оставшегося аккаунта.
-	query = fmt.Sprintf(
-		"UPDATE %s SET login=$1, name=$2, profession=$3, experience_years=$4, experience_months=COALESCE($5, 0), gender=$6, age=$7 WHERE user_id=$8",
-		usersTable)
-	if _, err = tx.Exec(query, input.Login, input.Name, input.Profession, input.ExperienceYears, input.ExperienceMonths, input.Gender, input.Age, input.KeepUserId); err != nil {
-		return rollback()
-	}
-
 	// Агрегированная статистика удаляемого аккаунта больше не нужна.
 	query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", statisticsTable)
 	if _, err = tx.Exec(query, input.DropUserId); err != nil {
@@ -997,8 +999,19 @@ func (u *UserPostgres) MergeUsers(input gameServer.MergeUsersInput) error {
 	}
 
 	// Удаляемый аккаунт. Его строки в statistics_dirty удалятся каскадом.
+	// Важно удалить его ДО смены логина: если админ выбрал логин удаляемого
+	// аккаунта, он должен освободиться, иначе уникальный индекс users_login_key
+	// не даст присвоить его оставшемуся аккаунту.
 	query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", usersTable)
 	if _, err = tx.Exec(query, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Профиль и логин оставшегося аккаунта.
+	query = fmt.Sprintf(
+		"UPDATE %s SET login=$1, name=$2, profession=$3, experience_years=$4, experience_months=COALESCE($5, 0), gender=$6, age=$7 WHERE user_id=$8",
+		usersTable)
+	if _, err = tx.Exec(query, input.Login, input.Name, input.Profession, input.ExperienceYears, input.ExperienceMonths, input.Gender, input.Age, input.KeepUserId); err != nil {
 		return rollback()
 	}
 
