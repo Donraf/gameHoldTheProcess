@@ -272,7 +272,7 @@ func (u *UserPostgres) GetParSet(id int) (gameServer.ParameterSet, error) {
 
 func (u *UserPostgres) GetScore(userId, parSetId int) (int, error) {
 	var score int
-	query := fmt.Sprintf("SELECT score FROM %s WHERE user_id=$1 AND parameter_set_id=$2", userParameterSetsTable)
+	query := fmt.Sprintf("SELECT score FROM %s WHERE user_id=$1 AND parameter_set_id=$2 ORDER BY id DESC LIMIT 1", userParameterSetsTable)
 
 	row := u.db.QueryRow(query, userId, parSetId)
 	if err := row.Scan(&score); err != nil {
@@ -284,7 +284,7 @@ func (u *UserPostgres) GetScore(userId, parSetId int) (int, error) {
 
 func (u *UserPostgres) GetUserParameterSet(userId, parSetId int) (gameServer.UserParameterSet, error) {
 	var ups gameServer.UserParameterSet
-	query := fmt.Sprintf("SELECT score, is_training, training_start_time, game_start_time, created_at FROM %s WHERE user_id=$1 AND parameter_set_id=$2", userParameterSetsTable)
+	query := fmt.Sprintf("SELECT score, is_training, training_start_time, game_start_time, created_at FROM %s WHERE user_id=$1 AND parameter_set_id=$2 ORDER BY id DESC LIMIT 1", userParameterSetsTable)
 
 	err := u.db.Get(&ups, query, userId, parSetId)
 	if err != nil {
@@ -295,7 +295,7 @@ func (u *UserPostgres) GetUserParameterSet(userId, parSetId int) (gameServer.Use
 }
 
 func (u *UserPostgres) UpdateScore(input gameServer.UpdateScoreInput) error {
-	query := fmt.Sprintf("UPDATE %s SET score=$1 WHERE user_id=$2 AND parameter_set_id=$3", userParameterSetsTable)
+	query := fmt.Sprintf("UPDATE %s SET score=$1 WHERE id = (SELECT id FROM %s WHERE user_id=$2 AND parameter_set_id=$3 ORDER BY id DESC LIMIT 1)", userParameterSetsTable, userParameterSetsTable)
 	_, err := u.db.Exec(query, input.Score, input.UserId, input.ParSetId)
 	if err != nil {
 		return err
@@ -425,7 +425,7 @@ func (u *UserPostgres) AddUserToGroup(groupId, userId int) error {
 	}
 
 	timeNow := gameServer.Now()
-	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) SELECT $1, $2, $3, $4, $5, $6, $7 WHERE NOT EXISTS (SELECT 1 FROM %s WHERE user_id=$2 AND parameter_set_id=$3)", userParameterSetsTable, userParameterSetsTable)
 	if _, err = tx.Exec(query, 0, userId, parSetId, true, nil, nil, timeNow); err != nil {
 		tx.Rollback()
 		return err
@@ -525,7 +525,7 @@ func (u *UserPostgres) GetPlayersStat(input gameServer.GetPlayersStatInput) ([]g
 
 	var rows []parSetRow
 	query = fmt.Sprintf(
-		"SELECT upst.user_id, %s FROM %s AS pst JOIN %s AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id = ANY($1)",
+		"SELECT upst.user_id, %s FROM %s AS pst JOIN (SELECT DISTINCT user_id, parameter_set_id FROM %s) AS upst ON pst.id=upst.parameter_set_id WHERE upst.user_id = ANY($1)",
 		parSetAliasedColumns, parameterSetsTable, userParameterSetsTable)
 	err = u.db.Select(&rows, query, pq.Array(userIds))
 	if err != nil {
@@ -804,7 +804,7 @@ func (u *UserPostgres) UpdateUserParSet(id int, input gameServer.UpdateUserParSe
 	}
 
 	timeNow := gameServer.Now()
-	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+	query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) SELECT $1, $2, $3, $4, $5, $6, $7 WHERE NOT EXISTS (SELECT 1 FROM %s WHERE user_id=$2 AND parameter_set_id=$3)", userParameterSetsTable, userParameterSetsTable)
 	_, err = tx.Exec(query, 0, id, input.ParSetId, true, nil, nil, timeNow)
 	if err != nil {
 		tx.Rollback()
@@ -839,7 +839,7 @@ func (u *UserPostgres) UpdateUserUserParSet(id int, input gameServer.UpdateUserU
 
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE user_id=$%d AND parameter_set_id=$%d", userParameterSetsTable, setQuery, argId, argId+1)
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = (SELECT id FROM %s WHERE user_id=$%d AND parameter_set_id=$%d ORDER BY id DESC LIMIT 1)", userParameterSetsTable, setQuery, userParameterSetsTable, argId, argId+1)
 	args = append(args, id, input.ParSetId)
 
 	_, err := u.db.Exec(query, args...)
@@ -853,7 +853,7 @@ func (u *UserPostgres) StartUserSession(userId, parSetId int, isTraining bool, s
 	if isTraining {
 		column = "training_start_time"
 	}
-	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND parameter_set_id=$3 AND %s IS NULL", userParameterSetsTable, column, column)
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE id = (SELECT id FROM %s WHERE user_id=$2 AND parameter_set_id=$3 ORDER BY id DESC LIMIT 1) AND %s IS NULL", userParameterSetsTable, column, userParameterSetsTable, column)
 	_, err := u.db.Exec(query, startTime, userId, parSetId)
 	return err
 }
@@ -888,7 +888,7 @@ func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput
 		}
 
 		timeNow := gameServer.Now()
-		query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING", userParameterSetsTable)
+		query = fmt.Sprintf("INSERT INTO %s (score, user_id, parameter_set_id, is_training, training_start_time, game_start_time, created_at) SELECT $1, $2, $3, $4, $5, $6, $7 WHERE NOT EXISTS (SELECT 1 FROM %s WHERE user_id=$2 AND parameter_set_id=$3)", userParameterSetsTable, userParameterSetsTable)
 		_, err = tx.Exec(query, 0, userId, input.ParSetId, true, nil, nil, timeNow)
 		if err != nil {
 			tx.Rollback()

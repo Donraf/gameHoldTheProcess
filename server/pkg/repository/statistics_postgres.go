@@ -285,7 +285,7 @@ func (p *StatisticsPostgres) ClearStatisticsDirty(input gameServer.ComputeStatis
 func (p *StatisticsPostgres) GetTotalScore(input gameServer.ComputeStatisticsInput) (int, error) {
 	var totalScore int
 
-	query := fmt.Sprintf(`SELECT score FROM %s WHERE user_id = $1 AND parameter_set_id = $2`, userParameterSetsTable)
+	query := fmt.Sprintf(`SELECT COALESCE(SUM(score), 0) FROM %s WHERE user_id = $1 AND parameter_set_id = $2`, userParameterSetsTable)
 
 	row := p.db.QueryRow(query, input.UserId, input.ParSetId)
 	if err := row.Scan(&totalScore); err != nil {
