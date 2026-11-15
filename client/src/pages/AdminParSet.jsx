@@ -235,6 +235,7 @@ const AdminParset = () => {
 
   const [createForm, setCreateForm] = useState(emptyForm);
   const [creating, setCreating] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm] = useState(emptyForm);
@@ -311,6 +312,8 @@ const AdminParset = () => {
           preventDuplicate: true,
         });
         setCreateForm(emptyForm);
+        setChartData(null);
+        setCreateOpen(false);
         setUpdateTrigger(!updateTrigger);
       },
       () => {
@@ -395,43 +398,14 @@ const AdminParset = () => {
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
-          <Stack width={"100%"} direction="row" spacing={2}>
-            <Stack width={"100%"} direction="column" spacing={2}>
-              <Typography variant="h4" component="h2">
-                Добавление набора параметров
-              </Typography>
-              <ParSetFields
-                values={createForm}
-                onChange={(key, value) => setCreateForm((prev) => ({ ...prev, [key]: value }))}
-              />
-            </Stack>
-
-            <Container>
-              {chartData !== null ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
-            </Container>
-          </Stack>
-
-          <Stack direction="row" spacing={2}>
-            <Button
-              sx={{ width: "fit-content", height: 40 }}
-              variant="contained"
-              disabled={creating}
-              onClick={addParSet}
-            >
-              {creating ? "Добавление..." : "Добавить набор параметров"}
-            </Button>
-            <Button
-              sx={{ width: "fit-content", height: 40 }}
-              variant="outlined"
-              onClick={showPreview}
-            >
-              Посмотреть возможный ход процесса
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h4" component="h1">
+              Наборы параметров
+            </Typography>
+            <Button variant="contained" onClick={() => setCreateOpen(true)}>
+              Добавить набор параметров
             </Button>
           </Stack>
-
-          <Typography variant="h4" component="h1">
-            Наборы параметров
-          </Typography>
           <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
             <Table stickyHeader sx={{ minWidth: 1400 }} aria-label="simple table">
               <TableHead>
@@ -535,6 +509,51 @@ const AdminParset = () => {
             <></>
           )}
         </Stack>
+
+        <Dialog
+          open={createOpen}
+          onClose={() => {
+            setCreateOpen(false);
+            setChartData(null);
+          }}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>Добавление набора параметров</DialogTitle>
+          <DialogContent>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ pt: 1 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <ParSetFields
+                  values={createForm}
+                  onChange={(key, value) => setCreateForm((prev) => ({ ...prev, [key]: value }))}
+                />
+              </Box>
+              {chartData !== null ? (
+                <Container sx={{ flex: 1 }}>
+                  <Chart ref={chartRef} options={options} data={chartData} />
+                </Container>
+              ) : (
+                <></>
+              )}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setCreateOpen(false);
+                setChartData(null);
+              }}
+            >
+              Отмена
+            </Button>
+            <Button variant="outlined" onClick={showPreview}>
+              Посмотреть возможный ход процесса
+            </Button>
+            <Button variant="contained" disabled={creating} onClick={addParSet}>
+              {creating ? "Добавление..." : "Добавить"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Dialog open={editTarget !== null} onClose={closeEditDialog} maxWidth="md" fullWidth>
           <DialogTitle>Изменение набора параметров {parSetLabel(editTarget)}</DialogTitle>
