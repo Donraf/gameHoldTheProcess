@@ -22,7 +22,7 @@ import {
 import NavBarDrawer from "../components/NavBarDrawer";
 import { fetchUser, getPlayersEvents, getPlayersEventsPageCount, getPlayersStat } from "../http/userAPI";
 import { useParams } from "react-router-dom";
-import { computeStatistics, getStatistics } from "../http/statisticsAPI";
+import { computeStatistics, getStatistics, getStatisticsParSetIds } from "../http/statisticsAPI";
 import { Context } from "..";
 import { USER_ROLE_ADMIN } from "../utils/constants";
 import { parSetLabel } from "../utils/parSet";
@@ -73,6 +73,7 @@ const ResearcherUser = () => {
   const [profile, setProfile] = useState(null);
   const [playerLoading, setPlayerLoading] = useState(true);
   const [playerNotFound, setPlayerNotFound] = useState(false);
+  const [parSetIdsWithStats, setParSetIdsWithStats] = useState([]);
 
   const [selectedParSetId, setSelectedParSetId] = useState(null);
   const [isDataFetched, setIsDataFetched] = useState(false);
@@ -86,15 +87,23 @@ const ResearcherUser = () => {
   useEffect(() => {
     setPlayerLoading(true);
     setPlayerNotFound(false);
-    Promise.all([getPlayersStat("user_id", userId, 1), fetchUser(userId)]).then(
-      ([players, userResponse]) => {
+    Promise.all([getPlayersStat("user_id", userId, 1), fetchUser(userId), getStatisticsParSetIds(userId)]).then(
+      ([players, userResponse, statsParSetIds]) => {
         const found = players[0] ?? null;
         if (found === null) {
           setPlayerNotFound(true);
         } else {
           setPlayer(found);
-          setSelectedParSetId(found.cur_par_set_id);
           setProfile(userResponse.data ?? userResponse);
+          setParSetIdsWithStats(statsParSetIds);
+          // Выбираем текущий набор, если по нему есть статистика,
+          // иначе первый набор со статистикой, иначе null (покажем заглушку).
+          const available = found.par_sets.filter((ps) => statsParSetIds.includes(ps.id));
+          if (available.some((ps) => ps.id === found.cur_par_set_id)) {
+            setSelectedParSetId(found.cur_par_set_id);
+          } else {
+            setSelectedParSetId(available.length > 0 ? available[0].id : null);
+          }
         }
         setPlayerLoading(false);
       },
@@ -149,6 +158,11 @@ const ResearcherUser = () => {
       setStats(nextStats);
     });
   };
+
+  // В селектор попадают только наборы, по которым есть посчитанная статистика.
+  const parSetsWithStats = (player?.par_sets ?? []).filter((ps) =>
+    parSetIdsWithStats.includes(ps.id)
+  );
 
   if (playerLoading) {
     return (
@@ -216,11 +230,20 @@ const ResearcherUser = () => {
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Набор параметров:
           </Typography>
+          {parSetsWithStats.length === 0 ? (
+            <Typography
+              sx={{ color: "text.secondary", fontSize: 18, textAlign: "center", py: 4 }}
+              component="div"
+            >
+              Данные по играм этого игрока отсутствуют
+            </Typography>
+          ) : (
+            <>
           <Autocomplete
-            options={player.par_sets}
+            options={parSetsWithStats}
             getOptionLabel={(parSet) => parSetLabel(parSet)}
             renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
-            value={player.par_sets.find((parSet) => parSet.id === selectedParSetId) || null}
+            value={parSetsWithStats.find((parSet) => parSet.id === selectedParSetId) || null}
             onChange={(_, newValue) => {
               const newSelectedParSetId = newValue ? newValue.id : 0;
               setSelectedParSetId(newSelectedParSetId);
@@ -332,6 +355,8 @@ const ResearcherUser = () => {
             />
           ) : (
             <></>
+          )}
+            </>
           )}
         </Stack>
       </Box>

@@ -16,6 +16,10 @@ type fakeStatisticsRepo struct {
 	dirty   []gameServer.ComputeStatisticsInput
 }
 
+func (f *fakeStatisticsRepo) GetParSetIdsWithStatistics(userId int) ([]int, error) {
+	return nil, nil
+}
+
 func (f *fakeStatisticsRepo) CountGames(input gameServer.ComputeStatisticsInput) (int, error) {
 	return 0, nil
 }

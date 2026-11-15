@@ -105,6 +105,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			statistics.POST("/", h.computeStatistics)
 			statistics.GET("user_id/:userId/par_set_id/:parSetId", h.getStatistics)
+			statistics.GET("user_id/:userId/parsets", h.getStatisticsParSetIds)
 		}
 
 		test := api.Group("/test", h.checkUserAuth)

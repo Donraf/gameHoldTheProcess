@@ -141,6 +141,10 @@ func (s *StatisticsService) GetStatistics(userId, parSetId int) (gameServer.Stat
 	return s.repo.GetStatistics(userId, parSetId)
 }
 
+func (s *StatisticsService) GetParSetIdsWithStatistics(userId int) ([]int, error) {
+	return s.repo.GetParSetIdsWithStatistics(userId)
+}
+
 func (s *StatisticsService) MarkStatisticsDirty(userId, parSetId int) error {
 	return s.repo.MarkStatisticsDirty(userId, parSetId)
 }

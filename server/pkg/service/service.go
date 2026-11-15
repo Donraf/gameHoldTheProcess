@@ -64,6 +64,7 @@ type Point interface {
 type Statistics interface {
 	ComputeStatistics(input gameServer.ComputeStatisticsInput) (gameServer.Statistics, error)
 	GetStatistics(userId, parSetId int) (gameServer.Statistics, error)
+	GetParSetIdsWithStatistics(userId int) ([]int, error)
 }
 
 type Test interface {

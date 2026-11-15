@@ -39,6 +39,29 @@ type getStatisticsResponse struct {
 	Data gameServer.Statistics `json:"data"`
 }
 
+type getStatisticsParSetIdsResponse struct {
+	Data []int `json:"data"`
+}
+
+func (h *Handler) getStatisticsParSetIds(c *gin.Context) {
+	userId, err := strconv.Atoi(c.Param("userId"))
+	if err != nil || userId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter userId")
+		return
+	}
+
+	ids, err := h.services.Statistics.GetParSetIdsWithStatistics(userId)
+	if err != nil {
+		internalErrorResponse(c, err)
+		return
+	}
+	if ids == nil {
+		ids = []int{}
+	}
+
+	c.JSON(http.StatusOK, getStatisticsParSetIdsResponse{Data: ids})
+}
+
 func (h *Handler) getStatistics(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Param("userId"))
 	if err != nil || userId <= 0 {

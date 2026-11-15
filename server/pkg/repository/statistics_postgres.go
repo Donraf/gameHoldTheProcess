@@ -259,6 +259,16 @@ func (p *StatisticsPostgres) MarkStatisticsDirty(userId, parSetId int) error {
 	return err
 }
 
+// GetParSetIdsWithStatistics возвращает id наборов параметров, по которым
+// у игрока есть посчитанная статистика хотя бы по одной завершённой игре.
+func (p *StatisticsPostgres) GetParSetIdsWithStatistics(userId int) ([]int, error) {
+	var ids []int
+	query := fmt.Sprintf("SELECT parameter_set_id FROM %s WHERE user_id=$1 AND games_num > 0 ORDER BY parameter_set_id", statisticsTable)
+	err := p.db.Select(&ids, query, userId)
+
+	return ids, err
+}
+
 func (p *StatisticsPostgres) GetStatisticsDirty() ([]gameServer.ComputeStatisticsInput, error) {
 	var dirty []gameServer.ComputeStatisticsInput
 	query := fmt.Sprintf("SELECT user_id, parameter_set_id AS id FROM %s ORDER BY marked_at", statisticsDirtyTable)

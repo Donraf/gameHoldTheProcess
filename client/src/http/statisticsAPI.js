@@ -20,3 +20,12 @@ export const computeStatistics = async (userId, parSetId) => {
     throw e;
   }
 };
+
+export const getStatisticsParSetIds = async (userId) => {
+  try {
+    const { data } = await $authHost.get(`api/statistics/user_id/${userId}/parsets`);
+    return data.data ?? [];
+  } catch (e) {
+    return [];
+  }
+};
