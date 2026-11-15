@@ -74,6 +74,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 				userAuth.POST("/playersEventsPageCount", h.checkResearcherRole, h.getPlayersEventsPageCount)
 				userAuth.PUT("/:id/parSet", h.checkResearcherRole, h.updateUserParSet)
 				userAuth.PUT("/:id/userParSet", h.updateUserUserParSet)
+				userAuth.GET("/mergePreview", h.checkAdminRole, h.getMergePreview)
+				userAuth.POST("/merge", h.checkAdminRole, h.mergeUsers)
 			}
 		}
 

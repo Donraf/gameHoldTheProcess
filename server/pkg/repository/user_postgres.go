@@ -898,3 +898,125 @@ func (u *UserPostgres) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput
 
 	return tx.Commit()
 }
+
+// GetMergeTestConflicts возвращает тесты, которые прошли оба пользователя:
+// для них при слиянии админ выбирает, чей результат оставить.
+func (u *UserPostgres) GetMergeTestConflicts(keepId, dropId int) ([]gameServer.MergeTestConflict, error) {
+	conflicts := make([]gameServer.MergeTestConflict, 0)
+	query := fmt.Sprintf(
+		`SELECT k.test_id, t.title, k.score AS keep_score, k.completed_at AS keep_completed_at,
+		        d.score AS drop_score, d.completed_at AS drop_completed_at
+		 FROM %s AS k
+		 JOIN %s AS d ON d.test_id = k.test_id AND d.user_id = $2
+		 JOIN %s AS t ON t.id = k.test_id
+		 WHERE k.user_id = $1
+		 ORDER BY t.sort_order, t.id`, testResultsTable, testResultsTable, testsTable)
+	err := u.db.Select(&conflicts, query, keepId, dropId)
+	return conflicts, err
+}
+
+// MergeUsers переносит все данные удаляемого аккаунта на оставляемый
+// одной транзакцией и удаляет второй аккаунт.
+func (u *UserPostgres) MergeUsers(input gameServer.MergeUsersInput) error {
+	tx, err := u.db.Beginx()
+	if err != nil {
+		return err
+	}
+	rollback := func() error {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Логин не должен быть занят третьим пользователем.
+	var loginTaken int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE login=$1 AND user_id NOT IN ($2, $3)", usersTable)
+	if err = tx.Get(&loginTaken, query, input.Login, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+	if loginTaken > 0 {
+		_ = tx.Rollback()
+		return gameServer.ErrDuplicateLogin
+	}
+
+	// Конфликтные результаты тестов: удаляем проигравший вариант по выбору админа.
+	for testId, choice := range input.TestResults {
+		loserId := input.DropUserId
+		if choice == gameServer.MergeTestChoiceDrop {
+			loserId = input.KeepUserId
+		}
+		query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND test_id=$2", testResultsTable)
+		if _, err = tx.Exec(query, loserId, testId); err != nil {
+			return rollback()
+		}
+	}
+
+	// Остальные результаты тестов переносим на оставляемый аккаунт.
+	query = fmt.Sprintf("UPDATE %s SET user_id=$1 WHERE user_id=$2", testResultsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Членство в группах: объединяем без дублей.
+	query = fmt.Sprintf("INSERT INTO %s (user_id, group_id) SELECT $1, group_id FROM %s WHERE user_id=$2 ON CONFLICT DO NOTHING", userGroupsTable, userGroupsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+	query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", userGroupsTable)
+	if _, err = tx.Exec(query, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Игры и графики.
+	query = fmt.Sprintf("UPDATE %s SET user_id=$1 WHERE user_id=$2", userParameterSetsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+	query = fmt.Sprintf("UPDATE %s SET user_id=$1 WHERE user_id=$2", chartsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Группы, созданные удаляемым пользователем.
+	query = fmt.Sprintf("UPDATE %s SET creator_id=$1 WHERE creator_id=$2", groupsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Профиль и логин оставшегося аккаунта.
+	query = fmt.Sprintf(
+		"UPDATE %s SET login=$1, name=$2, profession=$3, experience_years=$4, experience_months=COALESCE($5, 0), gender=$6, age=$7 WHERE user_id=$8",
+		usersTable)
+	if _, err = tx.Exec(query, input.Login, input.Name, input.Profession, input.ExperienceYears, input.ExperienceMonths, input.Gender, input.Age, input.KeepUserId); err != nil {
+		return rollback()
+	}
+
+	// Агрегированная статистика удаляемого аккаунта больше не нужна.
+	query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", statisticsTable)
+	if _, err = tx.Exec(query, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Удаляемый аккаунт. Его строки в statistics_dirty удалятся каскадом.
+	query = fmt.Sprintf("DELETE FROM %s WHERE user_id=$1", usersTable)
+	if _, err = tx.Exec(query, input.DropUserId); err != nil {
+		return rollback()
+	}
+
+	// Помечаем все наборы объединённого аккаунта для пересчёта статистики.
+	query = fmt.Sprintf(
+		`INSERT INTO %s (user_id, parameter_set_id, marked_at)
+		 SELECT $1, parameter_set_id, $2 FROM (
+		     SELECT parameter_set_id FROM %s WHERE user_id=$1
+		     UNION
+		     SELECT parameter_set_id FROM %s WHERE user_id=$1
+		     UNION
+		     SELECT parameter_set_id FROM %s WHERE user_id=$1
+		 ) AS s
+		 ON CONFLICT DO NOTHING`,
+		statisticsDirtyTable, userParameterSetsTable, chartsTable, statisticsTable)
+	if _, err = tx.Exec(query, input.KeepUserId, gameServer.Now()); err != nil {
+		return rollback()
+	}
+
+	return tx.Commit()
+}

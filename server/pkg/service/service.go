@@ -37,6 +37,8 @@ type User interface {
 	UpdateUserUserParSet(id int, input gameServer.UpdateUserUserParSetInput) error
 	StartUserSession(userId, parSetId int, isTraining bool, startTime time.Time) error
 	ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error
+	GetMergePreview(keepId, dropId int) (gameServer.MergeUsersPreview, error)
+	MergeUsers(input gameServer.MergeUsersInput) error
 }
 
 type Chart interface {

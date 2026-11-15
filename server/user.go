@@ -369,3 +369,60 @@ func (i *UpdateGroupInput) Validate() error {
 	}
 	return nil
 }
+
+// --- Слияние аккаунтов ---
+
+// Выбор, чей результат теста оставить при слиянии.
+const (
+	MergeTestChoiceKeep = "keep"
+	MergeTestChoiceDrop = "drop"
+)
+
+type MergeTestConflict struct {
+	TestId          int      `json:"test_id" db:"test_id"`
+	Title           string   `json:"title" db:"title"`
+	KeepScore       *float64 `json:"keep_score,omitempty" db:"keep_score"`
+	KeepCompletedAt string   `json:"keep_completed_at" db:"keep_completed_at"`
+	DropScore       *float64 `json:"drop_score,omitempty" db:"drop_score"`
+	DropCompletedAt string   `json:"drop_completed_at" db:"drop_completed_at"`
+}
+
+type MergeUsersPreview struct {
+	KeepUser         User                `json:"keep_user"`
+	DropUser         User                `json:"drop_user"`
+	ConflictingTests []MergeTestConflict `json:"conflicting_tests"`
+}
+
+type MergeUsersInput struct {
+	KeepUserId       int            `json:"keep_user_id" binding:"required"`
+	DropUserId       int            `json:"drop_user_id" binding:"required"`
+	Login            string         `json:"login" binding:"required"`
+	Name             string         `json:"name" binding:"required"`
+	Profession       *string        `json:"profession"`
+	ExperienceYears  *int           `json:"experience_years"`
+	ExperienceMonths *int           `json:"experience_months"`
+	Gender           *string        `json:"gender"`
+	Age              *int           `json:"age"`
+	TestResults      map[int]string `json:"test_results"`
+}
+
+func (i *MergeUsersInput) Validate() error {
+	if i.KeepUserId <= 0 || i.DropUserId <= 0 {
+		return errors.New("user ids must be positive")
+	}
+	if i.KeepUserId == i.DropUserId {
+		return errors.New("cannot merge a user with themselves")
+	}
+	if strings.TrimSpace(i.Login) == "" {
+		return errors.New("login is empty")
+	}
+	if strings.TrimSpace(i.Name) == "" {
+		return errors.New("name is empty")
+	}
+	for _, choice := range i.TestResults {
+		if choice != MergeTestChoiceKeep && choice != MergeTestChoiceDrop {
+			return errors.New("invalid test result choice")
+		}
+	}
+	return nil
+}

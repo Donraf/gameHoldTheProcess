@@ -360,3 +360,49 @@ func (u *UserService) StartUserSession(userId, parSetId int, isTraining bool, st
 func (u *UserService) ChangeGroupParSet(input gameServer.ChangeGroupParSetInput) error {
 	return u.repo.ChangeGroupParSet(input)
 }
+
+// GetMergePreview возвращает данные обоих аккаунтов и список конфликтных
+// результатов тестов — для экрана слияния у администратора.
+func (u *UserService) GetMergePreview(keepId, dropId int) (gameServer.MergeUsersPreview, error) {
+	var preview gameServer.MergeUsersPreview
+	if keepId == dropId {
+		return preview, errors.New("cannot merge a user with themselves")
+	}
+
+	keepUser, err := u.repo.GetOneUser(keepId)
+	if err != nil {
+		return preview, err
+	}
+	dropUser, err := u.repo.GetOneUser(dropId)
+	if err != nil {
+		return preview, err
+	}
+
+	conflicts, err := u.repo.GetMergeTestConflicts(keepId, dropId)
+	if err != nil {
+		return preview, err
+	}
+
+	preview.KeepUser = keepUser
+	preview.DropUser = dropUser
+	preview.ConflictingTests = conflicts
+	return preview, nil
+}
+
+// MergeUsers проверяет, что выбранный логин принадлежит одному из двух
+// аккаунтов, и выполняет слияние.
+func (u *UserService) MergeUsers(input gameServer.MergeUsersInput) error {
+	keepUser, err := u.repo.GetOneUser(input.KeepUserId)
+	if err != nil {
+		return err
+	}
+	dropUser, err := u.repo.GetOneUser(input.DropUserId)
+	if err != nil {
+		return err
+	}
+	if input.Login != keepUser.Login && input.Login != dropUser.Login {
+		return errors.New("login must belong to one of the merged accounts")
+	}
+
+	return u.repo.MergeUsers(input)
+}

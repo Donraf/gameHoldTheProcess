@@ -551,6 +551,63 @@ func (_c *MockUser_GetGroupMembers_Call) RunAndReturn(run func(int) ([]gameServe
 	return _c
 }
 
+// GetMergePreview provides a mock function with given fields: keepId, dropId
+func (_m *MockUser) GetMergePreview(keepId int, dropId int) (gameServer.MergeUsersPreview, error) {
+	ret := _m.Called(keepId, dropId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMergePreview")
+	}
+
+	var r0 gameServer.MergeUsersPreview
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int, int) (gameServer.MergeUsersPreview, error)); ok {
+		return rf(keepId, dropId)
+	}
+	if rf, ok := ret.Get(0).(func(int, int) gameServer.MergeUsersPreview); ok {
+		r0 = rf(keepId, dropId)
+	} else {
+		r0 = ret.Get(0).(gameServer.MergeUsersPreview)
+	}
+
+	if rf, ok := ret.Get(1).(func(int, int) error); ok {
+		r1 = rf(keepId, dropId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUser_GetMergePreview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMergePreview'
+type MockUser_GetMergePreview_Call struct {
+	*mock.Call
+}
+
+// GetMergePreview is a helper method to define mock.On call
+//   - keepId int
+//   - dropId int
+func (_e *MockUser_Expecter) GetMergePreview(keepId interface{}, dropId interface{}) *MockUser_GetMergePreview_Call {
+	return &MockUser_GetMergePreview_Call{Call: _e.mock.On("GetMergePreview", keepId, dropId)}
+}
+
+func (_c *MockUser_GetMergePreview_Call) Run(run func(keepId int, dropId int)) *MockUser_GetMergePreview_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(int), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *MockUser_GetMergePreview_Call) Return(_a0 gameServer.MergeUsersPreview, _a1 error) *MockUser_GetMergePreview_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUser_GetMergePreview_Call) RunAndReturn(run func(int, int) (gameServer.MergeUsersPreview, error)) *MockUser_GetMergePreview_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetOneUser provides a mock function with given fields: id
 func (_m *MockUser) GetOneUser(id int) (gameServer.User, error) {
 	ret := _m.Called(id)
@@ -1057,6 +1114,52 @@ func (_c *MockUser_GetUsersPageCount_Call) Return(_a0 int, _a1 error) *MockUser_
 }
 
 func (_c *MockUser_GetUsersPageCount_Call) RunAndReturn(run func(gameServer.GetUsersPageCountInput) (int, error)) *MockUser_GetUsersPageCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MergeUsers provides a mock function with given fields: input
+func (_m *MockUser) MergeUsers(input gameServer.MergeUsersInput) error {
+	ret := _m.Called(input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeUsers")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(gameServer.MergeUsersInput) error); ok {
+		r0 = rf(input)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockUser_MergeUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MergeUsers'
+type MockUser_MergeUsers_Call struct {
+	*mock.Call
+}
+
+// MergeUsers is a helper method to define mock.On call
+//   - input gameServer.MergeUsersInput
+func (_e *MockUser_Expecter) MergeUsers(input interface{}) *MockUser_MergeUsers_Call {
+	return &MockUser_MergeUsers_Call{Call: _e.mock.On("MergeUsers", input)}
+}
+
+func (_c *MockUser_MergeUsers_Call) Run(run func(input gameServer.MergeUsersInput)) *MockUser_MergeUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(gameServer.MergeUsersInput))
+	})
+	return _c
+}
+
+func (_c *MockUser_MergeUsers_Call) Return(_a0 error) *MockUser_MergeUsers_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockUser_MergeUsers_Call) RunAndReturn(run func(gameServer.MergeUsersInput) error) *MockUser_MergeUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

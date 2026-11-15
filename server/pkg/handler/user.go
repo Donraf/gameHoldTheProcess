@@ -817,3 +817,57 @@ func (h *Handler) changeGroupParSet(c *gin.Context) {
 		Status: "ok",
 	})
 }
+
+// getMergePreview — данные для экрана слияния: оба аккаунта и конфликтные
+// результаты тестов. Параметры: ?keep_id=&drop_id=.
+func (h *Handler) getMergePreview(c *gin.Context) {
+	keepId, err := strconv.Atoi(c.Query("keep_id"))
+	if err != nil || keepId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter keep_id")
+		return
+	}
+	dropId, err := strconv.Atoi(c.Query("drop_id"))
+	if err != nil || dropId <= 0 {
+		newErrorResponse(c, http.StatusBadRequest, "invalid parameter drop_id")
+		return
+	}
+
+	preview, err := h.services.User.GetMergePreview(keepId, dropId)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, preview)
+}
+
+func (h *Handler) mergeUsers(c *gin.Context) {
+	var input gameServer.MergeUsersInput
+	if err := c.BindJSON(&input); err != nil {
+		bindErrorResponse(c, err)
+		return
+	}
+
+	if err := input.Validate(); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if ctxUserId := c.GetInt(userCtx); ctxUserId != 0 && ctxUserId == input.DropUserId {
+		newErrorResponse(c, http.StatusForbidden, "cannot drop your own account")
+		return
+	}
+
+	if err := h.services.User.MergeUsers(input); err != nil {
+		if errors.Is(err, gameServer.ErrDuplicateLogin) {
+			newErrorResponse(c, http.StatusConflict, "login already taken by another user")
+			return
+		}
+		internalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "ok",
+	})
+}
