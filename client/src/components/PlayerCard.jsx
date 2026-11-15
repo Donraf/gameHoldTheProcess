@@ -100,13 +100,19 @@ export default function PlayerCard({ player, parSets = [], onChangeParSet }) {
   const navigate = useNavigate();
   const { user } = useContext(Context);
   const [stats, setStats] = useState(null);
+  const [statsLoaded, setStatsLoaded] = useState(false);
   const [chunkData, setChunkData] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
-    getStatistics(player.id, player.cur_par_set_id).then((stats) => {
-      setStats(stats);
-    });
+    setStatsLoaded(false);
+    getStatistics(player.id, player.cur_par_set_id)
+      .then((stats) => {
+        setStats(stats);
+      })
+      .finally(() => {
+        setStatsLoaded(true);
+      });
   }, [player]);
 
   useEffect(() => {
@@ -120,10 +126,11 @@ export default function PlayerCard({ player, parSets = [], onChangeParSet }) {
   };
 
   const currentParSet = parSets.find((set) => set.id === player.cur_par_set_id);
+  const hasGameData = stats != null && stats.games_num > 0;
 
   return (
-    <Card sx={{ p: 1.5 }}>
-      <Stack width={"100%"} direction="column">
+    <Card sx={{ p: 1.5, height: "100%" }}>
+      <Stack width={"100%"} height={"100%"} direction="column">
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
           {player ? player.name : ""}
         </Typography>
@@ -148,68 +155,88 @@ export default function PlayerCard({ player, parSets = [], onChangeParSet }) {
             </Typography>
           </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Геймов:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.games_num ?? "—"}
-            </Typography>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Остановок:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.stops_num ?? "—"}
-            </Typography>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Взрывов:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.crashes_num ?? "—"}
-            </Typography>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Счёт:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.total_score ?? "—"}
-            </Typography>
-          </Stack>
+          {hasGameData ? (
+            <>
+              <Stack width={"100%"} direction="row" spacing={0.5}>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Геймов:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  {stats.games_num}
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Остановок:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  {stats.stops_num}
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Взрывов:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  {stats.crashes_num}
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Счёт:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  {stats.total_score}
+                </Typography>
+              </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Остановка по сигналу:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.stop_on_signal_num ?? "—"} μ=
-              {stats?.mean_stop_on_signal != null ? stats.mean_stop_on_signal.toFixed(3) : "—"} σ=
-              {stats?.stdev_stop_on_signal != null ? stats.stdev_stop_on_signal.toFixed(3) : "—"}
-            </Typography>
-          </Stack>
+              <Stack width={"100%"} direction="row" spacing={0.5}>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Остановка по сигналу:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  n={stats.stop_on_signal_num} μ=
+                  {stats.mean_stop_on_signal != null ? stats.mean_stop_on_signal.toFixed(3) : "—"} σ=
+                  {stats.stdev_stop_on_signal != null ? stats.stdev_stop_on_signal.toFixed(3) : "—"}
+                </Typography>
+              </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Запрос информации по сигналу:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.hint_on_signal_num ?? "—"} μ=
-              {stats?.mean_hint_on_signal != null ? stats.mean_hint_on_signal.toFixed(3) : "—"} σ=
-              {stats?.stdev_hint_on_signal != null ? stats.stdev_hint_on_signal.toFixed(3) : "—"}
-            </Typography>
-          </Stack>
+              <Stack width={"100%"} direction="row" spacing={0.5}>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Запрос информации по сигналу:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  n={stats.hint_on_signal_num} μ=
+                  {stats.mean_hint_on_signal != null ? stats.mean_hint_on_signal.toFixed(3) : "—"} σ=
+                  {stats.stdev_hint_on_signal != null ? stats.stdev_hint_on_signal.toFixed(3) : "—"}
+                </Typography>
+              </Stack>
 
-          <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Продолжение после сигнала:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.continue_after_signal_num ?? "—"} μ=
-              {stats?.mean_continue_after_signal != null ? stats.mean_continue_after_signal.toFixed(3) : "—"} σ=
-              {stats?.stdev_continue_after_signal != null ? stats.stdev_continue_after_signal.toFixed(3) : "—"}
-            </Typography>
-          </Stack>
+              <Stack width={"100%"} direction="row" spacing={0.5}>
+                <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
+                  Продолжение после сигнала:
+                </Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+                  n={stats.continue_after_signal_num} μ=
+                  {stats.mean_continue_after_signal != null ? stats.mean_continue_after_signal.toFixed(3) : "—"} σ=
+                  {stats.stdev_continue_after_signal != null ? stats.stdev_continue_after_signal.toFixed(3) : "—"}
+                </Typography>
+              </Stack>
+            </>
+          ) : null}
         </Stack>
 
-        {chunkData ? (
+        {!hasGameData && statsLoaded && (
+          <Stack
+            flexGrow={1}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ py: 4 }}
+          >
+            <Typography
+              sx={{ color: "text.secondary", fontSize: 20, textAlign: "center" }}
+              component="div"
+            >
+              Данные по игре с этим набором параметров отсутствуют
+            </Typography>
+          </Stack>
+        )}
+
+        {hasGameData && chunkData ? (
           <Stack>
             <Typography>{chunkData.chartTitle}</Typography>
             <Chart options={options} data={chunkData} />
@@ -218,7 +245,7 @@ export default function PlayerCard({ player, parSets = [], onChangeParSet }) {
           <></>
         )}
 
-        <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
+        <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center", mt: "auto", pt: 1 }}>
           <Button
             variant="contained"
             sx={{ flexGrow: 1 }}
