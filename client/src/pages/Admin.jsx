@@ -30,7 +30,7 @@ const Admin = observer(() => {
                     navigate(ADMIN_USER_ROUTE + "?group_name=&page=1");
                   }}
                 >
-                  Изменить пользователя
+                  Пользователи
                 </Button>
               </Grid>
               <Grid size={4}>
@@ -41,7 +41,7 @@ const Admin = observer(() => {
                     navigate(ADMIN_GRAPH_ROUTE);
                   }}
                 >
-                  Изменить пройденную игру
+                  Пройденные игры
                 </Button>
               </Grid>
               <Grid size={4}>
@@ -52,7 +52,7 @@ const Admin = observer(() => {
                     navigate(ADMIN_PARSET_ROUTE);
                   }}
                 >
-                  Изменить набор параметров
+                  Наборы параметров
                 </Button>
               </Grid>
               <Grid size={4}>
@@ -63,7 +63,7 @@ const Admin = observer(() => {
                     navigate(ADMIN_TESTS_ROUTE);
                   }}
                 >
-                  Управление тестами
+                  Тесты
                 </Button>
               </Grid>
               <Grid size={4}>
@@ -74,7 +74,7 @@ const Admin = observer(() => {
                     navigate(ADMIN_GROUP_ROUTE);
                   }}
                 >
-                  Изменить группу
+                  Группы
                 </Button>
               </Grid>
             </Grid>

@@ -50,8 +50,6 @@ const formatParSetLabel = (parSet) =>
   parSetLabel(parSet) +
   " | a: " +
   parSet.a +
-  " | a: " +
-  parSet.a +
   " | b: " +
   parSet.b +
   " | мат. ож.: " +
