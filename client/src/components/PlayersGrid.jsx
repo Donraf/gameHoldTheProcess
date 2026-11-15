@@ -8,10 +8,10 @@ const PlayersGrid = observer(({ players }) => {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
-        {players ? (
+        {players && players.length > 0 ? (
           players.map((player) => (
-            <Grid size={4}>
-              <PlayerCard key={player.user_id} player={player} />
+            <Grid key={player.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              <PlayerCard player={player} />
             </Grid>
           ))
         ) : (

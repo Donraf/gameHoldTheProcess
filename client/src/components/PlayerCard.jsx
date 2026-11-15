@@ -3,7 +3,6 @@ import {
   Card,
   Divider,
   Modal,
-  Pagination,
   Paper,
   Stack,
   Table,
@@ -32,7 +31,7 @@ import { Chart } from "react-chartjs-2";
 import { RESEARCHER_USER_ROUTE, USER_ROLE_ADMIN } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { ModalContent } from "./ModalContent";
-import { getParSets, getParSetsPageCount } from "../http/graphAPI";
+import { getParSets } from "../http/graphAPI";
 import { updateUserParSet } from "../http/userAPI";
 import { useSnackbar } from "notistack";
 import ChangeIcon from "./icons/ChangeIcon";
@@ -127,8 +126,6 @@ export default function PlayerCard({ player }) {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
   const [stats, setStats] = useState(null);
-  const [page, setPage] = React.useState(1);
-  const [pageCount, setPageCount] = React.useState(1);
 
   const chartRef = useRef(null);
   const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
@@ -159,7 +156,9 @@ export default function PlayerCard({ player }) {
     getParSetsUI().then(() => {
       setIsDataFetched(true);
     });
-  }, [page]);
+    // Наборы параметров загружаются один раз целиком (getParSets(-1)).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const newSelectedParSetId = player.cur_par_set_id;
@@ -174,9 +173,7 @@ export default function PlayerCard({ player }) {
   }, [stats]);
 
   const getParSetsUI = async () => {
-    const filteredDataFromQuery = await getParSets();
-    const newPageCount = await getParSetsPageCount();
-    setPageCount(newPageCount);
+    const filteredDataFromQuery = await getParSets(-1);
     setFilteredData(filteredDataFromQuery);
   };
 
@@ -389,8 +386,8 @@ export default function PlayerCard({ player }) {
           <Typography variant="h4" noWrap component="div">
             Выберите новый набор параметров
           </Typography>
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+            <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
                   <TableCell />
@@ -443,20 +440,6 @@ export default function PlayerCard({ player }) {
               </TableBody>
             </Table>
           </TableContainer>
-          {isDataFetched ? (
-            <Pagination
-              sx={{ pt: 2 }}
-              count={pageCount}
-              page={page}
-              onChange={(event, value) => {
-                setPage(value);
-              }}
-              variant="outlined"
-              shape="rounded"
-            />
-          ) : (
-            <></>
-          )}
           {isDataFetched ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
           <Button
             sx={{ width: "fit-content", height: 40 }}
