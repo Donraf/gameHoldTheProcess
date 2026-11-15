@@ -337,3 +337,23 @@ export const setGroupActive = async (id, isActive) => {
     throw e;
   }
 };
+
+export const getMergePreview = async (keepId, dropId) => {
+  try {
+    const { data } = await $authHost.get("api/user/mergePreview", {
+      params: { keep_id: keepId, drop_id: dropId },
+    });
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const mergeUsers = async (input) => {
+  try {
+    const { data } = await $authHost.post("api/user/merge", input);
+    return data;
+  } catch (e) {
+    throw e;
+  }
+};

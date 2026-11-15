@@ -31,6 +31,8 @@ import { createUser, deleteUser, fetchUsers, getAllGroups, getUsersPageCount, up
 import ImageButton from "../components/ImageButton/ImageButton";
 import DeleteIcon from "../components/icons/DeleteIcon";
 import EditIcon from "../components/icons/EditIcon";
+import MergeIcon from "../components/icons/MergeIcon";
+import MergeUsersModal from "../components/MergeUsersModal";
 import { useSnackbar } from "notistack";
 import { useSearchParams } from "react-router-dom";
 
@@ -77,6 +79,7 @@ const AdminUser = () => {
   const [open, setOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [mergeTarget, setMergeTarget] = useState(null);
   const [currentId, setCurrentId] = React.useState(0);
   const [pageCount, setPageCount] = React.useState(1);
 
@@ -509,7 +512,7 @@ const AdminUser = () => {
                   ) : (
                     filteredData.map((user) => (
                       <TableRow key={user.user_id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                        <TableCell sx={{ width: 75 }}>
+                        <TableCell sx={{ width: 115 }}>
                           <Stack direction="row" spacing={1}>
                             <ImageButton
                               disabled={user.user_id === userStore.user.user_id}
@@ -525,6 +528,15 @@ const AdminUser = () => {
                               }}
                             >
                               <EditIcon />
+                            </ImageButton>
+                            <ImageButton
+                              disabled={user.user_id === userStore.user.user_id}
+                              title="Объединить с другим аккаунтом"
+                              onClick={() => {
+                                setMergeTarget(user);
+                              }}
+                            >
+                              <MergeIcon />
                             </ImageButton>
                           </Stack>
                         </TableCell>
@@ -816,6 +828,17 @@ const AdminUser = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {mergeTarget != null ? (
+        <MergeUsersModal
+          open={mergeTarget != null}
+          onClose={() => setMergeTarget(null)}
+          sourceUser={mergeTarget}
+          onMerged={() => setRefreshTick((tick) => tick + 1)}
+        />
+      ) : (
+        <></>
+      )}
 
       <Dialog open={deleteOpen} onClose={handleDeleteClose}>
         <DialogTitle>Удалить пользователя?</DialogTitle>
