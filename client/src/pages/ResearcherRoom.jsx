@@ -11,7 +11,9 @@ import {
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
 import { getAllGroups, getPlayersPageCount, getPlayersStat } from "../http/userAPI";
+import { getParSets } from "../http/graphAPI";
 import PlayersGrid from "../components/PlayersGrid";
+import ChangeParSetModal from "../components/ChangeParSetModal";
 import { useSearchParams } from "react-router-dom";
 import { NO_GROUP_OPTION } from "../utils/constants";
 
@@ -26,6 +28,8 @@ const ResearcherRoom = () => {
   const [pageCount, setPageCount] = useState(1);
   const [fetchedGroups, setFetchedGroups] = useState([]);
   const [selectedGroupName, setSelectedGroupName] = useState(qGroupName);
+  const [parSets, setParSets] = useState([]);
+  const [parSetModalPlayer, setParSetModalPlayer] = useState(null);
 
   const filterData = useCallback(async () => {
     let filteredDataFromQuery;
@@ -46,7 +50,20 @@ const ResearcherRoom = () => {
 
   useEffect(() => {
     fetchGroups();
+    // Все наборы параметров грузим один раз на страницу — карточки
+    // игроков используют их через пропсы.
+    getParSets(-1).then((data) => {
+      setParSets(data);
+    });
   }, []);
+
+  const handleParSetUpdated = (playerId, newParSetId) => {
+    setFilteredData((prev) =>
+      prev.map((player) =>
+        player.id === playerId ? { ...player, cur_par_set_id: newParSetId } : player
+      )
+    );
+  };
 
   useEffect(() => {
     setIsDataFetched(false);
@@ -91,7 +108,11 @@ const ResearcherRoom = () => {
               }
             }}
           />
-          <PlayersGrid players={filteredData} />
+          <PlayersGrid
+            players={filteredData}
+            parSets={parSets}
+            onChangeParSet={(player) => setParSetModalPlayer(player)}
+          />
           {isDataFetched ? (
             <Pagination
               sx={{ pt: 2 }}
@@ -112,6 +133,14 @@ const ResearcherRoom = () => {
           )}
         </Stack>
       </Box>
+      {parSetModalPlayer && (
+        <ChangeParSetModal
+          player={parSetModalPlayer}
+          parSets={parSets}
+          onClose={() => setParSetModalPlayer(null)}
+          onUpdated={handleParSetUpdated}
+        />
+      )}
     </Box>
   );
 };

@@ -2,19 +2,10 @@ import {
   Button,
   Card,
   Divider,
-  Modal,
-  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
-import { ChartData } from "../utils/ChartData";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   LineController,
@@ -30,14 +21,9 @@ import {
 import { Chart } from "react-chartjs-2";
 import { RESEARCHER_USER_ROUTE, USER_ROLE_ADMIN } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
-import { ModalContent } from "./ModalContent";
-import { getParSets } from "../http/graphAPI";
-import { updateUserParSet } from "../http/userAPI";
 import { useSnackbar } from "notistack";
 import ChangeIcon from "./icons/ChangeIcon";
 import StatisticsIcon from "./icons/StatisticsIcon";
-import RadioCheckedIcon from "./icons/RadioCheckedIcon";
-import RadioUncheckedIcon from "./icons/RadioUncheckedIcon";
 import { computeStatistics, getStatistics } from "../http/statisticsAPI";
 import { parSetLabel } from "../utils/parSet";
 import { Context } from "..";
@@ -75,142 +61,65 @@ export const options = {
   },
 };
 
-function createChartData(parSet) {
-  let chartData = new ChartData(0);
-  chartData.setParSet(parSet);
-  while (!chartData.isCrashed() && chartData.points.length <= 200) {
-    chartData.generateNextPoint();
-  }
-  return chartData.getFullData();
-}
-
 function formChoiceChartData(choiceStats) {
   try {
-  if (!choiceStats || choiceStats === "{}") return null;
-  var jsCS = JSON.parse(choiceStats);
-  const labels = Object.keys(jsCS[jsCS.length - 1].ChunkChoiceStat);
-  const chunk = jsCS[jsCS.length - 1];
-  const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
-  const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
-  const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
-  for (const j in chunk.ChunkChoiceStat) {
-    if (chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel === 0) {
-      hintDS.data.push(NaN);
-      contDS.data.push(NaN);
-      stopDS.data.push(NaN);
-    } else {
-      hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
-      contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
-      stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
+    if (!choiceStats || choiceStats === "{}") return null;
+    const jsCS = JSON.parse(choiceStats);
+    const labels = Object.keys(jsCS[jsCS.length - 1].ChunkChoiceStat);
+    const chunk = jsCS[jsCS.length - 1];
+    const hintDS = { label: "Подсказка", type: "line", borderColor: "rgb(255,0,0)", spanGaps: true, data: [] };
+    const contDS = { label: "Продолжение", type: "line", borderColor: "rgb(0,0,255)", spanGaps: true, data: [] };
+    const stopDS = { label: "Остановка", type: "line", borderColor: "rgb(0,255,0)", spanGaps: true, data: [] };
+    for (const j in chunk.ChunkChoiceStat) {
+      if (chunk.ChunkChoiceStat[j].HintRel + chunk.ChunkChoiceStat[j].ContRel + chunk.ChunkChoiceStat[j].StopRel === 0) {
+        hintDS.data.push(NaN);
+        contDS.data.push(NaN);
+        stopDS.data.push(NaN);
+      } else {
+        hintDS.data.push(chunk.ChunkChoiceStat[j].HintRel);
+        contDS.data.push(chunk.ChunkChoiceStat[j].ContRel);
+        stopDS.data.push(chunk.ChunkChoiceStat[j].StopRel);
+      }
     }
-  }
 
-  return {
-    chartTitle: "Все точки принятия решений",
-    labels: labels,
-    datasets: [hintDS, contDS, stopDS],
-  };
+    return {
+      chartTitle: "Все точки принятия решений",
+      labels: labels,
+      datasets: [hintDS, contDS, stopDS],
+    };
   } catch {
-  return {
-    chartTitle: "Ошибка",
-    labels: [],
-    datasets: [],
-  };
+    return {
+      chartTitle: "Ошибка",
+      labels: [],
+      datasets: [],
+    };
   }
-  
 }
 
-export default function PlayerCard({ player }) {
+export default function PlayerCard({ player, parSets = [], onChangeParSet }) {
   const navigate = useNavigate();
   const { user } = useContext(Context);
-  const [isDataFetched, setIsDataFetched] = useState(false);
-  const [filteredData, setFilteredData] = useState(null);
   const [stats, setStats] = useState(null);
-
-  const chartRef = useRef(null);
-  const [selectedParSetId, setSelectedParSetId] = React.useState(player.cur_par_set_id);
-
   const [chunkData, setChunkData] = useState(null);
-
-  let chartData = isDataFetched ? createChartData(filteredData.find((set) => set.id === selectedParSetId)) : null;
-
-  const [isChangeParSetModalOpened, setIsChangeParSetModalOpened] = React.useState(false);
-  const handleOpenChangeParSetModal = () => setIsChangeParSetModalOpened(true);
-  const handleCloseChangeParSetModal = () => setIsChangeParSetModalOpened(false);
-
-  const [snackErrTexts, setSnackErrTexts] = React.useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
-    snackErrTexts.map((text) =>
-      enqueueSnackbar(text, {
-        variant: "error",
-        autoHideDuration: 3000,
-        preventDuplicate: true,
-      })
-    );
-  }, [snackErrTexts, enqueueSnackbar]);
-
-  useEffect(() => {
-    setIsDataFetched(false);
-    getParSetsUI().then(() => {
-      setIsDataFetched(true);
-    });
-    // Наборы параметров загружаются один раз целиком (getParSets(-1)).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const newSelectedParSetId = player.cur_par_set_id;
-    getStatistics(player.id, newSelectedParSetId).then((stats) => {
+    getStatistics(player.id, player.cur_par_set_id).then((stats) => {
       setStats(stats);
     });
-    setSelectedParSetId(player.cur_par_set_id);
   }, [player]);
 
   useEffect(() => {
     setChunkData(formChoiceChartData(stats?.choice_stats));
   }, [stats]);
 
-  const getParSetsUI = async () => {
-    const filteredDataFromQuery = await getParSets(-1);
-    setFilteredData(filteredDataFromQuery);
-  };
-
-  const updateUserUi = () => {
-    let snackErrors = [];
-    if (selectedParSetId === player.cur_par_set_id) {
-      snackErrors.push("Игрок уже играет с этим набором параметров");
-    }
-    if (snackErrors.length !== 0) {
-      setSnackErrTexts(snackErrors);
-      return;
-    }
-
-    updateUserParSet(player.id, selectedParSetId).then(
-      (_) => {
-        enqueueSnackbar("Набор параметров обновлен", {
-          variant: "success",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
-        player.cur_par_set_id = selectedParSetId;
-      },
-      (_) => {
-        enqueueSnackbar("Ошибка при обновлении набора параметров", {
-          variant: "error",
-          autoHideDuration: 3000,
-          preventDuplicate: true,
-        });
-      }
-    );
-  };
-
   const computeStats = async () => {
-    computeStatistics(player.id, selectedParSetId).then((stats) => {
-      setStats(stats);
+    computeStatistics(player.id, player.cur_par_set_id).then((newStats) => {
+      setStats(newStats);
     });
   };
+
+  const currentParSet = parSets.find((set) => set.id === player.cur_par_set_id);
 
   return (
     <Card sx={{ p: 1.5 }}>
@@ -232,12 +141,8 @@ export default function PlayerCard({ player }) {
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
               {player
-                ? isDataFetched && filteredData !== null
-                  ? parSetLabel(
-                      filteredData.find((set) => set.id === player.cur_par_set_id) ?? {
-                        id: player.cur_par_set_id,
-                      }
-                    )
+                ? currentParSet
+                  ? parSetLabel(currentParSet)
                   : `№${player.cur_par_set_id}`
                 : ""}
             </Typography>
@@ -248,25 +153,25 @@ export default function PlayerCard({ player }) {
               Геймов:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.games_num != null ? stats?.games_num : "???"}
+              {stats?.games_num ?? "—"}
             </Typography>
             <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Остановок:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.stops_num != null ? stats?.stops_num : "???"}
+              {stats?.stops_num ?? "—"}
             </Typography>
             <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Взрывов:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.crashes_num != null ? stats?.crashes_num : "???"}
+              {stats?.crashes_num ?? "—"}
             </Typography>
             <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Счёт:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              {stats?.total_score != null ? stats?.total_score : "???"}
+              {stats?.total_score ?? "—"}
             </Typography>
           </Stack>
 
@@ -275,9 +180,9 @@ export default function PlayerCard({ player }) {
               Остановка по сигналу:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
-              {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
-              {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+              n={stats?.stop_on_signal_num ?? "—"} μ=
+              {stats?.mean_stop_on_signal != null ? stats.mean_stop_on_signal.toFixed(3) : "—"} σ=
+              {stats?.stdev_stop_on_signal != null ? stats.stdev_stop_on_signal.toFixed(3) : "—"}
             </Typography>
           </Stack>
 
@@ -286,31 +191,20 @@ export default function PlayerCard({ player }) {
               Запрос информации по сигналу:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
-              {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
-              {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
+              n={stats?.hint_on_signal_num ?? "—"} μ=
+              {stats?.mean_hint_on_signal != null ? stats.mean_hint_on_signal.toFixed(3) : "—"} σ=
+              {stats?.stdev_hint_on_signal != null ? stats.stdev_hint_on_signal.toFixed(3) : "—"}
             </Typography>
           </Stack>
-
-          {/* <Stack width={"100%"} direction="row" spacing={0.5}>
-            <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
-              Запрос информации без сигнала:
-            </Typography>
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.hint_without_signal_num != null ? stats?.hint_without_signal_num : "???"} μ=
-              {stats?.mean_hint_without_signal != null ? stats?.mean_hint_without_signal.toFixed(3) : "???"} σ=
-              {stats?.stdev_hint_without_signal != null ? stats?.stdev_hint_without_signal.toFixed(3) : "???"}
-            </Typography>
-          </Stack> */}
 
           <Stack width={"100%"} direction="row" spacing={0.5}>
             <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
               Продолжение после сигнала:
             </Typography>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
-              {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
-              {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
+              n={stats?.continue_after_signal_num ?? "—"} μ=
+              {stats?.mean_continue_after_signal != null ? stats.mean_continue_after_signal.toFixed(3) : "—"} σ=
+              {stats?.stdev_continue_after_signal != null ? stats.stdev_continue_after_signal.toFixed(3) : "—"}
             </Typography>
           </Stack>
         </Stack>
@@ -318,7 +212,7 @@ export default function PlayerCard({ player }) {
         {chunkData ? (
           <Stack>
             <Typography>{chunkData.chartTitle}</Typography>
-            <Chart ref={chartRef} options={options} data={chunkData} />
+            <Chart options={options} data={chunkData} />
           </Stack>
         ) : (
           <></>
@@ -327,9 +221,7 @@ export default function PlayerCard({ player }) {
         <Stack width={"100%"} direction="row" spacing={2} sx={{ alignItems: "center" }}>
           <Button
             variant="contained"
-            sx={{              height: "50%",
-              flexGrow: 1,
-}}
+            sx={{ flexGrow: 1 }}
             onClick={() => {
               navigate(`${RESEARCHER_USER_ROUTE}/${player.id}`);
             }}
@@ -340,118 +232,28 @@ export default function PlayerCard({ player }) {
           {user.isAuth && user.user.role === USER_ROLE_ADMIN && (
             <Button
               variant="contained"
-              sx={{              height: "50%",
-                flexGrow: 1,
-}}
-              onClick={() => {
-                handleOpenChangeParSetModal();
-              }}
+              sx={{ flexGrow: 1 }}
+              onClick={() => onChangeParSet?.(player)}
               startIcon={<ChangeIcon />}
             >
               Изменить набор параметров
             </Button>
           )}
         </Stack>
-      </Stack>
 
-      {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
-        <Button
-          variant="contained"
-          sx={{            height: "50%",
-            flexGrow: 1,
-}}
-          onClick={() => {
-            computeStats();
-          }}
-          startIcon={<StatisticsIcon />}
-        >
-          Рассчитать статистику
-        </Button>
-      ) : (
-        <></>
-      )}
-
-      <Modal
-        sx={{
-          position: "fixed",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        open={isChangeParSetModalOpened}
-        onClose={handleCloseChangeParSetModal}
-      >
-        <ModalContent sx={{ width: 800 }}>
-          <Typography variant="h4" noWrap component="div">
-            Выберите новый набор параметров
-          </Typography>
-          <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-            <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell />
-                  <TableCell>ID</TableCell>
-                  <TableCell>Название</TableCell>
-                  <TableCell>Коэф. a</TableCell>
-                  <TableCell>Коэф. b</TableCell>
-                  <TableCell>Мат. ожидание помехи</TableCell>
-                  <TableCell>Стандартное отклонение помехи</TableCell>
-                  <TableCell>Вероятность ложной тревоги</TableCell>
-                  <TableCell>Вероятность пропуска цели</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {isDataFetched ? (
-                  filteredData.map((parSet) => (
-                    <TableRow
-                      key={parSet.id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                      onClick={() => {
-                        setSelectedParSetId(parSet.id);
-                      }}
-                    >
-                      <TableCell>
-                        {(() => {
-                          if (parSet.id === player.cur_par_set_id) {
-                            return <>Текущий</>;
-                          } else if (parSet.id === selectedParSetId) {
-                            return <RadioCheckedIcon />;
-                          } else {
-                            return <RadioUncheckedIcon />;
-                          }
-                        })()}
-                      </TableCell>
-                      <TableCell component="th" scope="row">
-                        {parSet.id}
-                      </TableCell>
-                      <TableCell>{parSet.name?.trim() || "—"}</TableCell>
-                      <TableCell>{parSet.a}</TableCell>
-                      <TableCell>{parSet.b}</TableCell>
-                      <TableCell>{parSet.noise_mean}</TableCell>
-                      <TableCell>{parSet.noise_stdev}</TableCell>
-                      <TableCell>{parSet.false_warning_prob}</TableCell>
-                      <TableCell>{parSet.missing_danger_prob}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <></>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {isDataFetched ? <Chart ref={chartRef} options={options} data={chartData} /> : <></>}
+        {user.isAuth && user.user.role === USER_ROLE_ADMIN && (
           <Button
-            sx={{ width: "fit-content", height: 40 }}
             variant="contained"
+            sx={{ mt: 1 }}
             onClick={() => {
-              updateUserUi();
+              computeStats();
             }}
+            startIcon={<StatisticsIcon />}
           >
-            Обновить набор параметров
+            Рассчитать статистику
           </Button>
-        </ModalContent>
-      </Modal>
+        )}
+      </Stack>
     </Card>
   );
 }
