@@ -54,6 +54,18 @@ const InfoRow = ({ label, value }) => (
   </Stack>
 );
 
+// Карточка ключевой метрики: крупное значение + подпись.
+const MetricCard = ({ label, value }) => (
+  <Paper sx={{ px: 3, py: 2, minWidth: 150, textAlign: "center" }} elevation={2}>
+    <Typography sx={{ fontSize: 28, fontWeight: "bold", lineHeight: 1.2 }} component="div">
+      {value}
+    </Typography>
+    <Typography sx={{ fontSize: 14, color: "text.secondary" }} component="div">
+      {label}
+    </Typography>
+  </Paper>
+);
+
 // Заголовок секции страницы: единый стиль вместо разрозненных fontSize.
 const SectionTitle = ({ children }) => (
   <Typography variant="h6" component="h2" sx={{ fontWeight: "bold" }}>
@@ -368,25 +380,44 @@ const ResearcherUser = () => {
             </Typography>
           ) : (
             <>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Всего геймов {stats.games_num}. Из них остановок - {stats.stops_num}, взрывов -{" "}
-            {stats.crashes_num}. Итоговый счёт {stats.total_score}.
-          </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка по сигналу n={stats.stop_on_signal_num} μ=
-            {stats.mean_stop_on_signal.toFixed(3)} σ=
-            {stats.stdev_stop_on_signal.toFixed(3)}
-          </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации по сигналу n={stats.hint_on_signal_num} μ=
-            {stats.mean_hint_on_signal.toFixed(3)} σ=
-            {stats.stdev_hint_on_signal.toFixed(3)}
-          </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Продолжение после сигнала n={stats.continue_after_signal_num} μ=
-            {stats.mean_continue_after_signal.toFixed(3)} σ=
-            {stats.stdev_continue_after_signal.toFixed(3)}
-          </Typography>
+          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            <MetricCard label="Всего геймов" value={stats.games_num} />
+            <MetricCard label="Остановок" value={stats.stops_num} />
+            <MetricCard label="Взрывов" value={stats.crashes_num} />
+            <MetricCard label="Итоговый счёт" value={stats.total_score} />
+          </Stack>
+          <TableContainer component={Paper} sx={{ maxWidth: 700 }}>
+            <Table size="small" aria-label="reaction stats table">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>Реакция</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>n</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>μ</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: "bold" }}>σ</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Остановка по сигналу</TableCell>
+                  <TableCell align="right">{stats.stop_on_signal_num}</TableCell>
+                  <TableCell align="right">{stats.mean_stop_on_signal.toFixed(3)}</TableCell>
+                  <TableCell align="right">{stats.stdev_stop_on_signal.toFixed(3)}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Запрос информации по сигналу</TableCell>
+                  <TableCell align="right">{stats.hint_on_signal_num}</TableCell>
+                  <TableCell align="right">{stats.mean_hint_on_signal.toFixed(3)}</TableCell>
+                  <TableCell align="right">{stats.stdev_hint_on_signal.toFixed(3)}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Продолжение после сигнала</TableCell>
+                  <TableCell align="right">{stats.continue_after_signal_num}</TableCell>
+                  <TableCell align="right">{stats.mean_continue_after_signal.toFixed(3)}</TableCell>
+                  <TableCell align="right">{stats.stdev_continue_after_signal.toFixed(3)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
           <ResUserChoiceCharts choiceStats={stats.choice_stats}/>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box sx={{ flexGrow: 1 }}>
@@ -395,10 +426,10 @@ const ResearcherUser = () => {
                 Ост — остановки, Прд — продолжения, Зпр — запросы информации
               </Typography>
             </Box>
-            <Button variant="outlined" size="small" onClick={() => exportReactions("csv")} disabled={exporting}>
+            <Button variant="outlined" onClick={() => exportReactions("csv")} disabled={exporting}>
               CSV
             </Button>
-            <Button variant="outlined" size="small" onClick={() => exportReactions("xlsx")} disabled={exporting}>
+            <Button variant="outlined" onClick={() => exportReactions("xlsx")} disabled={exporting}>
               Excel
             </Button>
           </Stack>
