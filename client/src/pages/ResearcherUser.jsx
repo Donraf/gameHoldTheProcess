@@ -54,6 +54,13 @@ const InfoRow = ({ label, value }) => (
   </Stack>
 );
 
+// Заголовок секции страницы: единый стиль вместо разрозненных fontSize.
+const SectionTitle = ({ children }) => (
+  <Typography variant="h6" component="h2" sx={{ fontWeight: "bold" }}>
+    {children}
+  </Typography>
+);
+
 function formatExperience(years, months) {
   if (years == null && months == null) {
     return null;
@@ -284,7 +291,7 @@ const ResearcherUser = () => {
         <Toolbar />
         <Stack width={"100%"} direction="column" spacing={2}>
           <Typography variant="h4" component="h1">
-            Информация об игроке
+            Игрок
           </Typography>
           <Stack sx={{ maxWidth: 560 }} direction="column" spacing={0.5}>
             <InfoRow label="ФИО" value={player.name} />
@@ -304,10 +311,10 @@ const ResearcherUser = () => {
 
           <Divider />
 
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Пройденные тесты:
-          </Typography>
+          <SectionTitle>Пройденные тесты</SectionTitle>
           <PlayerTestResults userId={player.id} />
+
+          <Divider />
 
           {parSetsWithStats.length === 0 ? (
             <Typography
@@ -334,8 +341,9 @@ const ResearcherUser = () => {
           ) : (
             <></>
           )}
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Сводка по наборам параметров (клик по строке выбирает набор):
+          <SectionTitle>Сводка по наборам параметров</SectionTitle>
+          <Typography sx={{ color: "text.secondary", fontSize: 14 }} component="div">
+            Клик по строке выбирает набор для детальной статистики ниже
           </Typography>
           <PlayerParSetsSummary
             userId={player.id}
@@ -346,10 +354,10 @@ const ResearcherUser = () => {
               setSelectedParSetId(id);
             }}
           />
+          <Divider />
+
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-              Статистика по набору параметров:
-            </Typography>
+            <SectionTitle>Статистика по набору параметров</SectionTitle>
             <Chip
               color="primary"
               label={parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}
@@ -382,9 +390,12 @@ const ResearcherUser = () => {
           </Typography>
           <ResUserChoiceCharts choiceStats={stats.choice_stats}/>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Typography sx={{ fontSize: 16, fontWeight: "bold", flexGrow: 1 }} component="div">
-              Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
-            </Typography>
+            <Box sx={{ flexGrow: 1 }}>
+              <SectionTitle>Число реакций по значениям процесса</SectionTitle>
+              <Typography sx={{ color: "text.secondary", fontSize: 14 }} component="div">
+                Ост — остановки, Прд — продолжения, Зпр — запросы информации
+              </Typography>
+            </Box>
             <Button variant="outlined" size="small" onClick={() => exportReactions("csv")} disabled={exporting}>
               CSV
             </Button>
@@ -393,16 +404,14 @@ const ResearcherUser = () => {
             </Button>
           </Stack>
           <ResUserChoiceAbsTable choiceStats={stats.choice_stats_venger_charts}/>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Статистика по Венгеру:
-          </Typography>
+          <SectionTitle>Статистика по Венгеру</SectionTitle>
           <ResUserChoiceCharts choiceStats={stats.choice_stats_venger_charts}/>
           <ResUserVengerTable choiceStats={stats.choice_stats_venger_table}/>
             </>
           )}
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Вид события:
-          </Typography>
+          <Divider />
+
+          <SectionTitle>События</SectionTitle>
           <Stack direction="row" spacing={2} alignItems="center">
             <Autocomplete
               options={Array.from(EVENT_TYPE_MAP.keys())}
