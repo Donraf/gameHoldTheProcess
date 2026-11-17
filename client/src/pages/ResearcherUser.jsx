@@ -27,10 +27,9 @@ import { Context } from "..";
 import { USER_ROLE_ADMIN } from "../utils/constants";
 import { parSetLabel } from "../utils/parSet";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
-import ResUserCharts from "../components/ResUserCharts";
+import ResUserChoiceCharts from "../components/ResUserChoiceCharts";
 import ResUserChoiceAbsTable from "../components/ResUserChoiceAbsTable";
 import ResUserVengerTable from "../components/ResUserVengerTable";
-import ResUserVengerCharts from "../components/ResUserVengerCharts";
 import PlayerTestResults from "../components/PlayerTestResults";
 
 const EVENT_TYPE_MAP = new Map([
@@ -115,44 +114,26 @@ const ResearcherUser = () => {
     );
   }, [userId]);
 
-  const filterData = useCallback(
-    async (updatePage) => {
-      if (player === null || selectedParSetId === null) {
-        return;
-      }
-      const filteredDataFromQuery = await getPlayersEvents(
-        player.id,
-        selectedParSetId,
-        page,
-        EVENT_TYPE_MAP.get(selectedGroup)
-      );
-      const newPageCount = await getPlayersEventsPageCount(
-        player.id,
-        selectedParSetId,
-        EVENT_TYPE_MAP.get(selectedGroup)
-      );
-      const nextStats = await getStatistics(player.id, selectedParSetId);
-      setPageCount(newPageCount);
-      if (updatePage) setPage(1);
-      setFilteredData(filteredDataFromQuery);
-      setStats(nextStats);
-    },
-    [player, page, selectedGroup, selectedParSetId]
-  );
+  const filterData = useCallback(async () => {
+    if (player === null || selectedParSetId === null) {
+      return;
+    }
+    const [filteredDataFromQuery, newPageCount, nextStats] = await Promise.all([
+      getPlayersEvents(player.id, selectedParSetId, page, EVENT_TYPE_MAP.get(selectedGroup)),
+      getPlayersEventsPageCount(player.id, selectedParSetId, EVENT_TYPE_MAP.get(selectedGroup)),
+      getStatistics(player.id, selectedParSetId),
+    ]);
+    setPageCount(newPageCount);
+    setFilteredData(filteredDataFromQuery);
+    setStats(nextStats);
+  }, [player, page, selectedGroup, selectedParSetId]);
 
   useEffect(() => {
     setIsDataFetched(false);
-    filterData(false).then(() => {
+    filterData().then(() => {
       setIsDataFetched(true);
     });
-  }, [page, filterData]);
-
-  useEffect(() => {
-    setIsDataFetched(false);
-    filterData(true).then(() => {
-      setIsDataFetched(true);
-    });
-  }, [selectedParSetId, selectedGroup, filterData]);
+  }, [filterData]);
 
   const computeStats = async () => {
     computeStatistics(player.id, selectedParSetId).then((nextStats) => {
@@ -247,6 +228,7 @@ const ResearcherUser = () => {
             value={parSetsWithStats.find((parSet) => parSet.id === selectedParSetId) || null}
             onChange={(_, newValue) => {
               const newSelectedParSetId = newValue ? newValue.id : 0;
+              setPage(1);
               setSelectedParSetId(newSelectedParSetId);
             }}
             disableClearable
@@ -294,7 +276,7 @@ const ResearcherUser = () => {
             {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
-          <ResUserCharts choiceStats={stats?.choice_stats}/>
+          <ResUserChoiceCharts choiceStats={stats?.choice_stats}/>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
           </Typography>
@@ -302,7 +284,7 @@ const ResearcherUser = () => {
           <Typography sx={{ fontSize: 32, fontWeight: "bold" }} component="div">
             Статистика по Венгеру:
           </Typography>
-          <ResUserVengerCharts choiceStats={stats?.choice_stats_venger_charts}/>
+          <ResUserChoiceCharts choiceStats={stats?.choice_stats_venger_charts}/>
           <ResUserVengerTable choiceStats={stats?.choice_stats_venger_table}/>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
@@ -313,6 +295,7 @@ const ResearcherUser = () => {
             value={selectedGroup}
             onChange={(_, newValue) => {
               const newSelectedGroup = newValue ? newValue : "";
+              setPage(1);
               setSelectedGroup(newSelectedGroup);
             }}
             disableClearable
