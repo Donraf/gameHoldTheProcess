@@ -66,6 +66,30 @@ function formatExperience(years, months) {
   return parts.join(" ");
 }
 
+// Скачивание табличных данных (массив строк-массивов) в CSV или XLSX.
+const downloadCsv = (rows, fileName) => {
+  const escapeCell = (text) => `"${String(text).replaceAll('"', '""')}"`;
+  const lines = rows.map((row) => row.map((cell) => escapeCell(cell)).join(";"));
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${fileName}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const downloadXlsx = async (rows, fileName, colWidths) => {
+  const { utils, writeFile } = await import("xlsx");
+  const sheet = utils.aoa_to_sheet(rows);
+  if (colWidths) {
+    sheet["!cols"] = colWidths.map((wch) => ({ wch }));
+  }
+  const book = utils.book_new();
+  utils.book_append_sheet(book, sheet, "Данные");
+  writeFile(book, `${fileName}.xlsx`);
+};
+
 const ResearcherUser = () => {
   const { user } = useContext(Context);
   const { userId } = useParams();
@@ -144,6 +168,75 @@ const ResearcherUser = () => {
     computeStatistics(player.id, selectedParSetId).then((nextStats) => {
       setStats(nextStats);
     });
+  };
+
+  // Выгрузка всех событий по текущему фильтру (все страницы) в CSV или Excel.
+  const [exporting, setExporting] = useState(false);
+  const exportEvents = async (format) => {
+    if (exporting) {
+      return;
+    }
+    setExporting(true);
+    try {
+      const groupFilter = EVENT_TYPE_MAP.get(selectedGroup);
+      const totalPages = await getPlayersEventsPageCount(player.id, selectedParSetId, groupFilter);
+      let allEvents = [];
+      for (let p = 1; p <= totalPages; p++) {
+        const events = await getPlayersEvents(player.id, selectedParSetId, p, groupFilter);
+        allEvents = allEvents.concat(events);
+      }
+
+      const rows = [
+        ["Значение процесса", "События", "Текст подсказки"],
+        ...allEvents.map((event) => [
+          String(event.x.toFixed(2)).replace(".", ","),
+          event.name.join(" | "),
+          event.check_info ?? "",
+        ]),
+      ];
+      const fileName = `events_user${player.id}_parset${selectedParSetId}`;
+
+      if (format === "xlsx") {
+        await downloadXlsx(rows, fileName, [18, 60, 40]);
+      } else {
+        downloadCsv(rows, fileName);
+      }
+    } catch (e) {
+      notifyError("Ошибка при выгрузке событий");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Выгрузка сводной таблицы «Число реакций по значениям процесса» (статистика Венгера).
+  const exportReactions = async (format) => {
+    if (exporting) {
+      return;
+    }
+    setExporting(true);
+    try {
+      const chunks = JSON.parse(stats.choice_stats_venger_charts);
+      const stat = chunks[chunks.length - 1].ChunkChoiceStat;
+      const xs = Object.keys(stat).sort((a, b) => Number(a) - Number(b));
+
+      const rows = [
+        ["Вид реакции", ...xs],
+        ["Ост (остановки)", ...xs.map((x) => stat[x].StopAbs)],
+        ["Прд (продолжения)", ...xs.map((x) => stat[x].ContAbs)],
+        ["Зпр (запросы информации)", ...xs.map((x) => stat[x].HintAbs)],
+      ];
+      const fileName = `reactions_user${player.id}_parset${selectedParSetId}`;
+
+      if (format === "xlsx") {
+        await downloadXlsx(rows, fileName, [24]);
+      } else {
+        downloadCsv(rows, fileName);
+      }
+    } catch (e) {
+      notifyError("Ошибка при выгрузке таблицы реакций");
+    } finally {
+      setExporting(false);
+    }
   };
 
   // В селектор попадают только наборы, по которым есть посчитанная статистика.
@@ -286,9 +379,17 @@ const ResearcherUser = () => {
             {stats.stdev_continue_after_signal.toFixed(3)}
           </Typography>
           <ResUserChoiceCharts choiceStats={stats.choice_stats}/>
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
-          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold", flexGrow: 1 }} component="div">
+              Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
+            </Typography>
+            <Button variant="outlined" size="small" onClick={() => exportReactions("csv")} disabled={exporting}>
+              CSV
+            </Button>
+            <Button variant="outlined" size="small" onClick={() => exportReactions("xlsx")} disabled={exporting}>
+              Excel
+            </Button>
+          </Stack>
           <ResUserChoiceAbsTable choiceStats={stats.choice_stats_venger_charts}/>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Статистика по Венгеру:
@@ -300,20 +401,28 @@ const ResearcherUser = () => {
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
           </Typography>
-          <Autocomplete
-            options={Array.from(EVENT_TYPE_MAP.keys())}
-            renderInput={(params) => <TextField {...params} label="Выберите вид события" />}
-            value={selectedGroup}
-            onChange={(_, newValue) => {
-              const newSelectedGroup = newValue ? newValue : "";
-              setPage(1);
-              setSelectedGroup(newSelectedGroup);
-            }}
-            disableClearable
-            sx={{
-              flexGrow: 9,
-            }}
-          />
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Autocomplete
+              options={Array.from(EVENT_TYPE_MAP.keys())}
+              renderInput={(params) => <TextField {...params} label="Выберите вид события" />}
+              value={selectedGroup}
+              onChange={(_, newValue) => {
+                const newSelectedGroup = newValue ? newValue : "";
+                setPage(1);
+                setSelectedGroup(newSelectedGroup);
+              }}
+              disableClearable
+              sx={{
+                flexGrow: 9,
+              }}
+            />
+            <Button variant="outlined" onClick={() => exportEvents("csv")} disabled={exporting}>
+              {exporting ? "Выгрузка..." : "Выгрузить в CSV"}
+            </Button>
+            <Button variant="outlined" onClick={() => exportEvents("xlsx")} disabled={exporting}>
+              {exporting ? "Выгрузка..." : "Выгрузить в Excel"}
+            </Button>
+          </Stack>
           <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
             <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
