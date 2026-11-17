@@ -43,6 +43,17 @@ const EVENT_TYPE_MAP = new Map([
   ["Отклонение совета ИИ", "reject_advice"],
 ]);
 
+// Цвета чипов событий в таблице событий.
+const EVENT_CHIP_COLORS = new Map([
+  ["Взрыв", "error"],
+  ["Ручная остановка", "warning"],
+  ["Пауза", "warning"],
+  ["Использована подсказка", "info"],
+  ["Верный совет ИИ", "success"],
+  ["Ложный совет ИИ", "error"],
+  ["Отклонение совета ИИ", "default"],
+]);
+
 const InfoRow = ({ label, value }) => (
   <Stack width={"100%"} direction="row" spacing={0.5}>
     <Typography sx={{ color: "text.secondary", fontSize: 16, fontWeight: "medium" }} component="div">
@@ -474,19 +485,44 @@ const ResearcherUser = () => {
               </TableHead>
               <TableBody>
                 {isDataFetched && filteredData !== null ? (
-                  filteredData.map((event) => (
-                    <TableRow key={event.x} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                      <TableCell width={60} component="th" scope="row">
-                        {event.x.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        {event.name.join(" | ") +
-                          (event.check_info ? ' | Текст подсказки: "' + event.check_info + '"' : "")}
+                  filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                        События не найдены
                       </TableCell>
                     </TableRow>
-                  ))
+                  ) : (
+                    filteredData.map((event) => (
+                      <TableRow key={event.x} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                        <TableCell width={60} component="th" scope="row">
+                          {event.x.toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap alignItems="center">
+                            {event.name.map((name) => (
+                              <Chip
+                                key={name}
+                                size="small"
+                                color={EVENT_CHIP_COLORS.get(name) ?? "default"}
+                                label={name}
+                              />
+                            ))}
+                            {event.check_info ? (
+                              <Typography sx={{ fontSize: 14, color: "text.secondary" }} component="span">
+                                Текст подсказки: «{event.check_info}»
+                              </Typography>
+                            ) : null}
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )
                 ) : (
-                  <></>
+                  <TableRow>
+                    <TableCell colSpan={2} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                      Загрузка событий…
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
