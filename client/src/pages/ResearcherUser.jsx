@@ -28,6 +28,7 @@ import { USER_ROLE_ADMIN } from "../utils/constants";
 import { parSetLabel } from "../utils/parSet";
 import StatisticsIcon from "../components/icons/StatisticsIcon";
 import ResUserCharts from "../components/ResUserCharts";
+import ResUserChoiceAbsTable from "../components/ResUserChoiceAbsTable";
 import ResUserVengerTable from "../components/ResUserVengerTable";
 import ResUserVengerCharts from "../components/ResUserVengerCharts";
 import PlayerTestResults from "../components/PlayerTestResults";
@@ -294,6 +295,10 @@ const ResearcherUser = () => {
             {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
           </Typography>
           <ResUserCharts choiceStats={stats?.choice_stats}/>
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+            Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
+          </Typography>
+          <ResUserChoiceAbsTable choiceStats={stats?.choice_stats_venger_charts}/>
           <Typography sx={{ fontSize: 32, fontWeight: "bold" }} component="div">
             Статистика по Венгеру:
           </Typography>
