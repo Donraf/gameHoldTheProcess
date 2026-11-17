@@ -4,6 +4,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  Chip,
   CssBaseline,
   Divider,
   Pagination,
@@ -32,6 +33,7 @@ import ResUserChoiceCharts from "../components/ResUserChoiceCharts";
 import ResUserChoiceAbsTable from "../components/ResUserChoiceAbsTable";
 import ResUserVengerTable from "../components/ResUserVengerTable";
 import PlayerTestResults from "../components/PlayerTestResults";
+import PlayerParSetsSummary from "../components/PlayerParSetsSummary";
 
 const EVENT_TYPE_MAP = new Map([
   ["Все события", ""],
@@ -307,9 +309,6 @@ const ResearcherUser = () => {
           </Typography>
           <PlayerTestResults userId={player.id} />
 
-          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Набор параметров:
-          </Typography>
           {parSetsWithStats.length === 0 ? (
             <Typography
               sx={{ color: "text.secondary", fontSize: 18, textAlign: "center", py: 4 }}
@@ -319,21 +318,6 @@ const ResearcherUser = () => {
             </Typography>
           ) : (
             <>
-          <Autocomplete
-            options={parSetsWithStats}
-            getOptionLabel={(parSet) => parSetLabel(parSet)}
-            renderInput={(params) => <TextField {...params} label="Выберите набор параметров" />}
-            value={parSetsWithStats.find((parSet) => parSet.id === selectedParSetId) || null}
-            onChange={(_, newValue) => {
-              const newSelectedParSetId = newValue ? newValue.id : 0;
-              setPage(1);
-              setSelectedParSetId(newSelectedParSetId);
-            }}
-            disableClearable
-            sx={{
-              flexGrow: 9,
-            }}
-          />
           {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
             <Button
               variant="contained"
@@ -351,8 +335,26 @@ const ResearcherUser = () => {
             <></>
           )}
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Статистика по набору параметров {parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}:
+            Сводка по наборам параметров (клик по строке выбирает набор):
           </Typography>
+          <PlayerParSetsSummary
+            userId={player.id}
+            parSets={parSetsWithStats}
+            selectedId={selectedParSetId}
+            onSelect={(id) => {
+              setPage(1);
+              setSelectedParSetId(id);
+            }}
+          />
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
+              Статистика по набору параметров:
+            </Typography>
+            <Chip
+              color="primary"
+              label={parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}
+            />
+          </Stack>
           {stats === null ? (
             <Typography sx={{ fontSize: 16, color: "text.secondary" }} component="div">
               Загрузка статистики…
