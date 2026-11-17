@@ -325,22 +325,6 @@ const ResearcherUser = () => {
             </Typography>
           ) : (
             <>
-          {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
-            <Button
-              variant="contained"
-              sx={{                height: "50%",
-                flexGrow: 1,
-}}
-              onClick={() => {
-                computeStats();
-              }}
-              startIcon={<StatisticsIcon />}
-            >
-              Рассчитать статистику
-            </Button>
-          ) : (
-            <></>
-          )}
           <SectionTitle>Сводка по наборам параметров</SectionTitle>
           <Typography sx={{ color: "text.secondary", fontSize: 14 }} component="div">
             Клик по строке выбирает набор для детальной статистики ниже
@@ -362,6 +346,21 @@ const ResearcherUser = () => {
               color="primary"
               label={parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}
             />
+            {user.isAuth && user.user.role === USER_ROLE_ADMIN ? (
+              <Button
+                variant="contained"
+                size="small"
+                sx={{ ml: "auto" }}
+                onClick={() => {
+                  computeStats();
+                }}
+                startIcon={<StatisticsIcon />}
+              >
+                Рассчитать статистику
+              </Button>
+            ) : (
+              <></>
+            )}
           </Stack>
           {stats === null ? (
             <Typography sx={{ fontSize: 16, color: "text.secondary" }} component="div">
