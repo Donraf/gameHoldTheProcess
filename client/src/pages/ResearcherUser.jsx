@@ -20,6 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import NavBarDrawer from "../components/NavBarDrawer";
+import { useSnackbar } from "notistack";
 import { fetchUser, getPlayersEvents, getPlayersEventsPageCount, getPlayersStat } from "../http/userAPI";
 import { useParams } from "react-router-dom";
 import { computeStatistics, getStatistics, getStatisticsParSetIds } from "../http/statisticsAPI";
@@ -68,6 +69,9 @@ function formatExperience(years, months) {
 const ResearcherUser = () => {
   const { user } = useContext(Context);
   const { userId } = useParams();
+  const { enqueueSnackbar } = useSnackbar();
+  const notifyError = (text) =>
+    enqueueSnackbar(text, { variant: "error", autoHideDuration: 4000, preventDuplicate: true });
 
   const [player, setPlayer] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -130,9 +134,10 @@ const ResearcherUser = () => {
 
   useEffect(() => {
     setIsDataFetched(false);
-    filterData().then(() => {
-      setIsDataFetched(true);
-    });
+    filterData()
+      .catch(() => notifyError("Ошибка при загрузке данных игрока"))
+      .finally(() => setIsDataFetched(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterData]);
 
   const computeStats = async () => {
@@ -186,7 +191,7 @@ const ResearcherUser = () => {
           <Typography variant="h4" component="h1">
             Информация об игроке
           </Typography>
-          <Stack width={"60%"} direction="column" spacing={0.5}>
+          <Stack sx={{ maxWidth: 560 }} direction="column" spacing={0.5}>
             <InfoRow label="ФИО" value={player.name} />
             <InfoRow label="Логин" value={profile?.login} />
             <InfoRow label="Профессия" value={profile?.profession} />
@@ -255,37 +260,43 @@ const ResearcherUser = () => {
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Статистика по набору параметров {parSetLabel(player.par_sets.find((parSet) => parSet.id === selectedParSetId) ?? { id: selectedParSetId })}:
           </Typography>
+          {stats === null ? (
+            <Typography sx={{ fontSize: 16, color: "text.secondary" }} component="div">
+              Загрузка статистики…
+            </Typography>
+          ) : (
+            <>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Всего геймов {stats?.games_num != null ? stats?.games_num : "???"}. Из них остановок -{" "}
-            {stats?.stops_num != null ? stats?.stops_num : "???"}, взрывов -{" "}
-            {stats?.crashes_num != null ? stats?.crashes_num : "???"}. Итоговый счёт{" "}
-            {stats?.total_score != null ? stats?.total_score : "???"}.
+            Всего геймов {stats.games_num}. Из них остановок - {stats.stops_num}, взрывов -{" "}
+            {stats.crashes_num}. Итоговый счёт {stats.total_score}.
           </Typography>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Остановка по сигналу n={stats?.stop_on_signal_num != null ? stats?.stop_on_signal_num : "???"} μ=
-            {stats?.mean_stop_on_signal != null ? stats?.mean_stop_on_signal.toFixed(3) : "???"} σ=
-            {stats?.stdev_stop_on_signal != null ? stats?.stdev_stop_on_signal.toFixed(3) : "???"}
+            Остановка по сигналу n={stats.stop_on_signal_num} μ=
+            {stats.mean_stop_on_signal.toFixed(3)} σ=
+            {stats.stdev_stop_on_signal.toFixed(3)}
           </Typography>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Запрос информации по сигналу n={stats?.hint_on_signal_num != null ? stats?.hint_on_signal_num : "???"} μ=
-            {stats?.mean_hint_on_signal != null ? stats?.mean_hint_on_signal.toFixed(3) : "???"} σ=
-            {stats?.stdev_hint_on_signal != null ? stats?.stdev_hint_on_signal.toFixed(3) : "???"}
+            Запрос информации по сигналу n={stats.hint_on_signal_num} μ=
+            {stats.mean_hint_on_signal.toFixed(3)} σ=
+            {stats.stdev_hint_on_signal.toFixed(3)}
           </Typography>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
-            Продолжение после сигнала n={stats?.continue_after_signal_num != null ? stats?.continue_after_signal_num : "???"} μ=
-            {stats?.mean_continue_after_signal != null ? stats?.mean_continue_after_signal.toFixed(3) : "???"} σ=
-            {stats?.stdev_continue_after_signal != null ? stats?.stdev_continue_after_signal.toFixed(3) : "???"}
+            Продолжение после сигнала n={stats.continue_after_signal_num} μ=
+            {stats.mean_continue_after_signal.toFixed(3)} σ=
+            {stats.stdev_continue_after_signal.toFixed(3)}
           </Typography>
-          <ResUserChoiceCharts choiceStats={stats?.choice_stats}/>
+          <ResUserChoiceCharts choiceStats={stats.choice_stats}/>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Число реакций по значениям процесса (Ост — остановки, Прд — продолжения, Зпр — запросы информации):
           </Typography>
-          <ResUserChoiceAbsTable choiceStats={stats?.choice_stats_venger_charts}/>
-          <Typography sx={{ fontSize: 32, fontWeight: "bold" }} component="div">
+          <ResUserChoiceAbsTable choiceStats={stats.choice_stats_venger_charts}/>
+          <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Статистика по Венгеру:
           </Typography>
-          <ResUserChoiceCharts choiceStats={stats?.choice_stats_venger_charts}/>
-          <ResUserVengerTable choiceStats={stats?.choice_stats_venger_table}/>
+          <ResUserChoiceCharts choiceStats={stats.choice_stats_venger_charts}/>
+          <ResUserVengerTable choiceStats={stats.choice_stats_venger_table}/>
+            </>
+          )}
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }} component="div">
             Вид события:
           </Typography>
