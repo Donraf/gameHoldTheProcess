@@ -1,4 +1,7 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Paper,
   Stack,
   Table,
@@ -112,48 +115,57 @@ export default function ResUserChoiceCharts({ choiceStats }) {
   return (
     <Grid container spacing={2}>
       {chunksData.map((cd, ind) => (
-        <Grid key={cd.chartTitle} size={4}>
+        <Grid key={cd.chartTitle} size={{ xs: 12, md: 4 }}>
           <Stack>
             <Typography>{cd.chartTitle}</Typography>
             <Chart ref={chartRef} options={options} data={cd} />
-            <TableContainer component={Paper}>
-              <Table aria-label="reaction counts table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Y</TableCell>
-                    <TableCell>Подсказка</TableCell>
-                    <TableCell>Продолжение</TableCell>
-                    <TableCell>Остановка</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Object.entries(chunks[ind].ChunkChoiceStat).map(([y, stat]) => (
-                    <TableRow key={y}>
-                      <TableCell>{y}</TableCell>
-                      {stat.HintAbs + stat.ContAbs + stat.StopAbs !== 0 ? (
-                        <>
-                          <TableCell>
-                            {stat.HintAbs} ({(stat.HintRel * 100).toFixed(1)}%)
-                          </TableCell>
-                          <TableCell>
-                            {stat.ContAbs} ({(stat.ContRel * 100).toFixed(1)}%)
-                          </TableCell>
-                          <TableCell>
-                            {stat.StopAbs} ({(stat.StopRel * 100).toFixed(1)}%)
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                          <TableCell>-</TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Accordion disableGutters>
+              <AccordionSummary
+                expandIcon={<Typography sx={{ fontSize: 18, lineHeight: 1 }}>▾</Typography>}
+              >
+                <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Таблица значений</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <TableContainer component={Paper}>
+                  <Table aria-label="reaction counts table">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Y</TableCell>
+                        <TableCell>Подсказка</TableCell>
+                        <TableCell>Продолжение</TableCell>
+                        <TableCell>Остановка</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {Object.entries(chunks[ind].ChunkChoiceStat).map(([y, stat]) => (
+                        <TableRow key={y}>
+                          <TableCell>{y}</TableCell>
+                          {stat.HintAbs + stat.ContAbs + stat.StopAbs !== 0 ? (
+                            <>
+                              <TableCell>
+                                {stat.HintAbs} ({(stat.HintRel * 100).toFixed(1)}%)
+                              </TableCell>
+                              <TableCell>
+                                {stat.ContAbs} ({(stat.ContRel * 100).toFixed(1)}%)
+                              </TableCell>
+                              <TableCell>
+                                {stat.StopAbs} ({(stat.StopRel * 100).toFixed(1)}%)
+                              </TableCell>
+                            </>
+                          ) : (
+                            <>
+                              <TableCell>-</TableCell>
+                              <TableCell>-</TableCell>
+                              <TableCell>-</TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </AccordionDetails>
+            </Accordion>
           </Stack>
         </Grid>
       ))}
