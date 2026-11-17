@@ -127,7 +127,7 @@ export default function ResUserChoiceCharts({ choiceStats }) {
               </AccordionSummary>
               <AccordionDetails sx={{ p: 0 }}>
                 <TableContainer component={Paper}>
-                  <Table aria-label="reaction counts table">
+                  <Table size="small" aria-label="reaction counts table">
                     <TableHead>
                       <TableRow>
                         <TableCell>Y</TableCell>

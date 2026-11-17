@@ -429,7 +429,18 @@ const ResearcherUser = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          <SectionTitle>Статистика по реакциям</SectionTitle>
+          <Typography sx={{ color: "text.secondary", fontSize: 14 }} component="div">
+            Реакции не взаимоисключающие: точка, где игрок запросил информацию и остановился,
+            учитывается в обеих категориях
+          </Typography>
           <ResUserChoiceCharts choiceStats={stats.choice_stats}/>
+          <SectionTitle>Статистика по Венгеру</SectionTitle>
+          <Typography sx={{ color: "text.secondary", fontSize: 14 }} component="div">
+            Реакции взаимоисключающие: если игрок запросил информацию, точка считается
+            только запросом информации
+          </Typography>
+          <ResUserChoiceCharts choiceStats={stats.choice_stats_venger_charts}/>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box sx={{ flexGrow: 1 }}>
               <SectionTitle>Число реакций по значениям процесса</SectionTitle>
@@ -445,8 +456,6 @@ const ResearcherUser = () => {
             </Button>
           </Stack>
           <ResUserChoiceAbsTable choiceStats={stats.choice_stats_venger_charts}/>
-          <SectionTitle>Статистика по Венгеру</SectionTitle>
-          <ResUserChoiceCharts choiceStats={stats.choice_stats_venger_charts}/>
           <ResUserVengerTable choiceStats={stats.choice_stats_venger_table}/>
             </>
           )}
@@ -475,8 +484,8 @@ const ResearcherUser = () => {
               {exporting ? "Выгрузка..." : "Выгрузить в Excel"}
             </Button>
           </Stack>
-          <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-            <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableContainer component={Paper} sx={{ maxHeight: 360, maxWidth: 900 }}>
+            <Table stickyHeader size="small" sx={{ minWidth: 500 }} aria-label="events table">
               <TableHead>
                 <TableRow>
                   <TableCell>Значение процесса</TableCell>
