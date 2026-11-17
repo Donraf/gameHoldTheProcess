@@ -11,87 +11,110 @@ import React from "react";
 
 function formTableData(choiceStats) {
   if (!choiceStats || choiceStats === "{}") return [];
-  var tableData = JSON.parse(choiceStats);
-  return tableData;
+  try {
+    return JSON.parse(choiceStats);
+  } catch {
+    return [];
+  }
 }
 
+const headCell = { fontWeight: "bold", textAlign: "center", border: "1px solid rgba(224, 224, 224, 1)" };
+const bodyCell = { textAlign: "center" };
+
+const Mark = ({ active }) => (active ? "1" : "—");
+
+/**
+ * Таблица Венгера: по каждому значению процесса — первый выбор игрока
+ * (продолжение/остановка/подсказка) и второй выбор после подсказки
+ * по уровням риска (высокий/средний/низкий).
+ */
 export default function ResUserVengerTable({ choiceStats }) {
   const tableData = formTableData(choiceStats);
+  if (!tableData || tableData.length === 0) {
+    return null;
+  }
+
   return (
-    <>
-      {tableData ? (
-        <TableContainer component={Paper}>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell width="10%">Y</TableCell>
-                <TableCell width="10%">1-й выбор</TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%">2-й выбор</TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%">Прд</TableCell>
-                <TableCell width="10%">Ост</TableCell>
-                <TableCell width="10%">Подск</TableCell>
-                <TableCell width="10%">Выс</TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%">Ср</TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%">Низ</TableCell>
-                <TableCell width="10%"></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%"></TableCell>
-                <TableCell width="10%">Прд</TableCell>
-                <TableCell width="10%">Ост</TableCell>
-                <TableCell width="10%">Прд</TableCell>
-                <TableCell width="10%">Ост</TableCell>
-                <TableCell width="10%">Прд</TableCell>
-                <TableCell width="10%">Ост</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tableData.map((point) => {
-                return (
-                  <TableRow>
-                    <TableCell>{point.Y}</TableCell>
-                    <TableCell>{point.ChoiceType === "cont" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "stop" ? 1 : "-"}</TableCell>
-                    <TableCell>
-                      {point.ChoiceType === "stopL" ||
-                      point.ChoiceType === "stopM" ||
-                      point.ChoiceType === "stopH" ||
-                      point.ChoiceType === "contL" ||
-                      point.ChoiceType === "contM" ||
-                      point.ChoiceType === "contH"
-                        ? 1
-                        : "-"}
-                    </TableCell>
-                    <TableCell>{point.ChoiceType === "contH" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "stopH" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "contM" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "stopM" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "contL" ? 1 : "-"}</TableCell>
-                    <TableCell>{point.ChoiceType === "stopL" ? 1 : "-"}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <></>
-      )}
-    </>
+    <TableContainer component={Paper} sx={{ maxWidth: 900 }}>
+      <Table size="small" aria-label="venger table">
+        <TableHead>
+          <TableRow>
+            <TableCell rowSpan={3} sx={headCell}>
+              Y
+            </TableCell>
+            <TableCell colSpan={3} sx={headCell}>
+              1-й выбор
+            </TableCell>
+            <TableCell colSpan={6} sx={headCell}>
+              2-й выбор после подсказки
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell rowSpan={2} sx={headCell}>
+              Прд
+            </TableCell>
+            <TableCell rowSpan={2} sx={headCell}>
+              Ост
+            </TableCell>
+            <TableCell rowSpan={2} sx={headCell}>
+              Подск
+            </TableCell>
+            <TableCell colSpan={2} sx={headCell}>
+              Выс
+            </TableCell>
+            <TableCell colSpan={2} sx={headCell}>
+              Ср
+            </TableCell>
+            <TableCell colSpan={2} sx={headCell}>
+              Низ
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell sx={headCell}>Прд</TableCell>
+            <TableCell sx={headCell}>Ост</TableCell>
+            <TableCell sx={headCell}>Прд</TableCell>
+            <TableCell sx={headCell}>Ост</TableCell>
+            <TableCell sx={headCell}>Прд</TableCell>
+            <TableCell sx={headCell}>Ост</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tableData.map((point, ind) => (
+            <TableRow key={`${point.Y}-${ind}`}>
+              <TableCell sx={bodyCell}>{point.Y}</TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "cont"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "stop"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark
+                  active={["stopL", "stopM", "stopH", "contL", "contM", "contH"].includes(point.ChoiceType)}
+                />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "contH"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "stopH"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "contM"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "stopM"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "contL"} />
+              </TableCell>
+              <TableCell sx={bodyCell}>
+                <Mark active={point.ChoiceType === "stopL"} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
